@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+.servi-blue {
+    background-color: #1f3d64;
+}
+.servi-dark {
+    background-color: #1F2F4A;
+}
+.servi-grey {
+    background-color: #293241;
+}
+.servi-white {
+    background-color: #ffffff;
+}
+.servi-yellow {
+    background-color: #D8B462;
+}
+.servi-blue-font {
+    color: #1f3d64;
+}
+.servi-dark-font {
+    color: #1F2F4A;
+}
+.servi-grey-font {
+    color: #293241;
+}
+.servi-white-font {
+    color: #ffffff;
+}
+.servi-yellow-font {
+    color: #D8B462;
+}
+

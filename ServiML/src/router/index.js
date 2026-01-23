@@ -1,8 +1,88 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { supabase } from '../lib/supabaseClient.js'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [],
+  routes: [
+    {
+      path: '/',
+      name: 'dashboard',
+      component: () => import('../views/dashboard.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/job-orders',
+      name: 'job-orders',
+      component: () => import('../views/JobOrders.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/configuracion',
+      name: 'configuracion',
+      component: () => import('../views/config.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/presupuestos',
+      name: 'presupuestos',
+      component: () => import('../views/presupuesto.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/presupuestos/editar/:id',
+      name: 'editarPresupuesto',
+      component: () => import('../views/CUpresupuesto.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/presupuestos/nuevo',
+      name: 'nuevoPresupuesto',
+      component: () => import('../views/CUpresupuesto.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/login.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/register.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
+      path: '/ordenes-de-trabajo',
+      name: 'ordenes-de-trabajo',
+      component: () => import('../views/JobOrders.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ordenes-de-trabajo/editar/:id',
+      name: 'editarOrdenDeTrabajo',
+      component: () => import('../views/CUjobOrder.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ordenes-de-trabajo/nuevo',
+      name: 'nuevaOrdenDeTrabajo',
+      component: () => import('../views/CUjobOrder.vue'),
+      meta: { requiresAuth: true }
+    },
+  ],
 })
+router.beforeEach(async (to, from, next) => {
+  const { data: { session } } = await supabase.auth.getSession()
 
+  if (to.meta.requiresAuth && !session) {
+    next('/login')
+  } else if (to.path === '/login' && session) {
+    next('/')
+  } else if (to.path === '/register' && session) {
+    next('/')
+  } else {
+    next()
+  }
+})
 export default router

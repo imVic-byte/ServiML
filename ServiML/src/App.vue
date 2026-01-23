@@ -1,11 +1,39 @@
-<script setup></script>
+<script setup>
+import { onMounted } from 'vue';
+import serviFooter from "./components/footer.vue";
+import { useUserStore } from "./stores/user";
+import { supabase } from "./lib/supabaseClient";
+
+const userStore = useUserStore();
+
+onMounted(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    userStore.user = session.user;
+    console.log(userStore.user);
+  }
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    userStore.user = session?.user || null;
+  });
+});
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div class="app-container">
+    <router-view/>
+    <div v-if="userStore.user">
+      <serviFooter />
+    </div>
+  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.app-container {
+  font-family: sans-serif;
+  background-color: #f8f9fa;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100vh;
+}
+</style>
