@@ -24,19 +24,28 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(token)
 
     if (userError || !user) throw new Error('Invalid User')
-
-    const { patente, cliente, detalles, ...presupuestoData } = await req.json()
-
-    let { data: clienteData } = await supabase
-      .from('cliente')
-      .select('id')
-      .eq('nombre', cliente)
-      .maybeSingle()
-
+    
+    const { patente, cliente, rut, contacto, diagnostico, detalles, ...presupuestoData } = await req.json()
+    
+    let clienteData = null
+    if (rut) {
+      let { data: clienteData } = await supabase
+        .from('cliente')
+        .select('id')
+        .eq('rut', rut)
+        .maybeSingle()
+    }
+    else {
+      let { data: clienteData } = await supabase
+        .from('cliente')
+        .select('id')
+        .eq('nombre', cliente)
+        .maybeSingle()
+    }
     if (!clienteData) {
       const { data: nuevoCliente, error } = await supabase
         .from('cliente')
-        .insert({ nombre: cliente, rut: 'N/A', telefono: 'N/A' })
+        .insert({ nombre: cliente, rut: rut, telefono: contacto })
         .select('id')
         .single()
       
@@ -67,7 +76,8 @@ serve(async (req) => {
         ...presupuestoData,
         id_cliente: clienteData.id,
         id_vehiculo: vehiculoData.id,
-        numero_folio: `FOL-${Date.now()}`
+        numero_folio: `FOL-${Date.now()}`,
+        diagnostico: diagnostico.value
       })
       .select()
       .single()
@@ -86,6 +96,7 @@ serve(async (req) => {
 
       if (errorDetalles) throw errorDetalles
     }
+
     return new Response(
       JSON.stringify({ success: true, data: nuevoPresupuesto }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }

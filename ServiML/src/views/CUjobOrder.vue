@@ -1,6 +1,6 @@
 <script setup>
-import Navbar from "../components/navbar.vue"
-import presupuestoList from "../components/presupuestoList.vue"
+import Navbar from "../components/componentes/navbar.vue"
+import presupuestoList from "../components/presupuesto/presupuestoList.vue"
 import { ref } from 'vue'
 const fechaIngreso = ref('')
 const fechaEntrega = ref('')

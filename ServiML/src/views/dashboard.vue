@@ -1,17 +1,20 @@
 <script setup>
-import navbar from "../components/navbar.vue"
-import filters from "../components/dashboardFilters.vue"
-import dashboardCard from "../components/dashboardCard.vue"
+import navbar from "../components/componentes/navbar.vue"
+import filters from "../components/dashboard/dashboardFilters.vue"
+import dashboardCard from "../components/dashboard/dashboardCard.vue"
 import { supabase } from "../lib/supabaseClient.js"
 import { ref, onMounted } from "vue"
+import cargando from "../components/componentes/cargando.vue"
 
 const servicios = ref([])
+const loading = ref(true)
 
 const obtenerServicios = async () => {
   const {data, error} = await supabase.from('servicios').select('*')
   if (data) {
     servicios.value = data
   }
+  loading.value = false
 }
 
 onMounted(() => {
@@ -19,8 +22,9 @@ onMounted(() => {
 })
 </script>
 <template>
-  <navbar titulo="ServiML" subtitulo="Dashboard" class="navbar" searchInput="true" />
-  <div class="body">
+  <cargando v-if="loading"></cargando>
+  <div v-else class="body">
+    <navbar titulo="ServiML" subtitulo="Dashboard" class="navbar" searchInput="true" />
     <filters />
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
       <dashboardCard v-for="servicio in servicios" :key="servicio.id" :servicio="servicio" />

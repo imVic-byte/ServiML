@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
-import newNotification from './newNotification.vue';
-import emptyNotification from './emptyNotification.vue';
+import newNotification from '../varios/newNotification.vue';
+import emptyNotification from '../varios/emptyNotification.vue';
 
 const notifications = ref([])
 

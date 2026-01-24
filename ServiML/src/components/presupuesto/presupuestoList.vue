@@ -1,6 +1,6 @@
 <script setup>
 import {ref,onMounted} from 'vue'
-import {supabase} from '../lib/supabaseClient.js'
+import {supabase} from '../../lib/supabaseClient.js'
 defineProps(['modelValue'])
 const emit=defineEmits(['update:modelValue'])
 const presupuestos = ref([])
@@ -12,9 +12,9 @@ const obtenerPresupuestos = async () => {
     const {data,error} = await supabase
     .from('presupuesto')
     .select('*,vehiculo(*)')
+    .eq('estado', 'Confirmado')
     .gte('created_at', dosemanas.toISOString())
     .order('created_at', {ascending: false})
-    .limit(10)
     if (data) {
         presupuestos.value = data
     }
