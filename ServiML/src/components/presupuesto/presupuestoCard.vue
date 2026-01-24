@@ -35,7 +35,7 @@ const estado = computed(() => {
 
 <template>
   <RouterLink 
-    :to="{ name: 'verPresupuesto', params: { id: data.id } }" 
+    :to="{ name: 'ver-presupuesto', params: { id: data.id } }" 
     class="card-container"
     :class="estado"
   >
