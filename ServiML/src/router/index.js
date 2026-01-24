@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/presupuesto/:id',
+      name: 'verPresupuesto',
+      component: () => import('../views/verPresupuesto.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/presupuestos/editar/:id',
       name: 'editarPresupuesto',
       component: () => import('../views/CUpresupuesto.vue'),

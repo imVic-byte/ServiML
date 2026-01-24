@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted } from 'vue';
-import serviFooter from "./components/footer.vue";
+import serviFooter from "./components/componentes/footer.vue";
 import { useUserStore } from "./stores/user";
 import { supabase } from "./lib/supabaseClient";
 

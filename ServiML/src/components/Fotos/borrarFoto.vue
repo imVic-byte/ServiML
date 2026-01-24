@@ -1,5 +1,5 @@
 <script setup>
-import { supabase } from '../lib/supabaseClient'
+import { supabase } from '../../lib/supabaseClient'
 async function eliminarArchivo(bucketKey) {
   if (!confirm("¿Estás seguro de eliminar este archivo permanentemente?")) return;
 

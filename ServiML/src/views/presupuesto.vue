@@ -2,10 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from "../lib/supabaseClient.js"
-import presupuestoCard from "../components/presupuestoCard.vue"
-import navbar from "../components/navbar.vue"
+import presupuestoCard from "../components/presupuesto/presupuestoCard.vue"
+import navbar from "../components/componentes/navbar.vue"
+import cargando from "../components/componentes/cargando.vue"
 const router = useRouter()
 const servicios = ref([])
+const loading = ref(true)
 
 const obtenerPresupuestos = async () => {
   const { data } = await supabase
@@ -14,32 +16,13 @@ const obtenerPresupuestos = async () => {
     .order('numero_folio', { ascending: false })
 
   if (data) {
-    console.log(data)
     servicios.value = data
   }
+  loading.value = false
 }
 
 const irACrear = () => {
   router.push({ name: 'nuevoPresupuesto' })
-}
-
-const irAEditar = (id) => {
-  router.push({ name: 'editarPresupuesto', params: { id } })
-}
-
-const eliminarPresupuesto = async (id) => {
-  if (!confirm('¿Eliminar presupuesto?')) return
-
-  const { error } = await supabase
-    .from('presupuesto')
-    .delete()
-    .eq('id', id)
-
-  if (!error) {
-    await obtenerPresupuestos()
-  } else {
-    alert(error.message)
-  }
 }
 
 onMounted(() => {
@@ -48,6 +31,8 @@ onMounted(() => {
 </script>
 
 <template>
+  <cargando v-if="loading"></cargando>
+  <div v-else>
   <navbar titulo="ServiML" subtitulo="Presupuestos" class="navbar" searchInput="true" />
   <div class="contenedor">
     <div class="header-acciones flex justify-between items-center mt-2 px-2">
@@ -57,6 +42,7 @@ onMounted(() => {
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
         <presupuestoCard v-for="item in servicios" :key="item.id" :data="item" />
     </div>
+  </div>
   </div>
 </template>
 <style scoped>

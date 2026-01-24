@@ -34,10 +34,16 @@ const estado = computed(() => {
 </script>
 
 <template>
-  <div class="card" :class="estado">
+  <RouterLink 
+    :to="{ name: 'verPresupuesto', params: { id: data.id } }" 
+    class="card-container"
+    :class="estado"
+  >
     <div class="card-header">
       <span class="folio">#{{ data.numero_folio }}</span>
-      <span class="badge">{{ estado === 'vencido' ? 'Vencido' : 'Activo' }}</span>
+      <span v-if="data.estado === 'Confirmado'" class="badge-confirmado">Confirmado</span>
+      <span v-else-if="data.estado === 'Descartado'" class="badge-descartado">Descartado</span>
+      <span v-else class="badge-pendiente">Pendiente</span>
     </div>
 
     <div class="card-body">
@@ -46,12 +52,12 @@ const estado = computed(() => {
         <span class="valor">{{ formatearFecha(data.created_at) }}</span>
       </div>
       
-      <div class="info-row">
+      <div class="info-row" v-if="data.vehiculo">
         <span class="label">Patente:</span>
         <span class="valor">{{ data.vehiculo.patente }}</span>
       </div>
 
-      <hr class="divider">
+      <div class="divider"></div>
 
       <div class="totales">
         <div class="total-row">
@@ -72,27 +78,31 @@ const estado = computed(() => {
     <div class="card-footer">
       <small>Vence el: {{ formatearFecha(data.fecha_vencimiento) }}</small>
     </div>
-  </div>
+  </RouterLink>
 </template>
 
 <style scoped>
-.card {
+.card-container {
+  display: block;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 1.5rem;
   border-left: 5px solid #1f4b85;
   border-right: 5px solid #1f4b85;
-  transition: transform 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
   margin: 1rem;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
 }
 
-.card:hover {
+.card-container:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.card.vencido {
+.card-container.vencido {
   border-left-color: #e74c3c;
   border-right-color: #e74c3c;
 }
@@ -110,17 +120,31 @@ const estado = computed(() => {
   color: #2c3e50;
 }
 
-.badge {
+.badge-confirmado {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
   background: #36f04c5c;
+  color: #1b5e20;
   border-radius: 4px;
   text-transform: uppercase;
 }
 
-.vencido .badge {
-  background: #fadbd8;
-  color: #c0392b;
+.badge-descartado {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: #ff4c4c;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-pendiente {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: #f6ff4c;
+  color: #000000;
+  border-radius: 4px;
+  text-transform: uppercase;
 }
 
 .info-row {
@@ -132,8 +156,8 @@ const estado = computed(() => {
 }
 
 .divider {
-  border: 0;
-  border-top: 1px solid #eee;
+  height: 1px;
+  background-color: #eee;
   margin: 1rem 0;
 }
 
@@ -141,6 +165,7 @@ const estado = computed(() => {
   display: flex;
   justify-content: space-between;
   margin-bottom: 0.25rem;
+  color: #555;
 }
 
 .total-row.final {
