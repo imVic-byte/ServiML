@@ -68,7 +68,13 @@ onMounted(async () => {
         Cliente: {{ presupuesto.cliente?.nombre || 'Cliente no registrado' }}
         </p>
         <p class="rounded-md py-1">
-        Vehiculo: {{ presupuesto.vehiculo?.patente || 'Vehiculo no registrado' }} - {{presupuesto.vehiculo.patente}} - {{presupuesto.vehiculo.marca}} {{presupuesto.vehiculo.modelo}} {{presupuesto.vehiculo.anio}}
+        Rut: {{ presupuesto.cliente?.rut || 'Rut no registrado' }}
+        </p>
+        <p class="rounded-md py-1">
+        Contacto: {{ presupuesto.cliente?.telefono || 'Contacto no registrado' }}
+        </p>
+        <p class="rounded-md py-1">
+        Vehiculo: {{ presupuesto.vehiculo?.patente || 'Vehiculo no registrado' }} - Modelo: {{presupuesto.vehiculo.marca}} {{presupuesto.vehiculo.modelo}} {{presupuesto.vehiculo.anio}}
         </p>
         <p class="rounded-md py-1">
         Diagnostico: {{ presupuesto.diagnostico || 'Diagnostico no registrado' }}
@@ -87,9 +93,8 @@ onMounted(async () => {
     <div v-if="presupuesto.detalle_presupuesto.length > 0" class=" bg-white rounded-xl shadow-sm border border-gray-100 p-4 mt-3">
       <h3 class="text-sm font-bold text-gray-700 mb-3 border-b pb-2">Desglose Financiero</h3>
       <div class="flex justify-between items-center mb-2 text-sm">
-        <span class="text-gray-600">Subtotal Neto</span>
-        <span v-if="presupuesto.total_neto" class="font-medium">${{ presupuesto.total_neto }}</span>
-        <span v-else class="font-medium">${{ presupuesto.total_neto || 'No registrado' }}</span>
+        <span>Subtotal Neto</span>
+        <span v-if="presupuesto.total_neto" class="font-medium text-gray-600">${{ presupuesto.total_neto }}</span>
       </div>
       <div class="flex justify-between items-center mb-2 text-sm">
         <p>Descuento (-)</p>
