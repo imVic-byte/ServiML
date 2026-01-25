@@ -13,7 +13,7 @@ const router = createRouter({
     {
       path: '/ordenes-de-trabajo',
       name: 'ordenes-de-trabajo',
-      component: () => import('../views/ordenTrabajoListado.vue'),
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoListado.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -25,19 +25,19 @@ const router = createRouter({
     {
       path: '/presupuestos',
       name: 'listado-presupuestos',
-      component: () => import('../views/presupuestoListado.vue'),
+      component: () => import('../views/Presupuesto/presupuestoListado.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/presupuesto/:id',
       name: 'ver-presupuesto',
-      component: () => import('../views/presupuestoVer.vue'),
+      component: () => import('../views/Presupuesto/presupuestoVer.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/presupuestos/nuevo',
       name: 'nuevo-presupuesto',
-      component: () => import('../views/presupuestoForm.vue'),
+      component: () => import('../views/Presupuesto/presupuestoForm.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -55,19 +55,25 @@ const router = createRouter({
     {
       path: '/ordenes-de-trabajo',
       name: 'ordenes-de-trabajo',
-      component: () => import('../views/ordenTrabajoListado.vue'),
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoListado.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/ordenes-de-trabajo/editar/:id',
       name: 'editar-orden-de-trabajo',
-      component: () => import('../views/ordenTrabajoForm.vue'),
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ordenes-de-trabajo/ver/:id',
+      name: 'ver-orden-de-trabajo',
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoVer.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/ordenes-de-trabajo/nuevo',
       name: 'nueva-orden-de-trabajo',
-      component: () => import('../views/ordenTrabajoForm.vue'),
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoForm.vue'),
       meta: { requiresAuth: true }
     },
   ],

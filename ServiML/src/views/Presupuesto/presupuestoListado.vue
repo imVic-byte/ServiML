@@ -1,10 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { supabase } from "../lib/supabaseClient.js";
-import presupuestoCard from "../components/presupuesto/presupuestoCard.vue";
-import navbar from "../components/componentes/navbar.vue";
-import cargando from "../components/componentes/cargando.vue";
+import { supabase } from "../../lib/supabaseClient.js";
+import presupuestoCard from "../../components/presupuesto/presupuestoCard.vue";
+
+import navbar from "../../components/componentes/navbar.vue";
+import cargando from "../../components/componentes/cargando.vue";
 const router = useRouter();
 const servicios = ref([]);
 const loading = ref(true);
@@ -40,14 +41,14 @@ onMounted(() => {
       searchInput="true"
     />
     <div class="contenedor">
-      <div class="header-acciones flex justify-between items-center mt-2 px-2">
-        <h2 class="text-2xl font-bold servi-blue-font">Presupuestos</h2>
-        <button @click="irACrear" class="servi-yellow font-bold servi-blue-font p-2 [@media(min-width:450px)]:px-4 [@media(min-width:450px)]:py-2 rounded-full flex items-center justify-center">
-          <span class="[@media(min-width:450px)]:hidden text-xl">+</span>
-          <span class="hidden [@media(min-width:450px)]:inline">Nuevo Presupuesto</span>
+      <div class="header-acciones flex justify-between items-center my-2 px-2">
+        <h2 class="text-xl font-bold servi-blue-font">Presupuestos</h2>
+        <button @click="irACrear" class="servi-yellow font-bold servi-blue-font p-2 sm:px-10 sm:py-4 rounded-full flex items-center justify-center transition-all hover:scale-105">
+          <span class="md:hidden text-xl px-2">+</span>
+          <span class="hidden md:inline">Nuevo Presupuesto</span>
         </button>
       </div>
-      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-1">
         <presupuestoCard
           v-for="item in servicios"
           :key="item.id"

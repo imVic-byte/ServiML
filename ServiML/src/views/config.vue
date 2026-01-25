@@ -26,6 +26,13 @@ onMounted(() => {
   <navbar :titulo="userStore.user?.user_metadata.full_name" subtitulo="Configuración" class="navbar" searchInput="false" />
       <div class="mt-2 flex flex-col justify-center items-center">
         <button @click="manejarCierreSesion" class="servi-yellow servi-blue-font font-bold px-4 py-2 rounded-full">Cerrar Sesión</button>
-      </div>  
+      </div> 
   </div>
 </template>
+<style scoped>
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+</style>

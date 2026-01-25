@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed, watch } from "vue";
-import navbar from "../components/componentes/navbar.vue";
+import { ref, computed} from "vue";
+import navbar from "../../components/componentes/navbar.vue";
 import { useRouter } from "vue-router";
-import { supabase } from "../lib/supabaseClient.js";
-import inputRut from "../components/componentes/inputRut.vue";
+import { supabase } from "../../lib/supabaseClient.js";
+import inputRut from "../../components/componentes/inputRut.vue";
 const router = useRouter();
 
 const patente = ref("");
@@ -27,7 +27,7 @@ const modal = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const loading = ref(false);
 const redirigir = () => {
   if (modal.value.exito) {
-    router.push({ name: "presupuestos" });
+    router.push({ name: "listado-presupuestos" });
   } else {
     modal.value.visible = false;
   }

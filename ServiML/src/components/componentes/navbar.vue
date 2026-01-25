@@ -10,7 +10,8 @@ const hasNotifications = computed(() => notifications.value.length > 0)
 defineProps({
     titulo: String,
     subtitulo: String,
-    searchInput: String
+    searchInput: String,
+    notificaciones: String
 })
 </script>
 <template>
@@ -21,12 +22,14 @@ defineProps({
       <h2 class="welcome">{{ titulo }}</h2>
       <h1 class="user-name">{{ subtitulo }}</h1>
     </div>
+    <div v-if="notificaciones === 'true'">
       <div v-if="hasNotifications">
         <newNotification />
       </div>
       <div v-else>
         <emptyNotification />
       </div>
+    </div>
     </div>
     <div v-if="searchInput === 'true'" class="search-container">
       <input type="text" placeholder="Buscar patente (Ej: ABCD-12)..." class="search-input">

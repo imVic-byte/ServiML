@@ -1,50 +1,46 @@
 <script setup>
-import navbar from "../components/componentes/navbar.vue"
-import filters from "../components/dashboard/dashboardFilters.vue"
-import dashboardCard from "../components/dashboard/dashboardCard.vue"
-import { supabase } from "../lib/supabaseClient.js"
-import { ref, onMounted } from "vue"
-import cargando from "../components/componentes/cargando.vue"
-
-const servicios = ref([])
-const loading = ref(true)
-
-const obtenerServicios = async () => {
-  const {data, error} = await supabase.from('servicios').select('*')
-  if (data) {
-    servicios.value = data
-  }
-  loading.value = false
-}
-
-onMounted(() => {
-  obtenerServicios()
-})
+import {ref, onMounted} from 'vue'
+import navbar from '../components/componentes/navbar.vue'
 </script>
 <template>
-  <cargando v-if="loading"></cargando>
-  <div v-else class="body">
-    <navbar titulo="ServiML" subtitulo="Dashboard" class="navbar" searchInput="true" />
-    <filters />
-    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
-      <dashboardCard v-for="servicio in servicios" :key="servicio.id" :servicio="servicio" />
+  <navbar titulo="ServiML" subtitulo="Dashboard" class="navbar" searchInput="false" />
+  <div class="p-4 max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Dashboard Resumen</h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-600">
+        <p class="text-xs font-bold text-gray-500 uppercase">Vehículos en Taller</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-3xl font-bold text-gray-800">a</span>
+          <span class="text-2xl">🚗</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-yellow-500">
+        <p class="text-xs font-bold text-gray-500 uppercase">Presupuestos Semana</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-3xl font-bold text-gray-800">a</span>
+          <span class="text-2xl">📋</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
+        <p class="text-xs font-bold text-gray-500 uppercase">OT sin Asignar</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-3xl font-bold text-red-600">a</span>
+          <span class="text-2xl animate-pulse">⚠️</span>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+        <p class="text-xs font-bold text-gray-500 uppercase">Ingresos Estimados (Mes)</p>
+        <div class="flex items-center justify-between mt-2">
+          <span class="text-xl font-bold text-gray-800">a</span>
+          <span class="text-2xl">💰</span>
+        </div>
+      </div>
+
     </div>
   </div>
 </template>
-<style scoped>
-
-.section-header h2 {
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.section-header a:hover {
-  background-color: #1f3d64;
-  color: white;
-}
-.navbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-</style>

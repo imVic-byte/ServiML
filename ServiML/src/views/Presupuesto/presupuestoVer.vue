@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { supabase } from '../lib/supabaseClient.js'
-import navbar from '../components/componentes/navbar.vue'
-import cargando from '../components/componentes/cargando.vue'
-import acciones from '../components/presupuesto/acciones.vue'
+import { supabase } from '../../lib/supabaseClient.js'
+import navbar from '../../components/componentes/navbar.vue'
+import cargando from '../../components/componentes/cargando.vue'
+import acciones from '../../components/presupuesto/acciones.vue'
 const route = useRoute()
 const presupuesto = ref(null)
 const n_presupuesto = ref('')
@@ -72,6 +72,9 @@ onMounted(async () => {
         </p>
         <p class="rounded-md py-1">
         Contacto: {{ presupuesto.cliente?.telefono || 'Contacto no registrado' }}
+        </p>
+        <p class="rounded-md py-1">
+        Email: {{ presupuesto.cliente?.email || 'Email no registrado' }}
         </p>
         <p class="rounded-md py-1">
         Vehiculo: {{ presupuesto.vehiculo?.patente || 'Vehiculo no registrado' }} - Modelo: {{presupuesto.vehiculo.marca}} {{presupuesto.vehiculo.modelo}} {{presupuesto.vehiculo.anio}}

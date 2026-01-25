@@ -10,7 +10,6 @@ onMounted(async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     userStore.user = session.user;
-    console.log(userStore.user);
   }
 
   supabase.auth.onAuthStateChange((_event, session) => {
