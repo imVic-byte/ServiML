@@ -76,6 +76,12 @@ const router = createRouter({
       component: () => import('../views/OrdenTrabajo/ordenTrabajoForm.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/presupuesto/:id/pdf',
+      name: 'pdf-presupuesto',
+      component: () => import('../views/Presupuesto/presupuestoPDF.vue'),
+      meta: { requiresAuth: true }
+    },
   ],
 })
 router.beforeEach(async (to, from, next) => {

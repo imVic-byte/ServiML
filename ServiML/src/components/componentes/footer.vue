@@ -16,7 +16,6 @@ import { RouterLink } from 'vue-router'
   bottom: 0;
   left: 0;
   right: 0;
-  border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
   border-radius: 20px 20px 0 0;

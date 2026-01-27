@@ -4,8 +4,9 @@ import navbar from "../../components/componentes/navbar.vue";
 import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import inputRut from "../../components/componentes/inputRut.vue";
+import modal from "../../components/componentes/modal.vue";
+import cargando2 from "../../components/componentes/cargando2.vue";
 const router = useRouter();
-
 const patente = ref("");
 const tipoPresupuesto = ref("Simple");
 const diagnostico = ref("");
@@ -16,20 +17,22 @@ const contacto = ref("");
 const correo = ref("");
 const items = ref([]);
 const ivaPorcentaje = ref(0);
-const ivaBoolean = ref(false);
+const ivaBoolean = ref(true);
 const rut = ref("");
 const rutValido = ref(true);
+const loading = ref(false);
 const checkRut = (valido) => {
   rutValido.value = valido;
 };
 
-const modal = ref({ visible: false, titulo: "", mensaje: "", exito: true });
-const loading = ref(false);
+const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
+
+
 const redirigir = () => {
-  if (modal.value.exito) {
+  if (modalState.value.exito) {
     router.push({ name: "listado-presupuestos" });
   } else {
-    modal.value.visible = false;
+    modalState.value.visible = false;
   }
 };
 const agregarItem = () => items.value.push({ descripcion: "", monto: 0 });
@@ -76,7 +79,7 @@ const formatearMoneda = (valor) => {
 
 const validarFormulario = () => {
   if (!patente.value || patente.value.trim() === "" || patente.value.length > 7) {
-    modal.value = {
+    modalState.value = {
       visible: true,
       titulo: "Faltan datos",
       mensaje: "Debes ingresar una patente válida del vehículo.",
@@ -85,7 +88,7 @@ const validarFormulario = () => {
     return false;
   }
   if (!correo.value || correo.value.trim() === "") {
-    modal.value = {
+    modalState.value = {
       visible: true,
       titulo: "Faltan datos",
       mensaje: "Debes ingresar el correo del cliente.",
@@ -94,7 +97,7 @@ const validarFormulario = () => {
     return false;
   }
   if (!cliente.value || cliente.value.trim() === "") {
-    modal.value = {
+    modalState.value = {
       visible: true,
       titulo: "Faltan datos",
       mensaje: "Debes ingresar el nombre del cliente.",
@@ -104,7 +107,7 @@ const validarFormulario = () => {
   }
 
   if (items.value.length === 0) {
-    modal.value = {
+    modalState.value = {
       visible: true,
       titulo: "Presupuesto vacío",
       mensaje: "Debes agregar al menos un ítem o repuesto al detalle.",
@@ -115,7 +118,7 @@ const validarFormulario = () => {
 
   if (tipoPresupuesto.value === "Detallado") {
     if (!rut.value || !rutValido.value) {
-      modal.value = {
+      modalState.value = {
         visible: true,
         titulo: "RUT Inválido",
         mensaje:
@@ -125,7 +128,7 @@ const validarFormulario = () => {
       return false;
     };
     if (!contacto.value || contacto.value.length < 7) {
-    modal.value = {
+    modalState.value = {
       visible: true,
       titulo: "Faltan datos",
       mensaje: "Debes ingresar el contacto del cliente.",
@@ -162,7 +165,7 @@ const enviarFormulario = async () => {
       }
     );
     loading.value = false;
-    modal.value = {
+    modalState.value = {
       visible: true,
       titulo: "¡Éxito!",
       mensaje: "El presupuesto ha sido guardado correctamente.",
@@ -170,7 +173,7 @@ const enviarFormulario = async () => {
     };
   } catch (err) {
     loading.value = false;
-    modal.value = {
+    modalState.value = {
       visible: true,
       titulo: "Error",
       mensaje: "No se pudo guardar el presupuesto.",
@@ -357,38 +360,8 @@ const enviarFormulario = async () => {
     >
       Guardar Presupuesto
     </button>
-    <div v-if="loading" class="fixed inset-0 flex items-center justify-center p-4 bg-black/50">
-      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
-
-    <div
-      v-if="modal.visible"
-      class="fixed inset-0 flex items-center justify-center p-4 bg-black/50"
-    >
-      <div
-        class="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl"
-      >
-        <div
-          :class="modal.exito ? 'text-green-500' : 'text-red-500'"
-          class="text-5xl mb-4"
-        >
-          {{ modal.exito ? "✓" : "✕" }}
-        </div>
-        <h2 class="text-xl font-bold mb-2">{{ modal.titulo }}</h2>
-        <p class="text-gray-600 mb-6">{{ modal.mensaje }}</p>
-        <button
-          @click="redirigir"
-          class="w-full py-3 rounded-xl font-bold"
-          :class="
-            modal.exito
-              ? 'servi-blue servi-yellow-font'
-              : 'bg-red-600 text-white'
-          "
-        >
-          {{ modal.exito ? "Ver listado" : "Reintentar" }}
-        </button>
-      </div>
-    </div>
+    <cargando2 v-if="loading" />
+    <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
   </div>
 </template>
 <style scoped>

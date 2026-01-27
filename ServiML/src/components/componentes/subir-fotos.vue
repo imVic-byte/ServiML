@@ -1,5 +1,5 @@
 <script setup>
-import { ref} from 'vue';
+import { ref, computed} from 'vue';
 import { useRoute } from 'vue-router'
 import { comprimirImagen } from '../../js/comprimirFotos';
 import { subirFotos } from '../../js/subirFotos';
@@ -7,7 +7,10 @@ const fotosTomadas = ref([]);
 const idOrden = ref(useRoute().params.id)
 const inputCamara = ref(null);
 
-const emit = defineEmits(['loading','completado']);
+const emit = defineEmits(['loading','recargarFotos']);
+const subiendo = ref(false);
+
+const tieneFotos = computed(() => fotosTomadas.value.length > 0);
 
 const activarCamara = () => {
   inputCamara.value.click();
@@ -15,18 +18,13 @@ const activarCamara = () => {
 const procesarCaptura = async (event) => {
   const archivo = event.target.files[0];
   if (!archivo) return;
-
-  emit('loading', true);
-
   try {
     const archivoComprimido = await comprimirImagen(archivo);
-    
     fotosTomadas.value.push({
       file: archivoComprimido, 
       url: URL.createObjectURL(archivoComprimido), 
       nombre: archivo.name
     });
-    emit('completado', fotosTomadas.value);
   } catch (error) {
     console.error("Error al procesar foto:", error);
     alert("Hubo un error al procesar la imagen.");
@@ -37,36 +35,34 @@ const procesarCaptura = async (event) => {
 
 const eliminarFoto = (index) => {
   URL.revokeObjectURL(fotosTomadas.value[index].url);
-  URL.revokeObjectURL(fotosTomadas.value[index].url);
   fotosTomadas.value.splice(index, 1);
 };
 
 const guardarFotos = async () => {
-  if (fotosTomadas.value.length === 0) {
-    alert('No hay fotos para subir')
-    return
-  }
+  if (!tieneFotos.value) return;
+  subiendo.value = true;
+  emit('loading', true);
   try {
     const resultado = await subirFotos(idOrden.value, fotosTomadas.value)
-    
-    if (resultado.exito) {
-      alert('Fotos subidas correctamente')
+    if (resultado) {
+      fotosTomadas.value = [];
+      fotosTomadas.value.forEach(f => URL.revokeObjectURL(f.url));
+      console.log('subida exitosa, deberia recargar');
+      emit('recargarFotos');
     } else {
-      alert('Hubo un error al subir las fotos')
+      throw new Error(resultado.error);
     }
-    recargarTodo()
   } catch (error) {
     console.error("Error al subir fotos:", error);
     alert("Hubo un error al subir las fotos.");
   } finally {
-  }
+    subiendo.value = false;
+    emit('loading', false);
+    console.log('proceso finalizado');
+  } 
 }
 
-const obtenerFotos = () => {
-  return fotosTomadas.value.map(f => f.file);
-};
-
-defineExpose({ obtenerFotos });
+defineExpose({ obtenerFotos: () => fotosTomadas.value.map(f => f.file) });
 </script>
 <template>
   <div class="servi-yellow-font servi-blue p-5 rounded-xl space-y-4">
@@ -102,7 +98,7 @@ defineExpose({ obtenerFotos });
       </svg>
       <span class="text-lg font-bold">Tomar Foto</span>
     </button>
-    <button @click="guardarFotos" class="w-full text-lg font-bold servi-yellow servi-blue-font text-white p-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform transform active:scale-95">
+    <button @click="guardarFotos" :disabled="!tieneFotos" class="w-full text-lg font-bold servi-yellow servi-blue-font text-white p-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform transform active:scale-95">
       Guardar
     </button>
     <input 
