@@ -23,7 +23,7 @@ const handleEstados = (id) => {
 const obtenerOrdenes = async () => {
   const { data, error } = await supabase
     .from("orden_trabajo")
-    .select("*,presupuesto(*),imagenes(*)")
+    .select("*,presupuesto(*),vehiculo(*),cliente(*)")
     .order("id", { ascending: false });
   if (error) {
     console.error(error);
@@ -39,9 +39,9 @@ const irACrear = () => {
   router.push({ name: "nueva-orden-de-trabajo" });
 };
 
-onMounted(() => {
-  obtenerEstados();
-  obtenerOrdenes();
+onMounted(async () => {
+  await obtenerEstados();
+  await obtenerOrdenes();
 });
 </script>
 

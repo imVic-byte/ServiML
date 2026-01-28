@@ -4,8 +4,11 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import navbar from '../components/componentes/navbar.vue'
 import cargando from '../components/componentes/cargando.vue'
-const router = useRouter()
+
 const userStore = useUserStore()
+const isGerente = userStore.isGerente
+console.log(isGerente)
+const router = useRouter()
 const loading = ref(true)
 
 const manejarCierreSesion = async () => {
@@ -26,6 +29,7 @@ onMounted(() => {
   <navbar :titulo="userStore.user?.user_metadata.full_name" subtitulo="Configuración" class="navbar" searchInput="false" />
       <div class="mt-2 flex flex-col justify-center items-center">
         <button @click="manejarCierreSesion" class="servi-yellow servi-blue-font font-bold px-4 py-2 rounded-full">Cerrar Sesión</button>
+        <button v-if="isGerente" @click="router.push('/gestion-usuarios')" class="servi-yellow servi-blue-font font-bold px-4 py-2 rounded-full">Gestionar Usuarios</button>
       </div> 
   </div>
 </template>

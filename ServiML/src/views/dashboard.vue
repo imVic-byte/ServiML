@@ -1,9 +1,21 @@
 <script setup>
-import {ref, onMounted} from 'vue'
 import navbar from '../components/componentes/navbar.vue'
+import { useUserStore } from '../stores/user.js'
+import { computed } from 'vue'
+
+const userStore = useUserStore()
+const nombreCompleto = computed(() => {
+  if (userStore.trabajador) {
+    if (!userStore.trabajador.apellido) {
+      return userStore.trabajador.nombre
+    }
+    return `${userStore.trabajador.nombre} ${userStore.trabajador.apellido}`
+  }
+  return 'Cargando...'
+})
 </script>
 <template>
-  <navbar titulo="ServiML" subtitulo="Dashboard" class="navbar" searchInput="false" />
+  <navbar :titulo="nombreCompleto" subtitulo="Dashboard" class="navbar" searchInput="false" />
   <div class="p-4 max-w-7xl mx-auto">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">Dashboard Resumen</h1>
 
