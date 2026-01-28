@@ -13,9 +13,48 @@ const listaFotos = ref([]);
 const estados = ref([]);
 const showModal = ref(false);
 const selectedEstado = ref(null);
+const observaciones = ref([]);
 
 const manejarBloqueo = (estado) => {
   loading.value = estado;
+}
+
+const agregarObservacion = () => {
+  observaciones.value.push({
+    id: Date.now(),
+    texto: '',
+    fecha: new Date().toISOString(),
+    isNew: true
+  });
+}
+
+const eliminarObservacion = (index) => {
+  observaciones.value.splice(index, 1);
+}
+
+const guardarCambios = async () => {
+  manejarBloqueo(true);
+  // TODO: Implement save logic for orden and observaciones
+  const { error } = await supabase
+    .from('orden_trabajo')
+    .update({
+      kilometraje_inicial: orden.value.kilometraje_inicial,
+      combustible_inicial: orden.value.combustible_inicial,
+      fecha_ingreso: orden.value.fecha_ingreso,
+      fecha_promesa: orden.value.fecha_promesa,
+      prioridad: orden.value.prioridad,
+      tipo_trabajo: orden.value.tipo_trabajo,
+      motivo_ingreso: orden.value.motivo_ingreso
+    })
+    .eq('id', route.params.id);
+  
+  if (error) {
+    console.error("Error al guardar cambios:", error);
+    alert("Hubo un error al guardar los cambios.");
+  } else {
+    alert("Cambios guardados exitosamente!");
+  }
+  manejarBloqueo(false);
 }
 
 const obtenerFotos = async () => {
@@ -38,6 +77,7 @@ const obtenerOrden = async () => {
     await obtenerFotos();
   }
   manejarBloqueo(false);
+  console.log(orden.value);
 };
 
 const obtenerEstados = async () => {
@@ -48,7 +88,6 @@ const obtenerEstados = async () => {
   if (data) {
     estados.value = data;
   }
-  console.log(estados.value);
 }
 
 const borrarFoto = async (id) => {
@@ -171,24 +210,76 @@ onMounted(() => {
     </div>
   </div>
 
-  <div v-show="!loading" class="flex flex-col mx-5 servi-blue servi-white-font rounded-xl shadow-sm p-4">
-    <h2 class="servi-blue servi-white-font rounded-xl flex flex-col shadow-sm">Datos</h2>
-    <label for="fecha_ingreso">Fecha de Ingreso</label>
-    <input class="servi-white rounded-lg" type="date" id="fecha_ingreso" v-model="orden.fecha_ingreso" />
-    <label for="kilometraje_inicial">Kilometraje inicial</label>
-    <input class="servi-white rounded-lg" type="number" id="kilometraje_inicial" v-model="orden.kilometraje_inicial"/>
-    <label for="combustible_inicial">Combustible inicial</label>
-    <input class="servi-white rounded-lg" type="number" id="combustible_inicial" v-model="orden.combustible_inicial"/>
-    <label for="motivo_ingreso">Motivo de ingreso</label>
-    <input class="servi-white rounded-lg" type="text" id="motivo_ingreso" v-model="orden.motivo_ingreso"/>
-    <label for="tipo_trabajo">Tipo de trabajo</label>
-    <input class="servi-white rounded-lg" type="text" id="tipo_trabajo" v-model="orden.tipo_trabajo"/>
-    <label for="estado">Estado</label>
-    <select class="servi-white rounded-lg" id="estado" v-model="orden.estado">
-      <option v-for="estado in estados" :key="estado.id" :value="estado.estado">{{ estado.estado }}</option>
-    </select>
+  <div v-show="!loading" class="mx-5 servi-blue servi-white-font rounded-xl shadow-sm p-4">
+    
+  <h1 class="servi-yellow-font text-sm font-bold mb-2">INFORMACIÓN GENERAL</h1>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+
+  <div v-if="!orden.kilometraje_inicial" class="flex flex-col">
+    <label class="font-semibold mb-1" for="kilometraje_inicial">Kilometraje Inicial</label>
+    <input class="servi-white text-black rounded-xl py-1 px-2" type="number" v-model="orden.kilometraje_inicial">
+  </div>
+  <div v-else class="flex flex-col">
+    <p class="font-semibold mb-1">Kilometraje Inicial</p>
+    <p class="servi-white text-black rounded-xl py-1 px-2">{{ orden.kilometraje_inicial }}</p>
   </div>
 
+  <div class="flex flex-col" v-if="!orden.combustible_inicial">
+    <label class="font-semibold mb-1" for="combustible_inicial">Combustible Inicial</label>
+    <input class="servi-white text-black rounded-xl py-1 px-2" type="number" v-model="orden.combustible_inicial">
+  </div>
+  <div class="flex flex-col" v-else>
+    <p class="font-semibold mb-1">Combustible Inicial</p>
+    <p class="servi-white text-black rounded-xl py-1 px-2">{{ orden.combustible_inicial }}</p>
+  </div>
+
+  <div class="flex flex-col" v-if="!orden.fecha_ingreso">
+    <label class="font-semibold mb-1" for="fecha_ingreso">Fecha de Ingreso</label>
+    <input class="servi-white text-black rounded-xl py-1 px-2" type="datetime-local" v-model="orden.fecha_ingreso">
+  </div>
+  <div class="flex flex-col" v-else>
+    <p class="font-semibold mb-1">Fecha de Ingreso</p>
+    <p class="servi-white text-black rounded-xl py-1 px-2">{{ orden.fecha_ingreso }}</p>
+  </div>
+
+  <div class="flex flex-col" v-if="!orden.fecha_promesa">
+    <label class="font-semibold mb-1" for="fecha_promesa">Fecha Promesa</label>
+    <input class="servi-white text-black rounded-xl py-1 px-2" type="date" v-model="orden.fecha_promesa">
+  </div>
+  <div class="flex flex-col" v-else>
+    <p class="font-semibold mb-1">Fecha Promesa</p>
+    <p class="servi-white text-black rounded-xl py-1 px-2">{{ orden.fecha_promesa }}</p>
+  </div>
+
+  <div class="flex flex-col" v-if="!orden.prioridad">
+    <label class="font-semibold mb-1" for="prioridad">Prioridad</label>
+    <input class="servi-white text-black rounded-xl py-1 px-2" type="number" v-model="orden.prioridad">
+  </div>
+  <div class="flex flex-col" v-else>
+    <p class="font-semibold mb-1">Prioridad</p>
+    <p class="servi-white text-black rounded-xl py-1 px-2">{{ orden.prioridad }}</p>
+  </div>
+
+  <div class="flex flex-col lg:col-span-2" v-if="!orden.tipo_trabajo">
+    <label class="font-semibold mb-1" for="tipo_trabajo">Tipo de Trabajo</label>
+    <input class="servi-white text-black rounded-xl py-1 px-2" type="text" v-model="orden.tipo_trabajo">
+  </div>
+  <div class="flex flex-col lg:col-span-2" v-else>
+    <p class="font-semibold mb-1">Tipo de Trabajo</p>
+    <p class="servi-white text-black rounded-xl py-1 px-2">{{ orden.tipo_trabajo }}</p>
+  </div>
+
+  <div class="flex flex-col md:col-span-2 lg:col-span-3" v-if="!orden.motivo_ingreso">
+    <label class="font-semibold mb-1" for="motivo_ingreso">Motivo de Ingreso</label>
+    <textarea class="servi-white text-black rounded-xl py-1 px-2 h-24" v-model="orden.motivo_ingreso"></textarea>
+  </div>
+  <div class="flex flex-col md:col-span-2 lg:col-span-3" v-else>
+    <p class="font-semibold mb-1">Motivo de Ingreso</p>
+    <p class="servi-white text-black rounded-xl py-1 px-2">{{ orden.motivo_ingreso }}</p>
+  </div>
+</div>
+
+  </div>
   <div v-show="!loading" class="pb-24">
     <div class="flex flex-col m-5">
       <div class="mb-3 servi-blue p-5 rounded-xl servi-yellow-font">
@@ -217,16 +308,67 @@ onMounted(() => {
             </button>
           </div>
         </div>
-      </div>
-
-      <div>
+        <div>
         <h2 class="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2"></h2>
-        
         <subirFotos 
           @loading="manejarBloqueo"
           @recargarFotos="obtenerFotos"
         />
       </div>
+      </div>
+
+      <div class="mb-3 servi-blue p-5 rounded-xl servi-yellow-font">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider">
+            Observaciones
+          </h3>
+          <button 
+            @click="agregarObservacion"
+            class="flex items-center gap-2 servi-yellow servi-blue-font font-semibold px-4 py-2 rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 active:scale-95"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Nueva Observación
+          </button>
+        </div>
+
+        <div v-if="observaciones.length === 0" class="col-span-full py-8 text-center rounded-xl servi-yellow-font opacity-60">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p>No hay observaciones registradas</p>
+        </div>
+
+        <div class="space-y-3">
+          <div 
+            v-for="(observacion, index) in observaciones" 
+            :key="observacion.id"
+            class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 border border-yellow-400/30 shadow-sm transition-all duration-200 hover:shadow-md hover:border-yellow-400/50"
+          >
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs servi-blue-font font-semibold">
+                Observación #{{ index + 1 }}
+              </span>
+              <button 
+                @click="eliminarObservacion(index)"
+                class="text-red-400 hover:text-red-300 transition-colors p-1 rounded-full hover:bg-red-500/20"
+                title="Eliminar observación"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+            <textarea 
+              v-model="observacion.texto"
+              placeholder="Escribe aquí la observación..."
+              class="w-full bg-white text-gray-900 rounded-lg p-3 min-h-[100px] resize-y focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-shadow"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+      
     </div>
   </div>
 </template>
