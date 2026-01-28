@@ -220,7 +220,7 @@ const generarPDF = () => {
      </div>
     </div>
     
-     <div class="fixed left-[-9999px] top-0">
+     <div class="fixed left-[-9999px] top-0">   
         <pdf :presupuesto="presupuesto" />
      </div>
 

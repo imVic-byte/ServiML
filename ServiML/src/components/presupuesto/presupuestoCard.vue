@@ -1,5 +1,4 @@
 <script setup>
-import { computed } from 'vue'
 
 const props = defineProps({
   data: {
@@ -25,12 +24,6 @@ const formatearFecha = (fechaString) => {
   })
 }
 
-const estado = computed(() => {
-  if (!props.data.fecha_vencimiento) return 'normal'
-  const hoy = new Date()
-  const vencimiento = new Date(props.data.fecha_vencimiento)
-  return vencimiento < hoy ? 'vencido' : 'vigente'
-})
 </script>
 
 <template>
@@ -41,9 +34,7 @@ const estado = computed(() => {
   >
     <div class="card-header">
       <span class="folio">#{{ data.numero_folio }}</span>
-      <span v-if="data.estado === 'Confirmado'" class="badge-confirmado">Confirmado</span>
-      <span v-else-if="data.estado === 'Descartado'" class="badge-descartado">Descartado</span>
-      <span v-else class="badge-pendiente">Pendiente</span>
+      <span>{{ data.estado }}</span>
     </div>
 
     <div class="card-body">

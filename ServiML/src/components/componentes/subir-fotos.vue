@@ -65,7 +65,7 @@ const guardarFotos = async () => {
 defineExpose({ obtenerFotos: () => fotosTomadas.value.map(f => f.file) });
 </script>
 <template>
-  <div class="servi-yellow-font servi-blue p-5 rounded-xl space-y-4">
+  <div class="servi-yellow-font servi-blue p-2 rounded-xl mt-2 flex flex-col gap-2">
       <div v-if="fotosTomadas.length > 0" class="grid grid-cols-2 gap-3">
         <div v-for="(foto, index) in fotosTomadas" :key="index" class="relative group ">
           
