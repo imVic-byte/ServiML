@@ -1,30 +1,31 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
-import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createTransport } from "npm:nodemailer@6.9.10";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const { emailCliente, nombreCliente, urlPdf, folio } = await req.json()
+    const { emailCliente, nombreCliente, urlPdf, folio } = await req.json();
 
     if (!emailCliente || !urlPdf) {
-      throw new Error('Faltan datos (email o URL)')
+      throw new Error('Faltan datos (email o URL)');
     }
 
-    const client = new SmtpClient();
-    await client.connectTLS({
-      hostname: "smtp.gmail.com",
+    const transporter = createTransport({
+      host: "smtp.gmail.com",
       port: 465,
-      username: Deno.env.get("SMTP_USER"),
-      password: Deno.env.get("SMTP_PASS"),
+      secure: true,
+      auth: {
+        user: Deno.env.get("SMTP_USER"),
+        pass: Deno.env.get("SMTP_PASS"),
+      },
     });
 
     const asunto = `Presupuesto Confirmado - Folio ${folio || '---'}`;
@@ -45,26 +46,25 @@ serve(async (req) => {
       </div>
     `;
 
-    await client.send({
-      from: "ServiML <soporte.serviml@gmail.com>",
+    const info = await transporter.sendMail({
+      from: `"ServiML" <${Deno.env.get("SMTP_USER")}>`,
       to: emailCliente,
       subject: asunto,
-      content: cuerpoHtml,
       html: cuerpoHtml,
     });
 
-    await client.close();
+    console.log("Correo enviado: %s", info.messageId);
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Correo enviado' }),
+      JSON.stringify({ success: true, message: 'Correo enviado exitosamente' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-    )
+    );
 
   } catch (error) {
-    console.error(error)
+    console.error("Error enviando correo:", error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+    );
   }
-})
+});
