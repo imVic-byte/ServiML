@@ -60,7 +60,7 @@ if (presupuesto.value.cliente?.email) {
                     folio: n_presupuesto.value
                 },
                 headers: {
-                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                    Authorization: `Bearer ${import.meta.env.SUPABASE_SERVICE_ROLE_KEY}`
                 }
             })
 
