@@ -51,7 +51,7 @@ export const subirFacturas = async (id_presupuesto, pdf) => {
         if (error2) {
             throw error2
         }
-        return { exito: true }
+        return { exito: true, url: data.url }
     } catch (error) {
         return { exito: false, error: error.message }
     }
