@@ -52,11 +52,11 @@ const manejarConfirmacion = async () => {
     }
     
 if (presupuesto.value.cliente?.email) {
-            const { data: dataMail, error: errorMail } = await supabase.functions.invoke('enviarFactura', {
+            const { data: dataMail, error: errorMail } = await supabase.functions.invoke('super-task', {
                 body: {
                     emailCliente: presupuesto.value.cliente.email,
                     nombreCliente: presupuesto.value.cliente.nombre,
-                    urlPdf: exitoPDF.url, // Esta URL viene del paso 1
+                    urlPdf: exitoPDF.url,
                     folio: n_presupuesto.value
                 }
             })
