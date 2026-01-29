@@ -58,6 +58,9 @@ if (presupuesto.value.cliente?.email) {
                     nombreCliente: presupuesto.value.cliente.nombre,
                     urlPdf: exitoPDF.url,
                     folio: n_presupuesto.value
+                },
+                headers: {
+                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
                 }
             })
 
