@@ -99,7 +99,7 @@ const asignarOrden = async () => {
         </div>
       </div>
       
-      <div v-if="orden.motivo_ingreso" class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600 italic line-clamp-2">
+      <div class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600 italic line-clamp-2">
         "{{ orden.motivo_ingreso }}"
       </div>
     </div>

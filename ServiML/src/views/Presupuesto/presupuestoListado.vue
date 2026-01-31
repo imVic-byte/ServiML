@@ -40,7 +40,7 @@ onMounted(async () => {
       class="navbar"
       searchInput="true"
     />
-    <div class="contenedor">
+    <div class="contenedor pb-20">
       <div class="header-acciones flex justify-between items-center my-2 px-2">
         <h2 class="text-xl font-bold servi-blue-font">Presupuestos</h2>
         <button @click="irACrear" class="servi-yellow font-bold servi-blue-font p-2 sm:px-10 sm:py-4 rounded-full flex items-center justify-center transition-all hover:scale-105">

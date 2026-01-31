@@ -54,7 +54,7 @@ onMounted(async () => {
       class="navbar"
       searchInput="true"
     />
-    <div class="contenedor">
+    <div class="contenedor pb-20">
       <div class="header-acciones flex justify-between items-center my-2 px-2">
         <h2 class="text-xl font-bold servi-blue-font">Ordenes de Trabajo</h2>
         <button

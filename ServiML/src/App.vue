@@ -1,28 +1,20 @@
 <script setup>
-import { onMounted } from 'vue';
-import serviFooter from "./components/componentes/footer.vue";
-import { useUserStore } from "./stores/user";
-import { supabase } from "./lib/supabaseClient";
+import { onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
+import serviFooter from './components/componentes/footer.vue'
+const userStore = useUserStore()
 
-const userStore = useUserStore();
-
-onMounted(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    userStore.user = session.user;
-  }
-  supabase.auth.onAuthStateChange((_event, session) => {
-    userStore.user = session?.user || null;
-    }
-  ); 
-});
+onMounted(() => {
+  userStore.initializeAuth()
+  console.log(userStore.loading)
+})
 </script>
 
 <template>
   <div class="app-container">
     <router-view/>
-    <div v-if="userStore.user">
-      <serviFooter />
+    <div>
+      <serviFooter v-if="!userStore.loading && userStore.user"/>
     </div>
   </div>
 </template>

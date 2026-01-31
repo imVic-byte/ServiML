@@ -93,8 +93,8 @@ onMounted(async () => {
   <navbar :titulo="nombreCompleto" subtitulo="Panel de Control" class="navbar"/>
     <div class="flex bg-gray-50 text-gray-800 font-sans sm:pb-10">
         <div class="flex-1 flex flex-col overflow-hidden">
-            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-2">
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-start">
                             <div>
