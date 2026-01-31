@@ -6,6 +6,7 @@ import navbar from '../components/componentes/navbar.vue'
 import cargando from '../components/componentes/cargando.vue'
 
 const userStore = useUserStore()
+userStore.obtenerTrabajador()
 const isGerente = userStore.isGerente
 console.log(isGerente)
 const router = useRouter()

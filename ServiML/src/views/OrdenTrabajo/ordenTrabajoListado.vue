@@ -71,6 +71,7 @@ onMounted(async () => {
           :key="item.id"
           :orden="item"
           :estado="handleEstados(item.estado_actual_id)"
+          @asignacion-exitosa="obtenerOrdenes"
         />
       </div>
     </div>

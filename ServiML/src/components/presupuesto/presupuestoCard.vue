@@ -1,4 +1,5 @@
 <script setup>
+import {ref} from 'vue'
 
 const props = defineProps({
   data: {
@@ -24,17 +25,30 @@ const formatearFecha = (fechaString) => {
   })
 }
 
+const data = props.data
+const handleEstados = (estado) => {
+  switch (estado.toLowerCase()) {
+    case 'confirmado':
+      return 'badge-confirmado'
+    case 'descartado':
+      return 'badge-descartado'
+    case 'en espera de confirmación':
+      return 'badge-en-espera-de-confirmación'
+    default:
+      return 'badge-cerrado'
+  }
+}
+
 </script>
 
 <template>
   <RouterLink 
     :to="{ name: 'ver-presupuesto', params: { id: data.id } }" 
     class="card-container"
-    :class="estado"
   >
     <div class="card-header">
       <span class="folio">#{{ data.numero_folio }}</span>
-      <span>{{ data.estado }}</span>
+      <span :class="handleEstados(data.estado)">{{ data.estado }}</span>  
     </div>
 
     <div class="card-body">
@@ -130,11 +144,20 @@ const formatearFecha = (fechaString) => {
   text-transform: uppercase;
 }
 
-.badge-pendiente {
+.badge-en-espera-de-confirmación {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
   background: #f6ff4c;
   color: #000000;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-cerrado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #52026f;
+  color: #ffffff;
   border-radius: 4px;
   text-transform: uppercase;
 }

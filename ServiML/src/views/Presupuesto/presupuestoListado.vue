@@ -26,8 +26,8 @@ const irACrear = () => {
   router.push({ name: "nuevo-presupuesto" });
 };
 
-onMounted(() => {
-  obtenerPresupuestos();
+onMounted(async () => {
+  await obtenerPresupuestos();
 });
 </script>
 

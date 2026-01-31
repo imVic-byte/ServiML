@@ -7,6 +7,8 @@ import cargando from "../../components/componentes/cargando.vue";
 import subirFotos from "../../components/componentes/subir-fotos.vue";
 import modal from "../../components/componentes/modal.vue";
 
+const isCerrado = ref(false);
+
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const redirigir = () => {
   modalState.value.visible = false;
@@ -23,8 +25,19 @@ const observaciones = ref([]);
 const manejarBloqueo = (estado) => {
   loading.value = estado;
 };
-
+const verificarEstadoCerrado = () => {
+  if (isCerrado.value) {
+    modalState.value = {
+      visible: true,
+      titulo: "Acción no permitida",
+      mensaje: "No se pueden realizar cambios en una orden de trabajo cerrada.",
+      exito: false,
+    };
+    return true;
+  }
+}
 const agregarObservacion = () => {
+  if (verificarEstadoCerrado()) return;
   observaciones.value.push({
     id: Date.now(),
     texto: "",
@@ -34,10 +47,12 @@ const agregarObservacion = () => {
 };
 
 const eliminarObservacion = (index) => {
+  if (verificarEstadoCerrado()) return;
   observaciones.value.splice(index, 1);
 };
 
 const guardarCambios = async () => {
+  if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
   const { error } = await supabase
     .from("orden_trabajo")
@@ -102,7 +117,16 @@ const obtenerFotos = async () => {
     .eq("id_orden_trabajo", route.params.id);
   listaFotos.value = data;
 };
-
+const handleIsCerrado = async (estado_actual_id) => {
+  const {data} = await supabase
+    .from('tabla_estados')
+    .select('*')
+    .eq('id', estado_actual_id);
+  if (data && data.length > 0) {
+    isCerrado.value = data[0].finaliza;
+    console.log('isCerrado:', isCerrado.value);
+  }
+}
 const obtenerOrden = async () => {
   manejarBloqueo(true);
   const { data } = await supabase
@@ -116,6 +140,8 @@ const obtenerOrden = async () => {
   }
   manejarBloqueo(false);
   console.log(orden.value);
+  await handleIsCerrado(orden.value.estado_actual_id);
+
 };
 
 const obtenerEstados = async () => {
@@ -129,6 +155,7 @@ const obtenerEstados = async () => {
 };
 
 const borrarFoto = async (id) => {
+  if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
   const { error } = await supabase.from("imagenes").delete("*").eq("id", id);
   if (error) {
@@ -150,6 +177,7 @@ const closeModal = () => {
 };
 
 const confirmarCambioEstado = async () => {
+  if (verificarEstadoCerrado()) return;
   if (selectedEstado.value) {
     manejarBloqueo(true);
     const { error } = await supabase.from("OT_bitacora").insert({
@@ -185,7 +213,14 @@ onMounted(() => {
     class="navbar"
     searchInput="false"
   />
-
+  <div v-if="isCerrado">
+    <div class="m-5 p-4 servi-blue servi-yellow-font rounded-xl shadow-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <p class="font-bold">La orden de trabajo está cerrada. No se pueden realizar modificaciones.</p>
+    </div>
+  </div>
   <div
     v-if="loading"
     class="flex justify-center items-center h-screen w-full fixed top-0 left-0 bg-white z-50"

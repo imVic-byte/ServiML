@@ -10,14 +10,11 @@ onMounted(async () => {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     userStore.user = session.user;
-    await userStore.obtenerTrabajador();
   }
   supabase.auth.onAuthStateChange((_event, session) => {
     userStore.user = session?.user || null;
-    if (session) {
-      userStore.obtenerTrabajador();
     }
-  });
+  ); 
 });
 </script>
 
@@ -30,12 +27,17 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped>
+<style>
 .app-container {
   font-family: sans-serif;
   background-color: #f8f9fa;
   margin: 0 auto;
   position: relative;
   min-height: 100vh;
+}
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 </style>
