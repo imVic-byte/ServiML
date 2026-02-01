@@ -25,32 +25,44 @@ serve(async (req) => {
 
     if (userError || !user) throw new Error('Invalid User')
     
-    const { patente, cliente, rut, contacto, diagnostico, detalles, ...presupuestoData } = await req.json()
-    
-    let clienteData = null
+    const { patente, cliente, rut, contacto, email, diagnostico, detalles, ...presupuestoData } = await req.json()
+
+    let clienteId = null
+
     if (rut) {
-      let { data: clienteData } = await supabase
+      const { data } = await supabase
         .from('cliente')
         .select('id')
         .eq('rut', rut)
         .maybeSingle()
-    }
-    else {
-      let { data: clienteData } = await supabase
+      
+      if (data) clienteId = data.id
+    } 
+
+    if (!clienteId && cliente) {
+      const { data } = await supabase
         .from('cliente')
         .select('id')
         .eq('nombre', cliente)
         .maybeSingle()
+      
+      if (data) clienteId = data.id
     }
-    if (!clienteData) {
-      const { data: nuevoCliente, error } = await supabase
+
+    if (!clienteId) {
+      const { data, error } = await supabase
         .from('cliente')
-        .insert({ nombre: cliente, rut: rut, telefono: contacto })
+        .insert({ 
+          nombre: cliente, 
+          rut: rut || null, 
+          telefono: contacto, 
+          email: email 
+        })
         .select('id')
         .single()
-      
+
       if (error) throw error
-      clienteData = nuevoCliente
+      clienteId = data.id
     }
 
     let { data: vehiculoData } = await supabase
@@ -62,7 +74,7 @@ serve(async (req) => {
     if (!vehiculoData) {
       const { data: nuevoVehiculo, error } = await supabase
         .from('vehiculo')
-        .insert({ patente, modelo: 'N/A', id_cliente: clienteData.id })
+        .insert({ patente, modelo: 'N/A', id_cliente: clienteId })
         .select('id')
         .single()
 
@@ -74,10 +86,10 @@ serve(async (req) => {
       .from('presupuesto')
       .insert({
         ...presupuestoData,
-        id_cliente: clienteData.id,
+        id_cliente: clienteId,
         id_vehiculo: vehiculoData.id,
         numero_folio: `FOL-${Date.now()}`,
-        diagnostico: diagnostico.value
+        diagnostico: diagnostico
       })
       .select()
       .single()

@@ -11,9 +11,27 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
-      path: '/job-orders',
-      name: 'job-orders',
-      component: () => import('../views/JobOrders.vue'),
+      path: '/ordenes-de-trabajo',
+      name: 'ordenes-de-trabajo',
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoListado.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ordenes-de-trabajo/nuevo',
+      name: 'nueva-orden-de-trabajo',
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ordenes-de-trabajo/editar/:id',
+      name: 'editar-orden-de-trabajo',
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoForm.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ordenes-de-trabajo/ver/:id',
+      name: 'ver-orden-de-trabajo',
+      component: () => import('../views/OrdenTrabajo/ordenTrabajoVer.vue'),
       meta: { requiresAuth: true }
     },
     {
@@ -24,27 +42,33 @@ const router = createRouter({
     },
     {
       path: '/presupuestos',
-      name: 'presupuestos',
-      component: () => import('../views/presupuesto.vue'),
+      name: 'listado-presupuestos',
+      component: () => import('../views/Presupuesto/presupuestoListado.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/presupuesto/:id',
-      name: 'verPresupuesto',
-      component: () => import('../views/verPresupuesto.vue'),
-      meta: { requiresAuth: true }
-    },
-    {
-      path: '/presupuestos/editar/:id',
-      name: 'editarPresupuesto',
-      component: () => import('../views/CUpresupuesto.vue'),
+      name: 'ver-presupuesto',
+      component: () => import('../views/Presupuesto/presupuestoVer.vue'),
       meta: { requiresAuth: true }
     },
     {
       path: '/presupuestos/nuevo',
-      name: 'nuevoPresupuesto',
-      component: () => import('../views/CUpresupuesto.vue'),
+      name: 'nuevo-presupuesto',
+      component: () => import('../views/Presupuesto/presupuestoForm.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/presupuesto/:id/pdf',
+      name: 'pdf-presupuesto',
+      component: () => import('../views/Presupuesto/presupuestoPDF.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/gestion-usuarios',
+      name: 'gestion-usuarios',
+      component: () => import('../views/Gestion/gestionUsuarios.vue'),
+      meta: { requiresAuth: true, gerente: true }
     },
     {
       path: '/login',
@@ -59,36 +83,49 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
-      path: '/ordenes-de-trabajo',
-      name: 'ordenes-de-trabajo',
-      component: () => import('../views/JobOrders.vue'),
-      meta: { requiresAuth: true }
+      path: '/set-password',
+      name: 'crear-contraseña',
+      component: () => import('../views/Gestion/crearContraseña.vue'),
+      meta: { requiresAuth: false }
     },
     {
-      path: '/ordenes-de-trabajo/editar/:id',
-      name: 'editarOrdenDeTrabajo',
-      component: () => import('../views/CUjobOrder.vue'),
+      path: '/vehiculos-en-taller',
+      name: 'vehiculos-en-taller',
+      component: () => import('../views/dashboardCosas/vehiculosEnTaller.vue'),
       meta: { requiresAuth: true }
-    },
-    {
-      path: '/ordenes-de-trabajo/nuevo',
-      name: 'nuevaOrdenDeTrabajo',
-      component: () => import('../views/CUjobOrder.vue'),
-      meta: { requiresAuth: true }
-    },
+    }
   ],
 })
-router.beforeEach(async (to, from, next) => {
-  const { data: { session } } = await supabase.auth.getSession()
 
-  if (to.meta.requiresAuth && !session) {
-    next('/login')
-  } else if (to.path === '/login' && session) {
-    next('/')
-  } else if (to.path === '/register' && session) {
-    next('/')
-  } else {
+router.beforeEach(async (to, from, next) => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
+    
+    if (error) {
+      console.error('Router guard - getSession error:', error)
+      if (to.meta.requiresAuth) {
+        next('/login')
+      } else {
+        next()
+      }
+      return
+    }
+
+    if (to.meta.requiresAuth && !session) {
+      next('/login')
+      return
+    }
+
+    if (session && (to.path === '/login' || to.path === '/register')) {
+      next('/')
+      return
+    }
+
     next()
+  } catch (error) {
+    console.error('Router guard error:', error)
+    next('/login')
   }
 })
+
 export default router

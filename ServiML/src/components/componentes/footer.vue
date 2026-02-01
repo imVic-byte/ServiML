@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router'
 <template>
   <nav class="bottom-nav servi-blue servi-white-font">
     <RouterLink to="/" class="nav-item primero"><span>🏠</span><p>Inicio</p></RouterLink>
-    <RouterLink to="/job-orders" class="nav-item"><span>🔧</span><p>Órdenes</p></RouterLink>
+    <RouterLink to="/ordenes-de-trabajo" class="nav-item"><span>🔧</span><p>Órdenes</p></RouterLink>
     <RouterLink to="/presupuestos" class="nav-item"><span>📄</span><p>Presupuesto</p></RouterLink>
     <RouterLink to="/configuracion" class="nav-item ultimo"><span>⚙️</span><p>Config.</p></RouterLink>
   </nav>
@@ -16,7 +16,6 @@ import { RouterLink } from 'vue-router'
   bottom: 0;
   left: 0;
   right: 0;
-  border-top: 1px solid #eee;
   display: flex;
   justify-content: space-around;
   border-radius: 20px 20px 0 0;
