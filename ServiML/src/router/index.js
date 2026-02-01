@@ -93,7 +93,25 @@ const router = createRouter({
       name: 'vehiculos-en-taller',
       component: () => import('../views/dashboardCosas/vehiculosEnTaller.vue'),
       meta: { requiresAuth: true }
-    }
+    },
+    {
+      path: '/ot-sin-asignar',
+      name: 'ot-sin-asignar',
+      component: () => import('../views/dashboardCosas/OTsinAsignar.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ot-por-entregar',
+      name: 'ot-por-entregar',
+      component: () => import('../views/dashboardCosas/OTporEntregar.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/presupuestos-semana',
+      name: 'presupuestos-semana',
+      component: () => import('../views/dashboardCosas/presupuestosSemana.vue'),
+      meta: { requiresAuth: true }
+    },
   ],
 })
 
