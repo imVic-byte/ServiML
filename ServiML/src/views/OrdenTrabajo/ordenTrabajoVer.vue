@@ -199,19 +199,21 @@ const confirmarCambioEstado = async () => {
   }
 };
 
-onMounted(() => {
-  obtenerOrden();
+onMounted( async () => {
+  await obtenerOrden();
   obtenerEstados();
   traerObservaciones();
 });
 </script>
 
 <template>
+  
   <navbar
     titulo="ServiML"
     :subtitulo="'OT No. ' + orden.presupuesto?.numero_folio"
     class="navbar"
     searchInput="false"
+    v-if="!loading"
   />
   <div v-if="isCerrado">
     <div class="m-5 p-4 servi-blue servi-yellow-font rounded-xl shadow-sm flex items-center gap-3">

@@ -5,13 +5,15 @@ import { computed, ref, onMounted } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import cargando from '../components/componentes/cargando.vue'
 import tablero from '../components/dashboard/tablero.vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const loading= ref(false)
 const otSinAsignar = ref([])
 const otLista = ref([])
 const otPorEntregar = ref([])
 const PresupuestosSemana= ref([])
 const aprobadosHoy = ref(0)
-
+const vehiculosLista = ref([])
 const handleOT = async () => {
   const { data, error } = await supabase
     .from('orden_trabajo')
@@ -36,6 +38,7 @@ const handlePorEntregar = () => {
 
 const handleOTNoTerminada = () => {
   otLista.value = otLista.value.filter(ot => ot.estado_actual_id !== 7 && ot.estado_actual_id !== 8 && ot.estado_actual_id !== 1 && ot.estado_actual_id !== 10)
+  vehiculosLista.value = otLista.value
 }
 const userStore = useUserStore()
 const nombreCompleto = computed(() => {
@@ -95,6 +98,7 @@ onMounted(async () => {
         <div class="flex-1 flex flex-col overflow-hidden">
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-3">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-2">
+                    <RouterLink to="/vehiculos-en-taller" class="no-underline" props="">
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-start">
                             <div>
@@ -110,7 +114,7 @@ onMounted(async () => {
                             <div class="bg-blue-600 h-1.5 rounded-full" :style="{ width: `${(otLista.length / 10 * 100)}%` }"></div>
                         </div>
                     </div>
-
+                    </RouterLink>
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-start">
                             <div>
@@ -168,7 +172,7 @@ onMounted(async () => {
                             
                             <div class="border-t border-gray-100 pt-4">
                                 <div class="flex items-center justify-between py-2">
-                                    <span class="text-sm text-gray-600">Tickets Promedio</span>
+                                    <span class="text-sm text-gray-600">Monto Promedio</span>
                                     <span class="font-bold text-gray-900">$185.000</span>
                                 </div>
                                 <div class="flex items-center justify-between py-2">

@@ -16,10 +16,20 @@ const handleLogin = async () => {
   errorMsg.value = ''
   
   try {
+    // Si esta línea termina sin error, el login fue exitoso
     await userStore.signIn(email.value, password.value)
-    router.push('/')
+    
+    // Redirección directa y forzada
+    router.replace('/')
+    
   } catch (error) {
-    errorMsg.value = 'Credenciales incorrectas. Inténtalo nuevamente.'
+    console.error("Error en login:", error)
+    // Mensaje de error más amigable si es timeout
+    if (error.message.includes('timeout')) {
+        errorMsg.value = 'El servidor tarda en responder. Verifica tu conexión.'
+    } else {
+        errorMsg.value = 'Credenciales incorrectas o error de conexión.'
+    }
   } finally {
     loading.value = false
   }

@@ -1,45 +1,54 @@
 import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabaseClient'
 
+// Helper para timeout (Lo mantenemos, es útil)
+const withTimeout = (promise, timeoutMs = 10000) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+    )
+  ])
+}
+
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
     trabajador: null,
-    loading: true
+    loading: false // Iniciamos en false para evitar bloqueos fantasmas
   }),
 
   actions: {
-    // Función auxiliar interna para buscar datos
     async fetchTrabajador() {
       if (!this.user) return
       
-      const { data, error } = await supabase
-        .from('trabajadores')
-        .select('*')
-        .eq('id', this.user.id)
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from('trabajadores')
+          .select('*')
+          .eq('id', this.user.id)
+          .single()
         
-      if (!error) {
-        this.trabajador = data
+        if (error) {
+          console.warn('No se encontró perfil de trabajador')
+          this.trabajador = null
+        } else {
+          this.trabajador = data
+        }
+      } catch (error) {
+        console.error('Error fetching trabajador:', error)
       }
     },
 
     async initializeAuth() {
-      const { data: { session } } = await supabase.auth.getSession()
-      this.user = session?.user || null
-      
-      // Si recuperamos sesión, recuperamos también al trabajador
-      if (this.user) {
-        await this.fetchTrabajador()
-      }
-      
-      this.loading = false
-
-      supabase.auth.onAuthStateChange(async (_event, session) => {
+      // Solo escuchamos cambios. Supabase dispara el evento INITIAL_SESSION automáticamente al cargar
+      supabase.auth.onAuthStateChange(async (event, session) => {
         this.user = session?.user || null
-        if (this.user && !this.trabajador) {
-            await this.fetchTrabajador()
-        } else if (!this.user) {
+        
+        if (this.user) {
+            // Solo buscamos si no tenemos datos ya, para no sobrecargar
+            if (!this.trabajador) await this.fetchTrabajador()
+        } else {
             this.trabajador = null
         }
       })
@@ -47,27 +56,34 @@ export const useUserStore = defineStore('user', {
 
     async signIn(email, password) {
       this.loading = true
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-      if (error) throw error
-      
-      this.user = data.user
-      // Reutilizamos la lógica
-      await this.fetchTrabajador()
-      
-      this.loading = false
+      try {
+        // 1. Solo pedimos autenticación a Supabase
+        const { data, error } = await withTimeout(
+            supabase.auth.signInWithPassword({ email, password }), 
+            8000
+        )
+        
+        if (error) throw error
+        
+        // 2. Asignamos usuario para respuesta inmediata de la UI
+        this.user = data.user
+        
+        // 3. NO llamamos a fetchTrabajador aquí. 
+        // El onAuthStateChange (arriba) detectará el cambio y lo hará solo.
+        
+        return true // Retornamos true explícito para el componente
+      } catch (error) {
+        throw error
+      } finally {
+        this.loading = false
+      }
     },
 
     async signOut() {
-      const { error } = await supabase.auth.signOut()
-      if (!error) {
-        this.user = null
-        this.trabajador = null
-      }
-      // No dejamos loading en true, para permitir que se renderice el login
-      this.loading = false 
+      await supabase.auth.signOut()
+      this.user = null
+      this.trabajador = null
+      // No tocamos loading aquí
     }
   }
 })
