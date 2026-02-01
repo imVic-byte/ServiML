@@ -13,6 +13,13 @@ defineProps({
     searchInput: String,
     notificaciones: String
 })
+
+const emit = defineEmits(['buscar'])
+
+const onInput = (event) => {
+  emit('buscar', event.target.value)
+}
+
 </script>
 <template>
 <nav>
@@ -32,7 +39,7 @@ defineProps({
     </div>
     </div>
     <div v-if="searchInput === 'true'" class="search-container">
-      <input type="text" placeholder="Buscar patente (Ej: ABCD-12)..." class="search-input">
+      <input type="text" placeholder="Buscar patente (Ej: ABCD-12)..." class="search-input" @input="onInput">
     </div>
   </header>
 </nav>

@@ -98,7 +98,7 @@ onMounted(async () => {
         <div class="flex-1 flex flex-col overflow-hidden">
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-3">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-2">
-                    <RouterLink to="/vehiculos-en-taller" class="no-underline" props="">
+                    <RouterLink to="/vehiculos-en-taller" class="no-underline">
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-start">
                             <div>
@@ -115,6 +115,7 @@ onMounted(async () => {
                         </div>
                     </div>
                     </RouterLink>
+                    <RouterLink to="/ot-sin-asignar" class="no-underline">
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-start">
                             <div>
@@ -127,11 +128,12 @@ onMounted(async () => {
                         <p v-if="otSinAsignar.length > 5" class="text-sm text-gray-500 mt-4 font-medium">Requiere acción inmediata</p>
                         <p v-else class="text-sm text-gray-500 mt-4 font-medium">Se sugiere asignar OTs</p>
                     </div>
-
+                    </RouterLink>
+                    <RouterLink to="/presupuestos-semana" class="no-underline">
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Presupuestos Semana</p>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Presupuestos esta semana</p>
                                 <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ PresupuestosSemana.length}}</h3>
                             </div>
                             <span v-if="PresupuestosSemana.length > 10" class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">Alta demanda</span>
@@ -139,17 +141,19 @@ onMounted(async () => {
                         </div>
                         <p class="text-sm text-gray-500 mt-4 font-medium">{{ aprobadosHoy}} Aprobados hoy</p>
                     </div>
-
+                    </RouterLink>
+                    <RouterLink to="/ot-por-entregar" class="no-underline">
                     <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                         <div class="flex justify-between items-start">
                             <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">OT Completadas</p>
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">OT Completadas esta semana</p>
                                 <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ otPorEntregar.length }}</h3>
                             </div>
                             <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">Listos</span>
                         </div>
                         <p class="text-sm text-gray-500 mt-4 font-medium">Se sugiere contactar clientes</p>
                     </div>
+                    </RouterLink>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
