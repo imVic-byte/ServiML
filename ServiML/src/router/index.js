@@ -112,6 +112,12 @@ const router = createRouter({
       component: () => import('../views/dashboardCosas/presupuestosSemana.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/informe-final/:id',
+      name: 'ver-informe-final',
+      component: () => import('../views/informeFinal.vue'),
+      meta: { requiresAuth: true }
+    },
   ],
 })
 
