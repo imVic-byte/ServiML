@@ -6,7 +6,7 @@ import { RouterLink } from 'vue-router'
     <RouterLink to="/" class="nav-item primero"><span>🏠</span><p>Inicio</p></RouterLink>
     <RouterLink to="/ordenes-de-trabajo" class="nav-item"><span>🔧</span><p>Órdenes</p></RouterLink>
     <RouterLink to="/presupuestos" class="nav-item"><span>📄</span><p>Presupuesto</p></RouterLink>
-    <RouterLink to="/configuracion" class="nav-item ultimo"><span>⚙️</span><p>Config.</p></RouterLink>
+    <RouterLink to="/configuracion" class="nav-item ultimo"><span>🧰</span><p>Panel</p></RouterLink>
   </nav>
 </template>
 
