@@ -1,16 +1,24 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { supabase } from "../lib/supabaseClient.js";
 import navbar from "../components/componentes/navbar.vue";
 import cargando from "../components/componentes/cargando.vue";
 import html2pdf from "html2pdf.js";
+import {enviarInformeFinal} from "../js/enviarInformeFinal.js";
 
 const route = useRoute();
+const router = useRouter();
 const informeData = ref({});
 const loading = ref(true);
-const OrdenTrabajo = ref('');
+const OrdenTrabajo = ref({});
 const detalle_presupuesto = ref([]);
+const enviandoCorreo = ref(false);
+const iva = ref(0);
+
+const handleIva = () => {
+  iva.value = OrdenTrabajo.value.presupuesto.iva;
+}
 
 const formatoPesos = (valor) => {
   if (valor === undefined || valor === null) return '$0';
@@ -36,6 +44,13 @@ const obtenerDatos = async () => {
     console.error(error);
   } finally {
     loading.value = false;
+    // Si la URL viene con ?enviar=true, disparamos el proceso automáticamente
+    if (route.query.enviar === 'true') {
+        // Un pequeño delay para asegurar que el DOM se renderizó
+        setTimeout(() => {
+            generarYEnviarPDF();
+        }, 1500);
+    }
   }
 };
 
@@ -53,30 +68,84 @@ const obtenerOT = async () => {
     .select('*')
     .eq('id_presupuesto', OrdenTrabajo.value.presupuesto.id);
     if (error2) throw error2;
-    console.log(detalles);
     detalle_presupuesto.value = detalles || [];
+    iva.value = OrdenTrabajo.value.presupuesto.iva;
   } catch (error) {
     console.error(error);
   }
-  console.log(OrdenTrabajo.value);
-  console.log(detalle_presupuesto.value);
+};
+
+// Configuracion reutilizable para el PDF
+const getOpcionesPDF = () => {
+    return {
+        margin: 0,
+        filename: `Informe_ServiML_OT_${route.params.id}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
 };
 
 const descargarPDF = () => {
   const elemento = document.getElementById("elemento-a-imprimir");
-  const opciones = {
-    margin: 0,
-    filename: `Informe_ServiML_OT_${route.params.id}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, logging: false },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opciones).from(elemento).save();
+  html2pdf().set(getOpcionesPDF()).from(elemento).save();
 };
 
-onMounted(() => {
-  obtenerDatos();
-  obtenerOT();
+// --- LOGICA DE ENVIO AUTOMATICO ---
+
+const subirPdfASupabase = async (pdfBlob) => {
+    // Asegurate que el bucket 'documentos' exista y sea publico o accesible
+    const fileName = `informes/OT_${route.params.id}_${Date.now()}.pdf`;
+    
+    const { data, error } = await supabase.storage
+        .from('documentos') 
+        .upload(fileName, pdfBlob, {
+            contentType: 'application/pdf',
+            upsert: true
+        });
+
+    if (error) throw error;
+
+    const { data: publicData } = supabase.storage
+        .from('documentos')
+        .getPublicUrl(fileName);
+
+    return publicData.publicUrl;
+};
+
+const generarYEnviarPDF = async () => {
+    if (enviandoCorreo.value) return;
+    enviandoCorreo.value = true;
+
+    try {
+        const elemento = document.getElementById("elemento-a-imprimir");
+        
+        // Generar Blob
+        const pdfBlob = await html2pdf()
+            .set(getOpcionesPDF())
+            .from(elemento)
+            .output('blob'); 
+
+        // Subir y Enviar
+        const exito = await enviarInformeFinal(informeData.value.id,OrdenTrabajo.value.presupuesto.numero_folio, pdfBlob);
+        if (!exito) throw new Error("Error al subir el informe");
+        
+        alert("Informe subido exitosamente.");
+        
+        // Limpiamos la query para que no se re-envie al refrescar
+        router.replace({ query: null });
+
+    } catch (error) {
+        console.error("Error envío:", error);
+        alert("El informe se generó pero hubo un error al enviarlo: " + error.message);
+    } finally {
+        enviandoCorreo.value = false;
+    }
+};
+
+onMounted( async () => {
+  await obtenerDatos();
+  await obtenerOT();
 });
 </script>
 
@@ -93,8 +162,14 @@ onMounted(() => {
     <cargando />
   </div>
 
-  <div v-else class="bg-gray-200 min-h-screen py-10">
+  <div v-else class="bg-gray-200 min-h-screen py-10 relative">
     
+    <div v-if="enviandoCorreo" class="fixed inset-0 bg-black/50 z-50 flex flex-col items-center justify-center text-white backdrop-blur-sm">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+        <p class="font-bold text-lg">Generando y enviando informe...</p>
+        <p class="text-sm opacity-80">Por favor espera un momento.</p>
+    </div>
+
     <div class="max-w-[21cm] mx-auto mb-6 flex justify-end px-4">
       <button 
         @click="descargarPDF"
@@ -197,11 +272,6 @@ onMounted(() => {
                 {{ formatoPesos(item.valor_total) }}
               </td>
             </tr>
-            
-            <tr v-if="!detalles || detalles.length < 5" class="h-24">
-              <td colspan="3"></td>
-            </tr>
-
           </tbody>
         </table>
       </div>
@@ -225,15 +295,10 @@ onMounted(() => {
             <span class="font-medium">Subtotal Neto</span>
             <span>{{ formatoPesos(informeData.total_neto) }}</span>
           </div>
-          
-          <div v-if="montoDescuento > 0" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
-            <span class="font-medium">Descuento</span>
-            <span>- {{ formatoPesos(OrdenTrabajo.presupuesto.descuento) }}</span>
-          </div>
 
           <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
             <span class="font-medium">IVA (19%)</span>
-            <span>{{ formatoPesos(OrdenTrabajo.presupuesto.iva) }}</span>
+            <span>{{ formatoPesos(iva) }}</span>
           </div>
 
           <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">

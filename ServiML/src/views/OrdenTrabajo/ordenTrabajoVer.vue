@@ -6,7 +6,10 @@ import navbar from "../../components/componentes/navbar.vue";
 import cargando from "../../components/componentes/cargando.vue";
 import subirFotos from "../../components/componentes/subir-fotos.vue";
 import modal from "../../components/componentes/modal.vue";
-import enviarInformeFinal from "../../js/enviarInformeFinal.js";
+
+// Eliminamos la importacion de enviarInformeFinal.js porque lo haremos via Router
+// import enviarInformeFinal from "../../js/enviarInformeFinal.js"; 
+
 const isCerrado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const redirigir = () => {
@@ -204,15 +207,24 @@ const confirmarCambioEstado = () => {
 };
 
 const handleGenerarInformeFinal = async () => {
+  // Primero insertamos el registro en la base de datos
   const {data, error} = await supabase.from("informe_final").insert({
     ot_id: orden.value.id,
     created_at: new Date().toISOString()
-  });
+  }).select().single();
+
   if (error) {
     console.error("Error al generar informe final:", error);
     alert("Hubo un error al generar el informe final.");
+    return;
   }
-  enviarInformeFinal(data.id);
+
+  // AQUI EL CAMBIO: Redirigimos al informe con la orden de enviar
+  router.push({ 
+    name: 'ver-informe-final', // Asegurate que esta ruta exista en tu router.js
+    params: { id: orden.value.id },
+    query: { enviar: 'true' } 
+  });
 };
 
 const ejecutarCambioReal = async () => {
@@ -230,7 +242,7 @@ const ejecutarCambioReal = async () => {
     orden.value.estado_actual_id = selectedEstado.value.id;
     await handleIsCerrado(selectedEstado.value.id);
     if (selectedEstado.value.id === 6) {
-      handleGenerarInformeFinal();
+      await handleGenerarInformeFinal(); // Esperamos a que termine antes de continuar
     }
   }
 
@@ -389,7 +401,7 @@ onMounted( async () => {
         Estás a punto de marcar la orden como "{{ selectedEstado?.estado }}".
       </p>
       <p class="text-gray-600 text-xs mb-6">
-        Una vez confirmado, se generará el informe final.
+        Una vez confirmado, se generará el informe final y se enviará por correo.
       </p>
       <div class="flex justify-end gap-3">
         <button
