@@ -112,8 +112,7 @@ onMounted(async () => {
                         <div class="flex justify-between items-center pt-4 border-t border-gray-100">
                             <button 
                                 @click="redirigir(orden.id)"
-                                class="servi-blue servi-white-font px-4 py-2 rounded text-sm font-bold w-full transition-colors hover:opacity-90"
-                            >
+                                class="servi-blue servi-white-font px-4 py-2 rounded text-sm font-bold w-full transition-colors hover:opacity-90"                            >
                                 Ver Detalles
                             </button>
                         </div>

@@ -92,8 +92,10 @@ onMounted(async () => {
 });
 </script>
 <template>
+    
+<navbar :titulo="nombreCompleto" subtitulo="Dashboard" class="navbar"/>
   <cargando v-if="loading" />
-  <navbar :titulo="nombreCompleto" subtitulo="Panel de Control" class="navbar"/>
+  <div v-else class="min-h-screen flex flex-col">
     <div class="flex bg-gray-50 text-gray-800 font-sans sm:pb-10">
         <div class="flex-1 flex flex-col overflow-hidden">
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-3">
@@ -194,4 +196,6 @@ onMounted(async () => {
             </main>
         </div>
     </div>
-</template>
+
+  </div>
+  </template>
