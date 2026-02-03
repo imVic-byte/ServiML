@@ -214,9 +214,9 @@ onMounted(() => {
             Observaciones Técnicas
           </h4>
           <div>
-            <p v-for="(observacion, idx) in OrdenTrabajo.OT_bitacora" :key="idx" class="text-[#374151] text-[11px] mb-2">
+            <div v-for="(observacion, idx) in OrdenTrabajo.OT_bitacora" :key="idx" class="text-[#374151] text-[11px] mb-2">
               <p v-if="observacion.observacion">{{ observacion.observacion }}</p>
-            </p>
+            </div>
           </div>
         </div>
 

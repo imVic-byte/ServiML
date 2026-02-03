@@ -6,6 +6,7 @@ import navbar from "../../components/componentes/navbar.vue";
 import cargando from "../../components/componentes/cargando.vue";
 import subirFotos from "../../components/componentes/subir-fotos.vue";
 import modal from "../../components/componentes/modal.vue";
+import enviarInformeFinal from "../../js/enviarInformeFinal.js";
 const isCerrado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const redirigir = () => {
@@ -207,6 +208,11 @@ const handleGenerarInformeFinal = async () => {
     ot_id: orden.value.id,
     created_at: new Date().toISOString()
   });
+  if (error) {
+    console.error("Error al generar informe final:", error);
+    alert("Hubo un error al generar el informe final.");
+  }
+  enviarInformeFinal(data.id);
 };
 
 const ejecutarCambioReal = async () => {
