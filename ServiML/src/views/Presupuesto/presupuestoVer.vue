@@ -43,12 +43,36 @@ const manejarConfirmacion = async () => {
     };
     const elemento = document.getElementById('elemento-a-imprimir');
     const pdfBlob = await html2pdf().set(opciones).from(elemento).output('blob');
+    
     const exitoPDF = await subirFacturas(id.value, pdfBlob)
     if (!exitoPDF.exito) {
         console.error(exitoPDF.error)
         console.error("error al subir el pdf")
         return
     }
+    
+if (presupuesto.value.cliente?.email) {
+            const { data: dataMail, error: errorMail } = await supabase.functions.invoke('super-task', {
+                body: {
+                    emailCliente: presupuesto.value.cliente.email,
+                    nombreCliente: presupuesto.value.cliente.nombre,
+                    urlPdf: exitoPDF.url,
+                    folio: n_presupuesto.value
+                },
+                headers: {
+                    Authorization: `Bearer ${import.meta.env.SUPABASE_ANON_KEY}`
+                }
+            })
+
+            if (errorMail) {
+                console.error("❌ Error enviando correo:", errorMail)
+            } else {
+                console.log("✅ Correo enviado con éxito:", dataMail)
+            }
+        } else {
+            console.warn("⚠️ El cliente no tiene email registrado, se omitió el envío.");
+        }
+    
     await creacionOT(id.value)
     presupuesto.value.estado = 'Confirmado'
     loading.value = false
