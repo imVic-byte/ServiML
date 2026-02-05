@@ -1,19 +1,20 @@
 <script setup>
 import navbar from '../components/componentes/navbar.vue'
 import { useUserStore } from '../stores/user.js'
+import { useInterfaz } from '../stores/interfaz.js'
 import { computed, ref, onMounted } from 'vue'
 import { supabase } from '../lib/supabaseClient'
-import cargando from '../components/componentes/cargando.vue'
 import tablero from '../components/dashboard/tablero.vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
-const loading= ref(false)
+
 const otSinAsignar = ref([])
 const otLista = ref([])
 const otPorEntregar = ref([])
 const PresupuestosSemana= ref([])
 const aprobadosHoy = ref(0)
 const vehiculosLista = ref([])
+const uiStore = useInterfaz()
+const userStore = useUserStore()
+
 const handleOT = async () => {
   const { data, error } = await supabase
     .from('orden_trabajo')
@@ -40,7 +41,6 @@ const handleOTNoTerminada = () => {
   otLista.value = otLista.value.filter(ot => ot.estado_actual_id !== 7 && ot.estado_actual_id !== 8 && ot.estado_actual_id !== 1 && ot.estado_actual_id !== 10)
   vehiculosLista.value = otLista.value
 }
-const userStore = useUserStore()
 const nombreCompleto = computed(() => {
   if (userStore.trabajador) {
     if (!userStore.trabajador.apellido) {
@@ -72,7 +72,6 @@ const handlePresupuestosSemana = async () => {
     return
   } 
   PresupuestosSemana.value = data || []
-  loading.value = false
 }
 const handleAprobadosHoy = async () => {
     const hoy = new Date()
@@ -82,20 +81,20 @@ const handleAprobadosHoy = async () => {
     .select('*')
     .eq('estado', 'Confirmado')
     .gte('updated_at', inicioDia.toISOString())
+
+    uiStore.hideLoading()
     return aprobadosHoy.value = data.length
 }
 onMounted(async () => {
-  loading.value = true
+  uiStore.showLoading()
   await handleOT()
   await handlePresupuestosSemana()
   await handleAprobadosHoy()
 });
 </script>
 <template>
-    
 <navbar :titulo="nombreCompleto" subtitulo="Dashboard" class="navbar"/>
-  <cargando v-if="loading" />
-  <div v-else class="min-h-screen flex flex-col">
+  <div class="min-h-screen flex flex-col">
     <div class="flex bg-gray-50 text-gray-800 font-sans sm:pb-10">
         <div class="flex-1 flex flex-col overflow-hidden">
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-3">

@@ -4,11 +4,11 @@ import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import presupuestoCard from "../../components/presupuesto/presupuestoCard.vue";
 import navbar from "../../components/componentes/navbar.vue";
-import cargando from "../../components/componentes/cargando.vue";
+import { useInterfaz } from '../../stores/interfaz.js'
 
 const router = useRouter();
 const servicios = ref([]);
-const loading = ref(true);
+const uiStore = useInterfaz()
 let searchTimeout = null;
 
 const handleBusqueda = (texto) => {
@@ -19,7 +19,6 @@ const handleBusqueda = (texto) => {
 };
 
 const obtenerPresupuestos = async (busqueda = '') => {
-  loading.value = true;
   let query = supabase.from("presupuesto");
 
   if (busqueda) {
@@ -39,7 +38,7 @@ const obtenerPresupuestos = async (busqueda = '') => {
   } else if (data) {
     servicios.value = data;
   }
-  loading.value = false;
+  uiStore.hideLoading()
 };
 
 const irACrear = () => {
@@ -47,6 +46,7 @@ const irACrear = () => {
 };
 
 onMounted(async () => {
+  uiStore.showLoading()
   await obtenerPresupuestos();
 });
 </script>
@@ -61,9 +61,7 @@ onMounted(async () => {
       @buscar="handleBusqueda"
     />
     
-    <cargando v-if="loading && servicios.length === 0"></cargando>
-    
-    <div v-else class="contenedor pb-20">
+    <div class="contenedor pb-20">
       <div class="header-acciones flex justify-between items-center my-2 px-2">
         <h2 class="text-xl font-bold servi-blue-font">Presupuestos</h2>
         <button 

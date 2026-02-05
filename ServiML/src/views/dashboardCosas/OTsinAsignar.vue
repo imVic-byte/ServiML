@@ -4,10 +4,11 @@ import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import ordenTrabajoCard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import navbar from "../../components/componentes/navbar.vue";
-import cargando from "../../components/componentes/cargando.vue";
+import { useInterfaz } from '../../stores/interfaz.js'
+
+const uiStore = useInterfaz()
 const router = useRouter();
 const ordenes = ref([]);
-const loading = ref(true);
 const estados = ref([]);
 
 const obtenerEstados = async () => {
@@ -33,18 +34,17 @@ const obtenerOrdenes = async () => {
   if (data) {
     ordenes.value = data;
   }
-  loading.value = false;
+  uiStore.hideLoading()
 };
 
 onMounted(async () => {
+  uiStore.showLoading()
   await obtenerEstados();
   await obtenerOrdenes();
 });
 </script>
 
 <template>
-  <cargando v-if="loading"></cargando>
-  <div v-else>
     <navbar
       titulo="ServiML"
       subtitulo="OT Sin Asignar"
@@ -62,7 +62,6 @@ onMounted(async () => {
         />
       </div>
     </div>
-  </div>
 </template>
 <style scoped>
 .navbar {

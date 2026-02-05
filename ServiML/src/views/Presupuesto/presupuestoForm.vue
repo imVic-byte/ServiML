@@ -7,7 +7,10 @@ import inputRut from "../../components/componentes/inputRut.vue";
 import modal from "../../components/componentes/modal.vue";
 import cargando2 from "../../components/componentes/cargando2.vue";
 const router = useRouter();
+
 const patente = ref("");
+const modelo = ref("");
+const marca = ref("");
 const tipoPresupuesto = ref("Simple");
 const diagnostico = ref("");
 const descuento = ref(0);
@@ -20,7 +23,10 @@ const ivaPorcentaje = ref(0);
 const ivaBoolean = ref(true);
 const rut = ref("");
 const rutValido = ref(true);
+
+
 const loading = ref(false);
+
 const checkRut = (valido) => {
   rutValido.value = valido;
 };
@@ -35,7 +41,7 @@ const redirigir = () => {
     modalState.value.visible = false;
   }
 };
-const agregarItem = () => items.value.push({ descripcion: "", monto: 0 });
+const agregarItem = () => items.value.push({ descripcion: "", monto: "" });
 const eliminarItem = (index) => items.value.splice(index, 1);
 
 const totales = computed(() => {
@@ -210,7 +216,14 @@ const enviarFormulario = async () => {
         placeholder="ABCD-12"
         class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
       />
-
+      <div>
+        <label for="modelo" class="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
+        <input v-model="modelo" type="text" placeholder="Modelo" class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200" />
+      </div>
+      <div>
+        <label for="marca" class="block text-xs font-bold text-gray-500 uppercase mb-1">Marca</label>
+        <input v-model="marca" type="text" placeholder="Marca" class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200" />
+      </div>
       <div>
         <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
           >Cliente</label
@@ -219,6 +232,19 @@ const enviarFormulario = async () => {
           v-model="cliente"
           type="text"
           placeholder="Nombre cliente"
+          class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+          >Contacto</label
+        >
+        <input
+          v-model="contacto"
+          type="number"
+          placeholder="9 9999 9999"
+          min="0"
+          max="999999999"
           class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
         />
       </div>
@@ -238,19 +264,7 @@ const enviarFormulario = async () => {
         v-if="tipoPresupuesto === 'Detallado'"
         @check-rut="checkRut"
       />
-      <div v-if="tipoPresupuesto === 'Detallado'">
-        <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
-          >Contacto</label
-        >
-        <input
-          v-model="contacto"
-          type="number"
-          placeholder="9 9999 9999"
-          min="0"
-          max="999999999"
-          class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
-        />
-      </div>
+      
 
       <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
         >Diagnóstico</label

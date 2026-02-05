@@ -4,11 +4,11 @@ import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import ordenTrabajoCard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import navbar from "../../components/componentes/navbar.vue";
-import cargando from "../../components/componentes/cargando.vue";
+import { useInterfaz } from '../../stores/interfaz.js'
 
 const router = useRouter();
 const ordenes = ref([]);
-const loading = ref(true);
+const uiStore = useInterfaz()
 const estados = ref([]);
 let searchTimeout = null;
 
@@ -22,7 +22,6 @@ const handleEstados = (id) => {
 } 
 
 const obtenerOrdenes = async (busqueda = '') => {
-  loading.value = true;
   
   let query = supabase.from("orden_trabajo");
 
@@ -43,7 +42,7 @@ const obtenerOrdenes = async (busqueda = '') => {
   } else if (data) {
     ordenes.value = data;
   }
-  loading.value = false;
+  uiStore.hideLoading()
 };
 
 const handleBusqueda = (texto) => {
@@ -58,6 +57,7 @@ const irACrear = () => {
 };
 
 onMounted(async () => {
+  uiStore.showLoading()
   await obtenerEstados();
   await obtenerOrdenes();
 });
@@ -72,20 +72,8 @@ onMounted(async () => {
       searchInput="true"
       @buscar="handleBusqueda"
     />
-
-    <cargando v-if="loading && ordenes.length === 0"></cargando>
     
-    <div v-else class="contenedor pb-20">
-      <div class="header-acciones flex justify-between items-center my-2 px-2">
-        <h2 class="text-xl font-bold servi-blue-font">Ordenes de Trabajo</h2>
-        <button
-          @click="irACrear"
-          class="servi-yellow font-bold servi-blue-font p-2 sm:px-10 sm:py-4 rounded-full flex items-center justify-center transition-all hover:scale-105"
-        >
-          <span class="md:hidden text-xl px-2">+</span>
-          <span class="hidden md:inline">Nueva Orden de Trabajo</span>
-        </button>
-      </div>
+    <div class="contenedor pb-20">
 
       <div v-if="ordenes.length === 0" class="text-center py-10 text-gray-500">
         <p>No se encontraron órdenes de trabajo.</p>
