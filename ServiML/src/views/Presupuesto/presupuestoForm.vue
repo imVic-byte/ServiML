@@ -11,78 +11,21 @@ const router = useRouter();
 const patente = ref("");
 const modelo = ref("");
 const marca = ref("");
-const tipoPresupuesto = ref("Simple");
 const diagnostico = ref("");
-const descuento = ref(0);
-const incremento = ref(0);
-const cliente = ref("");
-const contacto = ref("");
+const descuentoPorcentaje = ref('');
+const nombre = ref("");
+const apellido = ref("");
+const codigoPais = ref("+56");
+const telefono = ref("");
 const correo = ref("");
 const items = ref([]);
-const ivaPorcentaje = ref(0);
 const ivaBoolean = ref(true);
-const rut = ref("");
-const rutValido = ref(true);
-
 
 const loading = ref(false);
 
-const checkRut = (valido) => {
-  rutValido.value = valido;
-};
 
-const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
-
-
-const redirigir = () => {
-  if (modalState.value.exito) {
-    router.push({ name: "listado-presupuestos" });
-  } else {
-    modalState.value.visible = false;
-  }
-};
 const agregarItem = () => items.value.push({ descripcion: "", monto: "" });
 const eliminarItem = (index) => items.value.splice(index, 1);
-
-const totales = computed(() => {
-  const subtotal = items.value.reduce(
-    (acc, item) => acc + (Number(item.monto) || 0),
-    0
-  );
-
-  let dsc = tipoPresupuesto.value === "Simple" ? 0 : descuento.value;
-  let inc = tipoPresupuesto.value === "Simple" ? 0 : incremento.value;
-
-  const total_neto = subtotal - dsc + inc;
-
-  let pctIva = 0;
-  if (tipoPresupuesto.value === "Simple") {
-    pctIva = ivaBoolean.value ? 19 : 0;
-  } else {
-    pctIva = ivaPorcentaje.value;
-  }
-
-  const iva = total_neto * (pctIva / 100);
-  const total_final = total_neto + iva;
-
-  return {
-    subtotal,
-    descuento: dsc,
-    incremento: inc,
-    total_neto,
-    iva,
-    total_final,
-  };
-});
-
-const formatearMoneda = (valor) => {
-  return new Intl.NumberFormat("es-CL", {
-    style: "currency",
-    currency: "CLP",
-    minimumFractionDigits: 0,
-  }).format(valor);
-};
-
 const validarFormulario = () => {
   if (!patente.value || patente.value.trim() === "" || patente.value.length > 7) {
     modalState.value = {
@@ -102,11 +45,38 @@ const validarFormulario = () => {
     };
     return false;
   }
-  if (!cliente.value || cliente.value.trim() === "") {
+  if (!nombre.value || nombre.value.trim() === "") {
     modalState.value = {
       visible: true,
       titulo: "Faltan datos",
       mensaje: "Debes ingresar el nombre del cliente.",
+      exito: false,
+    };
+    return false;
+  }
+  if (!apellido.value || apellido.value.trim() === "") {
+    modalState.value = {
+      visible: true,
+      titulo: "Faltan datos",
+      mensaje: "Debes ingresar el apellido del cliente.",
+      exito: false,
+    };
+    return false;
+  }
+  if (!telefono.value || telefono.value.trim() === "") {
+    modalState.value = {
+      visible: true,
+      titulo: "Faltan datos",
+      mensaje: "Debes ingresar el teléfono del cliente.",
+      exito: false,
+    };
+    return false;
+  }
+  if (!diagnostico.value || diagnostico.value.trim() === "") {
+    modalState.value = {
+      visible: true,
+      titulo: "Faltan datos",
+      mensaje: "Debes ingresar el diagnóstico del vehículo.",
       exito: false,
     };
     return false;
@@ -121,32 +91,77 @@ const validarFormulario = () => {
     };
     return false;
   }
-
-  if (tipoPresupuesto.value === "Detallado") {
-    if (!rut.value || !rutValido.value) {
+  for (let i = 0; i < items.value.length; i++) {
+    if (!items.value[i].descripcion || items.value[i].descripcion.trim() === "") {
       modalState.value = {
         visible: true,
-        titulo: "RUT Inválido",
-        mensaje:
-          "El RUT ingresado no es correcto. Verifica el dígito verificador.",
+        titulo: "Faltan datos",
+        mensaje: "Debes ingresar la descripción del ítem.",
         exito: false,
       };
       return false;
-    };
-    if (!contacto.value || contacto.value.length < 7) {
-    modalState.value = {
-      visible: true,
-      titulo: "Faltan datos",
-      mensaje: "Debes ingresar el contacto del cliente.",
-      exito: false,
-    };  
-    return false;
-  };
+    }
+    if (!items.value[i].monto || items.value[i].monto.trim() === "") {
+      modalState.value = {
+        visible: true,
+        titulo: "Faltan datos",
+        mensaje: "Debes ingresar el monto del ítem.",
+        exito: false,
+      };
+      return false;
+    }
   }
-
   return true;
 };
+
+const formatearMoneda = (valor) => {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    minimumFractionDigits: 0,
+  }).format(valor);
+};
+
+const totales = computed(() => {
+  const subtotal = items.value.reduce(
+    (acc, item) => acc + (Number(item.monto) || 0),
+    0
+  );
+
+  let dsc = descuentoPorcentaje.value;
+  if (!dsc || dsc === "") {
+    dsc = 0;
+  }
+  const total_neto = subtotal - (subtotal * (dsc / 100));
+  let pctIva = ivaBoolean.value ? 19 : 0;
+
+  const iva = total_neto * (pctIva / 100);
+  const total_final = total_neto + iva;
+
+  return {
+    subtotal,
+    descuentoPorcentaje: dsc,
+    total_neto,
+    iva,
+    total_final,
+  };
+});
+
+const handleCorreo = () => {
+  if (!correo.value) {
+    modalState.value = {
+      visible: true,
+      titulo: "Atención",
+      mensaje: "¿Deseas continuar sin correo del cliente?",
+      exito: false,
+      
+    };
+    return false;
+  }
+}
+
 const enviarFormulario = async () => {
+  handleCorreo();
   if (!validarFormulario()) return;
   loading.value = true;
   try {
@@ -154,15 +169,17 @@ const enviarFormulario = async () => {
       data: { session },
     } = await supabase.auth.getSession();
     if (!session) throw new Error("Sesión expirada");
-
     const { data, error } = await supabase.functions.invoke(
       "crear-presupuesto",
       {
         body: {
           patente: patente.value,
-          cliente: cliente.value,
-          rut: rut.value,
-          contacto: contacto.value,
+          marca: marca.value,
+          modelo: modelo.value,
+          nombre: nombre.value,
+          apellido: apellido.value,
+          codigoPais: codigoPais.value,
+          telefono: telefono.value,
           email: correo.value,
           diagnostico: diagnostico.value,
           ...totales.value,
@@ -187,24 +204,22 @@ const enviarFormulario = async () => {
     };
   }
 };
+
+const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
+
+
+const redirigir = () => {
+  if (modalState.value.exito) {
+    router.push({ name: "listado-presupuestos" });
+  } else {
+    modalState.value.visible = false;
+  }
+};
 </script>
 <template>
   <navbar titulo="ServiML" subtitulo="Crear Presupuesto" />
 
   <div class="pb-28 mx-auto p-4 max-w-lg">
-    <div
-      class="flex items-center justify-center gap-2 my-4 bg-gray-100 p-1 rounded-lg font-bold"
-    >
-      <button
-        v-for="tipo in ['Simple', 'Detallado']"
-        :key="tipo"
-        @click="tipoPresupuesto = tipo"
-        class="flex-1 px-4 py-2 rounded-full transition-all font-medium text-sm"
-        :class="tipoPresupuesto === tipo ? 'activo shadow-sm' : 'text-gray-500'"
-      >
-        {{ tipo }}
-      </button>
-    </div>
 
     <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-4 mb-4">
       <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
@@ -214,7 +229,9 @@ const enviarFormulario = async () => {
         v-model="patente"
         type="text"
         placeholder="ABCD-12"
-        class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
+        class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200 uppercase"
+        @input="patente = patente.toUpperCase()"
+        maxlength="7"
       />
       <div>
         <label for="modelo" class="block text-xs font-bold text-gray-500 uppercase mb-1">Modelo</label>
@@ -226,27 +243,48 @@ const enviarFormulario = async () => {
       </div>
       <div>
         <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
-          >Cliente</label
+          >Nombre del Cliente</label
         >
         <input
-          v-model="cliente"
+          v-model="nombre"
           type="text"
-          placeholder="Nombre cliente"
+          placeholder="Juan"
           class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
         />
       </div>
       <div>
         <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
-          >Contacto</label
+          >Apellido del Cliente</label
         >
         <input
-          v-model="contacto"
+          v-model="apellido"
+          type="text"
+          placeholder="Perez"
+          class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
+          >Teléfono</label
+        >
+        <div class="flex gap-2">
+          <select name="prefijo" id="prefijo" class="w-24 p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200" v-model="codigoPais">
+          <option value="+56">+56</option>
+          <option value="+51">+51</option>
+          <option value="+54">+54</option>
+          <option value="+55">+55</option>
+          <option value="+591">+591</option>
+        </select>
+        <input
+          v-model="telefono"
           type="number"
           placeholder="9 9999 9999"
           min="0"
           max="999999999"
+          maxlength="10"
           class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
         />
+        </div>
       </div>
       <div>
         <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
@@ -259,13 +297,7 @@ const enviarFormulario = async () => {
           class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200"
         />
       </div>
-      <inputRut
-        v-model="rut"
-        v-if="tipoPresupuesto === 'Detallado'"
-        @check-rut="checkRut"
-      />
       
-
       <label class="block text-xs font-bold text-gray-500 uppercase mb-1"
         >Diagnóstico</label
       >
@@ -303,7 +335,6 @@ const enviarFormulario = async () => {
     </div>
 
     <div
-      v-if="tipoPresupuesto === 'Simple'"
       class="bg-blue-50 rounded-xl p-6 text-center border border-blue-100"
     >
       <div class="flex gap-2 mb-4 bg-gray-100 p-1 rounded-lg">
@@ -322,54 +353,26 @@ const enviarFormulario = async () => {
           Sin IVA
         </button>
       </div>
-      <p class="text-3xl font-bold servi-blue-font">
-        {{ formatearMoneda(totales.total_final) }}
-      </p>
-    </div>
-
-    <div
-      v-else
-      class="bg-white rounded-xl shadow-sm border border-gray-100 p-4"
-    >
       <div class="flex justify-between mb-2 text-sm">
         <span>Subtotal Neto</span
         ><span>{{ formatearMoneda(totales.subtotal) }}</span>
       </div>
       <div class="flex justify-between mb-2 text-sm">
-        <span>Descuento (-)</span
+        <span>Descuento (%)</span
         ><input
-          v-model.number="descuento"
+          v-model.number="descuentoPorcentaje"
           type="number"
-          class="w-20 bg-gray-200 text-right"
+          class="w-20 bg-gray-200 text-right rounded-lg px-1"
+          placeholder="0"
         />
       </div>
-      <div class="flex justify-between mb-2 text-sm">
-        <span>Incremento (+)</span
-        ><input
-          v-model.number="incremento"
-          type="number"
-          class="w-20 bg-gray-200 text-right"
-        />
-      </div>
-      <div class="flex justify-between mb-3 text-sm">
-        <span>IVA (%)</span
-        ><input
-          v-model.number="ivaPorcentaje"
-          type="number"
-          class="w-20 bg-gray-200 text-right"
-        />
-      </div>
-      <div class="flex justify-between pt-3 border-t font-bold">
-        <span>TOTAL</span
-        ><span class="text-xl text-blue-900">{{
-          formatearMoneda(totales.total_final)
-        }}</span>
-      </div>
+      <p class="text-3xl font-bold servi-blue-font">
+        {{ formatearMoneda(totales.total_final) }}
+      </p>
     </div>
 
     <button
       @click="enviarFormulario"
-      :disabled="!rutValido && tipoPresupuesto === 'Detallado'"
       class="w-full mt-6 servi-blue servi-yellow-font py-3 rounded-lg font-bold"
     >
       Guardar Presupuesto

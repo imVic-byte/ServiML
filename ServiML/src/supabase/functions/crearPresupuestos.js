@@ -25,25 +25,18 @@ serve(async (req) => {
 
     if (userError || !user) throw new Error('Invalid User')
     
-    const { patente, cliente, rut, contacto, email, diagnostico, detalles, ...presupuestoData } = await req.json()
+    const { patente, marca, modelo, nombre, apellido, codigoPais, telefono, email, diagnostico, detalles, ...presupuestoData } = await req.json()
 
     let clienteId = null
 
-    if (rut) {
+    if (nombre && apellido) {
+      nombre = nombre.toUpperCase()
+      apellido = apellido.toUpperCase()
       const { data } = await supabase
         .from('cliente')
         .select('id')
-        .eq('rut', rut)
-        .maybeSingle()
-      
-      if (data) clienteId = data.id
-    } 
-
-    if (!clienteId && cliente) {
-      const { data } = await supabase
-        .from('cliente')
-        .select('id')
-        .eq('nombre', cliente)
+        .eq('nombre', nombre)
+        .eq('apellido', apellido)
         .maybeSingle()
       
       if (data) clienteId = data.id
@@ -53,9 +46,10 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('cliente')
         .insert({ 
-          nombre: cliente, 
-          rut: rut || null, 
-          telefono: contacto, 
+          nombre: nombre, 
+          apellido: apellido, 
+          codigoPais: codigoPais, 
+          telefono: telefono, 
           email: email 
         })
         .select('id')
