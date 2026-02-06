@@ -27,28 +27,28 @@ const formatearFecha = (fechaString) => {
 
 const data = props.data
 const handleEstados = (estado) => {
-  switch (estado.toLowerCase()) {
-    case 'confirmado':
-      return 'badge-confirmado'
-    case 'descartado':
-      return 'badge-descartado'
-    case 'en espera de confirmación':
-      return 'badge-en-espera-de-confirmación'
+  switch (estado) {
+    case 2:
+      return {clase: 'badge-confirmado', texto: 'Confirmado', contenedor: 'confirmado'}
+    case 3:
+      return {clase: 'badge-descartado', texto: 'Descartado', contenedor: 'descartado'}
+    case 1:
+      return {clase: 'badge-en-espera-de-confirmación', texto: 'En espera de confirmación', contenedor: 'en-espera'}
     default:
-      return 'badge-cerrado'
+      return {clase: 'badge-cerrado', texto: 'Cerrado', contenedor: 'cerrado'}
   }
 }
-
 </script>
 
 <template>
   <RouterLink 
     :to="{ name: 'ver-presupuesto', params: { id: data.id } }" 
     class="card-container"
+    :class="handleEstados(data.estado).contenedor"
   >
     <div class="card-header">
       <span class="folio">#{{ data.numero_folio }}</span>
-      <span :class="handleEstados(data.estado)">{{ data.estado }}</span>  
+      <span :class="handleEstados(data.estado).clase">{{ handleEstados(data.estado).texto }}</span>  
     </div>
 
     <div class="card-body">
@@ -93,8 +93,6 @@ const handleEstados = (estado) => {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 10px;
-  border-left: 5px solid #1f4b85;
-  border-right: 5px solid #1f4b85;
   transition: transform 0.2s, box-shadow 0.2s;
   margin-bottom: 1rem;
   margin-right: 1rem;
@@ -104,14 +102,29 @@ const handleEstados = (estado) => {
   cursor: pointer;
 }
 
+.confirmado {
+  border-left: 5px solid #1b992a92;
+  border-right: 5px solid #1b992a92;
+}
+
+.descartado {
+  border-left: 5px solid #e74c3c;
+  border-right: 5px solid #e74c3c;
+}
+
+.en-espera {
+  border-left: 5px solid #f6ff4c;
+  border-right: 5px solid #f6ff4c;
+}
+
+.cerrado {
+  border-left: 5px solid #52026f;
+  border-right: 5px solid #52026f;
+}
+
 .card-container:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.card-container.vencido {
-  border-left-color: #e74c3c;
-  border-right-color: #e74c3c;
 }
 
 .card-header {

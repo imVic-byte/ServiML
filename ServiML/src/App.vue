@@ -8,6 +8,14 @@ import Footer from '@/components/componentes/footer.vue'
   <GlobalLoader />
   <div class="main-layout">
     <RouterView />
-    <Footer />
+    <Footer v-if="$route.name !== 'login'" />
   </div>
 </template>
+
+<style>
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+</style>

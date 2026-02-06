@@ -1,9 +1,8 @@
 <script setup>
-import { ref, computed} from "vue";
+import { ref, computed, onMounted } from "vue";
 import navbar from "../../components/componentes/navbar.vue";
 import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
-import inputRut from "../../components/componentes/inputRut.vue";
 import modal from "../../components/componentes/modal.vue";
 import cargando2 from "../../components/componentes/cargando2.vue";
 const router = useRouter();
@@ -21,13 +20,17 @@ const correo = ref("");
 const items = ref([]);
 const ivaBoolean = ref(true);
 
+const alertaEmail = ref(true);
+const presupuesto_id = ref(null);
 const loading = ref(false);
 
 
 const agregarItem = () => items.value.push({ descripcion: "", monto: "" });
 const eliminarItem = (index) => items.value.splice(index, 1);
+
+
 const validarFormulario = () => {
-  if (!patente.value || patente.value.trim() === "" || patente.value.length > 7) {
+  if (!patente.value || patente.value.trim() === "" || patente.value.length > 7 || patente.value.length < 6) {
     modalState.value = {
       visible: true,
       titulo: "Faltan datos",
@@ -36,11 +39,20 @@ const validarFormulario = () => {
     };
     return false;
   }
-  if (!correo.value || correo.value.trim() === "") {
+  if (!modelo.value || modelo.value.trim() === "") {
     modalState.value = {
       visible: true,
       titulo: "Faltan datos",
-      mensaje: "Debes ingresar el correo del cliente.",
+      mensaje: "Debes ingresar el modelo del vehículo.",
+      exito: false,
+    };
+    return false;
+  }
+  if (!marca.value || marca.value.trim() === "") {
+    modalState.value = {
+      visible: true,
+      titulo: "Faltan datos",
+      mensaje: "Debes ingresar la marca del vehículo.",
       exito: false,
     };
     return false;
@@ -63,7 +75,7 @@ const validarFormulario = () => {
     };
     return false;
   }
-  if (!telefono.value || telefono.value.trim() === "") {
+  if (!telefono.value) {
     modalState.value = {
       visible: true,
       titulo: "Faltan datos",
@@ -101,7 +113,7 @@ const validarFormulario = () => {
       };
       return false;
     }
-    if (!items.value[i].monto || items.value[i].monto.trim() === "") {
+    if (!items.value[i].monto) {
       modalState.value = {
         visible: true,
         titulo: "Faltan datos",
@@ -140,7 +152,7 @@ const totales = computed(() => {
 
   return {
     subtotal,
-    descuentoPorcentaje: dsc,
+    descuento: dsc,
     total_neto,
     iva,
     total_final,
@@ -148,7 +160,7 @@ const totales = computed(() => {
 });
 
 const handleCorreo = () => {
-  if (!correo.value) {
+  if (!correo.value && alertaEmail.value) {
     modalState.value = {
       visible: true,
       titulo: "Atención",
@@ -156,13 +168,24 @@ const handleCorreo = () => {
       exito: false,
       
     };
+    alertaEmail.value = false;
     return false;
   }
+  return true;
+}
+
+const dosSemanasDespues = () => {
+  const fecha = new Date();
+  fecha.setDate(fecha.getDate() + 14);
+  return fecha.toISOString().split("T")[0];
 }
 
 const enviarFormulario = async () => {
-  handleCorreo();
   if (!validarFormulario()) return;
+  if (alertaEmail.value) {
+    handleCorreo();
+    return;
+  }
   loading.value = true;
   try {
     const {
@@ -173,21 +196,28 @@ const enviarFormulario = async () => {
       "crear-presupuesto",
       {
         body: {
-          patente: patente.value,
-          marca: marca.value,
-          modelo: modelo.value,
-          nombre: nombre.value,
-          apellido: apellido.value,
+          patente: patente.value.trim().toUpperCase(),
+          marca: marca.value.trim().toUpperCase(),
+          modelo: modelo.value.trim().toUpperCase(),
+          nombre: nombre.value.trim().toUpperCase(),
+          apellido: apellido.value.trim().toUpperCase(),
           codigoPais: codigoPais.value,
           telefono: telefono.value,
           email: correo.value,
-          diagnostico: diagnostico.value,
+          vencimiento: dosSemanasDespues(),
+          diagnostico: diagnostico.value.toUpperCase(),
           ...totales.value,
-          detalles: items.value,
+          detalles: items.value.map((item) => {
+            return {
+              descripcion: item.descripcion.toUpperCase(),
+              monto: item.monto,
+            };
+          }),
         },
       }
     );
     loading.value = false;
+    presupuesto_id.value = data.data.id;
     modalState.value = {
       visible: true,
       titulo: "¡Éxito!",
@@ -210,14 +240,15 @@ const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true })
 
 const redirigir = () => {
   if (modalState.value.exito) {
-    router.push({ name: "listado-presupuestos" });
+    router.push({ name: "ver-presupuesto", params: { id: presupuesto_id.value } });
   } else {
     modalState.value.visible = false;
   }
 };
+
 </script>
 <template>
-  <navbar titulo="ServiML" subtitulo="Crear Presupuesto" />
+  <navbar titulo="ServiML" subtitulo="Crear Presupuesto" class="navbar"/>
 
   <div class="pb-28 mx-auto p-4 max-w-lg">
 
@@ -228,7 +259,7 @@ const redirigir = () => {
       <input
         v-model="patente"
         type="text"
-        placeholder="ABCD-12"
+        placeholder="ABC123"
         class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200 uppercase"
         @input="patente = patente.toUpperCase()"
         maxlength="7"
@@ -354,7 +385,7 @@ const redirigir = () => {
         </button>
       </div>
       <div class="flex justify-between mb-2 text-sm">
-        <span>Subtotal Neto</span
+        <span>Subtotal</span
         ><span>{{ formatearMoneda(totales.subtotal) }}</span>
       </div>
       <div class="flex justify-between mb-2 text-sm">
@@ -365,6 +396,10 @@ const redirigir = () => {
           class="w-20 bg-gray-200 text-right rounded-lg px-1"
           placeholder="0"
         />
+      </div>
+      <div class="flex justify-between mb-2 text-sm">
+        <span>Total Neto</span
+        ><span>{{ formatearMoneda(totales.total_neto) }}</span>
       </div>
       <p class="text-3xl font-bold servi-blue-font">
         {{ formatearMoneda(totales.total_final) }}
