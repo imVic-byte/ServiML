@@ -59,7 +59,7 @@ const asignarOrden = async () => {
     .insert({
       ot_id: props.orden.id,
       nuevo_estado_id:10,
-      observacion: 'Orden asignada a técnico'
+      tipo_evento: 'Orden asignada a técnico'
     })
   empleadoAsignado.value = empleadoSeleccionado.value;
   cargando.value = false;

@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import ordenTrabajoCard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import navbar from "../../components/componentes/navbar.vue";
 import { useInterfaz } from '../../stores/interfaz.js'
+import botonAsignar from '../../components/ordenTrabajo/botonAsignar.vue'
 
 const router = useRouter();
 const ordenes = ref([]);
@@ -47,10 +48,10 @@ const obtenerOrdenes = async (busqueda = '') => {
 
   if (busqueda) {
     query = query
-      .select("*,presupuesto(*),vehiculo!inner(*),cliente(*)")
+      .select("*,presupuesto(*),vehiculo!inner(*),cliente(*),id_empleado(*)")
       .ilike('vehiculo.patente', `%${busqueda}%`);
   } else {
-    query = query.select("*,presupuesto(*),vehiculo(*),cliente(*)");
+    query = query.select("*,presupuesto(*),vehiculo(*),cliente(*),id_empleado(*)");
   }
 
   query = query.order("id", { ascending: false });
@@ -77,12 +78,9 @@ const irACrear = () => {
 };
 
 const irADetalle = (id) => {
-    // Asumiendo que tienes una ruta para ver el detalle, si no, puedes redirigir a donde necesites
-    console.log("Ir a detalle de OT:", id);
-    // router.push({ name: 'detalle-orden', params: { id } }); 
+  router.push({ name: "ver-orden-de-trabajo", params: { id } });
 }
 
-// Helpers de formato
 const formatearDinero = (monto) => {
     if (!monto) return '$0';
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
@@ -103,7 +101,6 @@ const formatearFecha = (fechaString) => {
   })
 }
 
-// Lógica de colores para los estados de la OT
 const colorEstado = (nombreEstado) => {
     if (!nombreEstado) return 'bg-gray-100 text-gray-800 border-gray-200';
     const estado = nombreEstado.toLowerCase();
@@ -119,21 +116,14 @@ const colorEstado = (nombreEstado) => {
     }
 }
 
-// Estadísticas
 const stats = computed(() => {
-  if (!ordenes.value.length) return { total: 0, dinero: 0, activas: 0 };
-  
+  if (!ordenes.value.length) return { total: 0, recientes: 0, sinAsignar: 0 };
   const ordenesMes = ordenes.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
-  
   const total = ordenesMes.length;
-  // Calculamos dinero sumando el total_final del presupuesto vinculado
-  const dinero = ordenesMes.reduce((acc, curr) => acc + (curr.presupuesto?.total_final || 0), 0);
-  
-  // Aquí puedes ajustar la lógica de "activas" según tus IDs de estado
-  // Por ahora cuento todas las del mes como métrica simple
-  const activas = total; 
+  const recientes = ordenes.value.filter(s => new Date(s.created_at) >= estaSemana.value.inicio && new Date(s.created_at) <= estaSemana.value.fin).length;
+  const sinAsignar = ordenesMes.filter(s => s.id_empleado === null).length;
 
-  return { total, dinero, activas };
+  return { total, recientes, sinAsignar };
 });
 
 onMounted(async () => {
@@ -161,24 +151,28 @@ onMounted(async () => {
             <p class="text-2xl font-bold servi-blue-font">{{ stats.total }}</p>
         </div>
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs text-gray-400 uppercase font-bold">Facturación Est. / mes</p>
-            <p class="text-2xl font-bold text-green-600">{{ formatearDinero(stats.dinero) }}</p>
+            <p class="text-xs text-gray-400 uppercase font-bold">Recientes</p>
+            <p class="text-2xl font-bold text-green-600">{{ stats.recientes }}</p>
         </div>
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs text-gray-400 uppercase font-bold">Recientes</p>
-            <p class="text-lg font-bold text-gray-700">{{ stats.activas }}</p>
+            <p class="text-xs text-gray-400 uppercase font-bold">Sin asignar</p>
+            <p class="text-lg font-bold text-gray-700">{{ stats.sinAsignar }}</p>
         </div>
       </div>
 
       <Transition name="slide-stats">
         <div v-show="showStats" class="md:hidden grid grid-cols-2 gap-3 mb-6">
           <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-              <p class="text-xs text-gray-400 uppercase font-bold">Total / mes</p>
+              <p class="text-xs text-gray-400 uppercase font-bold">Órdenes / mes</p>
               <p class="text-xl font-bold servi-blue-font">{{ stats.total }}</p>
           </div>
           <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-              <p class="text-xs text-gray-400 uppercase font-bold">$$$ / mes</p>
-              <p class="text-xl font-bold text-green-600">{{ formatearDinero(stats.dinero) }}</p>
+              <p class="text-xs text-gray-400 uppercase font-bold">Recientes</p>
+              <p class="text-xl font-bold text-green-600">{{ stats.recientes }}</p>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-400 uppercase font-bold">Sin asignar</p>
+              <p class="text-lg font-bold text-gray-700">{{ stats.sinAsignar }}</p>
           </div>
         </div>
       </Transition>
@@ -207,14 +201,6 @@ onMounted(async () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          
-          <button 
-            @click="irACrear" 
-            class="servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
-          >
-            <span class="text-xl leading-none mb-1">+</span>
-            <span class="hidden sm:inline">Nueva OT</span>
-          </button>
         </div>
       </div>
 
@@ -232,12 +218,12 @@ onMounted(async () => {
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
-                    <th class="p-4 font-semibold">OT ID</th>
-                    <th class="p-4 font-semibold">Cliente</th>
+                    <th class="p-4 font-semibold">Nro.</th>
                     <th class="p-4 font-semibold">Vehículo</th>
+                    <th class="p-4 font-semibold">Diágnostico inicial</th>
                     <th class="p-4 font-semibold text-center">Ingreso</th>
-                    <th class="p-4 font-semibold text-right">Presupuesto</th>
                     <th class="p-4 font-semibold text-center">Estado Actual</th>
+                    <th class="p-4 font-semibold text-center">Encargado</th>
                     <th class="p-4 font-semibold text-center">Acción</th>
                 </tr>
             </thead>
@@ -248,25 +234,25 @@ onMounted(async () => {
                     class="hover:bg-gray-50 transition-colors cursor-pointer"
                     @click="irADetalle(item.id)"
                 >
-                    <td class="p-4 font-medium text-gray-900">#{{ item.id }}</td>
+                    <td class="p-4 font-medium text-gray-900">#{{ item.presupuesto.numero_folio }}</td>
                     <td class="p-4 text-gray-700">
-                        <div class="font-medium">{{ camelCase(item.cliente?.nombre) }} {{ camelCase(item.cliente?.apellido) }}</div>
-                        <div class="text-xs text-gray-400">{{ item.cliente?.email || 'Sin correo' }}</div>
+                        <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">{{ item.vehiculo?.patente }}</span>
+                        <div class="text-xs text-gray-500 mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
                     </td>
                     <td class="p-4 text-gray-700">
-                        <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ item.vehiculo?.patente }}</span>
-                        <div class="text-xs text-gray-500 mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
+                        <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold block max-w-[200px] truncate">{{ item.presupuesto.diagnostico }}</span>
                     </td>
                     <td class="p-4 text-center whitespace-nowrap">
                       <span class="text-gray-400">{{ formatearFecha(item.created_at) }}</span>
-                    </td>
-                    <td class="p-4 text-right font-bold servi-blue-font">
-                        {{ formatearDinero(item.presupuesto?.total_final) }}
                     </td>
                     <td class="p-4 text-center">
                         <span :class="['px-3 py-1 rounded-full text-xs font-medium border', colorEstado(handleEstados(item.estado_actual_id).nombre)]">
                             {{ handleEstados(item.estado_actual_id).nombre }}
                         </span>
+                    </td>
+                    <td class="p-4 text-center">
+                        <span v-if="item.id_empleado" class="text-gray-400">{{ item.id_empleado.nombre }}</span>
+                        <botonAsignar v-else :orden="item" @empleadoSeleccionado="obtenerOrdenes" />
                     </td>
                     <td class="p-4 text-center">
                         <button class="text-gray-400 hover:text-blue-600 transition-colors">
