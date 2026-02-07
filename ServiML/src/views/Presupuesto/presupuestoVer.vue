@@ -21,6 +21,10 @@ const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true })
 const id = ref(route.params.id)
 const router = useRouter();
 
+const camelCase = (texto) => {
+    if (!texto) return '';
+    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+}
 
 const redirigir = () => {
     modalState.value.visible = false;
@@ -180,7 +184,7 @@ onMounted(async () => {
                             <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Datos del Cliente</h3>
                             <div class="space-y-2 text-sm text-gray-700">
                                 <p class="flex flex-col">
-                                    <span class="font-bold text-gray-900">{{ presupuesto.cliente?.nombre + ' ' + presupuesto.cliente?.apellido || 'No registrado' }}</span>
+                                    <span class="font-bold text-gray-900">{{ camelCase(presupuesto.cliente?.nombre) + ' ' + camelCase(presupuesto.cliente?.apellido) || 'No registrado' }}</span>
                                     <span class="text-gray-500 text-xs">Cliente</span>
                                 </p>
                                 <p>
@@ -207,7 +211,7 @@ onMounted(async () => {
                                 </p>
                                 <p>
                                     <span class="block text-xs text-gray-400">Diagnóstico Inicial</span>
-                                    <span class="italic text-gray-600">{{ presupuesto.diagnostico || 'No registrado' }}</span>
+                                    <span class="italic text-gray-600">{{ camelCase(presupuesto.diagnostico) || 'No registrado' }}</span>
                                 </p>
                             </div>
                         </div>
@@ -220,7 +224,7 @@ onMounted(async () => {
                     </div>
                     <div class="divide-y divide-gray-100">
                         <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                            <span class="text-sm text-gray-700 font-medium">{{ detalle.descripcion }}</span>
+                            <span class="text-sm text-gray-700 font-medium">{{ camelCase(detalle.descripcion) }}</span>
                             <span class="text-sm font-bold servi-blue-font">{{ formatearNumero(detalle.monto) }}</span>
                         </div>
                     </div>
@@ -291,8 +295,8 @@ onMounted(async () => {
 .badge-confirmado {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
-  background: #36f04c5c;
-  color: #1b5e20;
+  background: #46e450ec;
+  color: #4d4d4d;
   border-radius: 4px;
   text-transform: uppercase;
 }
@@ -309,7 +313,7 @@ onMounted(async () => {
 .badge-en-espera-de-confirmación {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
-  background: #ffc800;
+  background: #fbd446fd;
   color: #514d4d;
   font-weight: bold;
   border-radius: 4px;

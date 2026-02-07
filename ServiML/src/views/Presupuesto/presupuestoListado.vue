@@ -66,6 +66,11 @@ const formatearDinero = (monto) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
 }
 
+const camelCase = (texto) => {
+    if (!texto) return '';
+    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+}
+
 const stats = computed(() => {
   if (!servicios.value) return { total: 0, pendientes: 0, confirmados: 0, dineroPendiente: 0 };
   const serviciosMes = servicios.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
@@ -224,7 +229,7 @@ onMounted(async () => {
                 >
                     <td class="p-4 font-medium text-gray-900">#{{ item.numero_folio }}</td>
                     <td class="p-4 text-gray-700">
-                        <div class="font-medium">{{ item.cliente?.nombre }} {{ item.cliente?.apellido }}</div>
+                        <div class="font-medium">{{ camelCase(item.cliente?.nombre) }} {{ camelCase(item.cliente?.apellido) }}</div>
                         <div class="text-xs text-gray-400">{{ item.cliente?.email }}</div>
                     </td>
                     <td class="p-4 text-gray-700">
@@ -232,7 +237,7 @@ onMounted(async () => {
                         <div class="text-xs text-gray-500 mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
                     </td>
                     <td class="p-4 text-gray-700">
-                        <span class="block max-w-[200px] truncate" :title="item.diagnostico">{{ item.diagnostico }}</span>
+                        <span class="block max-w-[200px] truncate" :title="item.diagnostico">{{ camelCase(item.diagnostico) }}</span>
                     </td>
                     <td class="p-4 text-center whitespace-nowrap">
                       <span class="text-gray-400">{{ formatearFecha(item.created_at) }}</span>

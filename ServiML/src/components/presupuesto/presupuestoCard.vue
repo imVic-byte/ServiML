@@ -25,6 +25,11 @@ const formatearFecha = (fechaString) => {
   })
 }
 
+const camelCase = (texto) => {
+  if (!texto) return '';
+  return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+}
+
 const data = props.data
 const handleEstados = (estado) => {
   switch (estado) {
@@ -61,6 +66,14 @@ const handleEstados = (estado) => {
         <span class="label">Patente:</span>
         <span class="valor">{{ data.vehiculo.patente }}</span>
       </div>
+      <div class="info-row" v-if="data.cliente">
+        <span class="label">Cliente:</span>
+        <span class="valor">{{ camelCase(data.cliente.nombre) + ' ' +  camelCase(data.cliente.apellido) }} </span>
+      </div>
+      <div class="info-row">
+        <span class="label">Diagnóstico:</span>
+        <span class="valor truncate">{{ data.diagnostico }}</span>
+      </div>
 
       <div class="divider"></div>
 
@@ -81,7 +94,8 @@ const handleEstados = (estado) => {
     </div>
     
     <div class="card-footer">
-      <small>Vence el: {{ formatearFecha(data.fecha_vencimiento) }}</small>
+      <small v-if="data.estado===1">Vence el: {{ formatearFecha(data.vencimiento) }}</small>
+      <small v-if="data.estado===4">Vencido el: {{ formatearFecha(data.vencimiento) }}</small>
     </div>
   </RouterLink>
 </template>
