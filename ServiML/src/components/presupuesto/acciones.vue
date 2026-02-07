@@ -1,10 +1,10 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const confirm = ref(false)
 const discard = ref(false)
 
-const emit = defineEmits(['descartar', 'confirmar'])
+const emit = defineEmits(['descartar', 'confirmar', 'pdf'])
 
 const ejecutarConfirmacion = () => {
   emit('confirmar')
@@ -15,16 +15,32 @@ const ejecutarDescarte = () => {
   emit('descartar')
   discard.value = false
 }
+
+const ejecutarPdf = () => {
+  emit('pdf')
+}
+
+const props = defineProps({
+    estado: Number
+})
+
+const showButtons = computed(() => {
+    return props.estado === 1
+})
 </script>
 
 <template>
-  <div class="flex gap-4">
-    <button @click="confirm = true" class="servi-blue px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
+  <div class="flex gap-4 justify-center">
+    <button v-if="showButtons" @click="confirm = true" class="servi-blue px-4 py-2 rounded-lg servi-white-font cursor-pointer hover:scale-105 transition-all">
       Confirmar
     </button>
 
-    <button @click="discard = true" class="bg-red-800 px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
+    <button v-if="showButtons" @click="discard = true" class="bg-red-800 px-4 py-2 rounded-lg servi-white-font cursor-pointer hover:scale-105 transition-all">
       Descartar
+    </button>
+
+    <button @click="ejecutarPdf" class="servi-yellow px-4 py-2 rounded-lg servi-blue-font cursor-pointer hover:scale-105 transition-all">
+      PDF
     </button>
   </div>
 

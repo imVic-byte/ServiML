@@ -95,8 +95,6 @@ const handleEstados = (estado) => {
   padding: 10px;
   transition: transform 0.2s, box-shadow 0.2s;
   margin-bottom: 1rem;
-  margin-right: 1rem;
-  margin-left: 1rem;
   text-decoration: none;
   color: inherit;
   cursor: pointer;
@@ -108,13 +106,13 @@ const handleEstados = (estado) => {
 }
 
 .descartado {
-  border-left: 5px solid #e74c3c;
-  border-right: 5px solid #e74c3c;
+  border-left: 5px solid #e74d3cad;
+  border-right: 5px solid #e74d3cad;
 }
 
 .en-espera {
-  border-left: 5px solid #f6ff4c;
-  border-right: 5px solid #f6ff4c;
+  border-left: 5px solid #ffc800a5;
+  border-right: 5px solid #ffc800a5;
 }
 
 .cerrado {
@@ -151,7 +149,7 @@ const handleEstados = (estado) => {
 .badge-descartado {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
-  background: #ff4c4c;
+  background: #e74d3ce9;
   color: #ffffff;
   border-radius: 4px;
   text-transform: uppercase;
@@ -160,8 +158,8 @@ const handleEstados = (estado) => {
 .badge-en-espera-de-confirmación {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
-  background: #f6ff4c;
-  color: #000000;
+  background: #ffc800a5;
+  color: #5c5c5c;
   border-radius: 4px;
   text-transform: uppercase;
 }

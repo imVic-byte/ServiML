@@ -9,8 +9,19 @@ import { useInterfaz } from '../../stores/interfaz.js'
 const router = useRouter();
 const servicios = ref([]);
 const uiStore = useInterfaz()
-const showStats = ref(false);
+const showStats = ref(false)
 let searchTimeout = null;
+
+const esteMes = computed(() => {
+  const fecha = new Date();
+  const inicioMes = new Date(fecha.getFullYear(), fecha.getMonth(), 1);
+  const finMes = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
+  return {
+    inicio: inicioMes,
+    fin: finMes
+  }
+})
+
 
 const handleBusqueda = (texto) => {
   clearTimeout(searchTimeout);
@@ -56,28 +67,37 @@ const formatearDinero = (monto) => {
 }
 
 const stats = computed(() => {
-    const total = servicios.value.length;
-    const pendientes = servicios.value.filter(s => s.estado === 1).length;
-    const confirmados = servicios.value.filter(s => s.estado === 2).length;
-    const dineroPendiente = servicios.value
+  if (!servicios.value) return { total: 0, pendientes: 0, confirmados: 0, dineroPendiente: 0 };
+  const serviciosMes = servicios.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
+    const total = serviciosMes.length;
+    const pendientes = serviciosMes.filter(s => s.estado === 1).length;
+    const confirmados = serviciosMes.filter(s => s.estado === 2).length;
+    const dineroPendiente = serviciosMes
         .filter(s => s.estado === 1)
         .reduce((acc, curr) => acc + (curr.total_final || 0), 0);
 
     return { total, pendientes, confirmados, dineroPendiente };
 });
 
-const handleEstados = (estado) => {
-  switch (estado) {
-    case 2:
-      return {clase: 'badge-confirmado', texto: 'Confirmado', contenedor: 'confirmado'}
-    case 3:
-      return {clase: 'badge-descartado', texto: 'Descartado', contenedor: 'descartado'}
-    case 1:
-      return {clase: 'badge-en-espera-de-confirmación', texto: 'En espera de confirmación', contenedor: 'en-espera'}
-    default:
-      return {clase: 'badge-cerrado', texto: 'Cerrado', contenedor: 'cerrado'}
-  }
+const claseEstado = (estado) => {
+    switch(estado) {
+        case 2: return {clase: 'bg-green-100 text-green-800 border-green-200', texto: 'Confirmado'};
+        case 3: return {clase: 'bg-red-100 text-red-800 border-red-200', texto: 'Descartado'};
+        case 1: return {clase: 'bg-yellow-100 text-yellow-800 border-yellow-200', texto: 'En espera'};
+        default: return {clase: 'bg-gray-100 text-gray-800 border-gray-200', texto: 'Cerrado'};
+    }
 }
+
+const formatearFecha = (fechaString) => {
+  if (!fechaString) return '---'
+  const fecha = new Date(fechaString)
+  return fecha.toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  })
+}
+
 onMounted(async () => {
   uiStore.showLoading()
   await obtenerPresupuestos();
@@ -85,7 +105,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-gray-50 min-h-screen">
+  <div class="bg-gray-50 min-h-screen pb-15">
     <navbar
       titulo="ServiML"
       subtitulo="Gestión de Presupuestos"
@@ -95,24 +115,62 @@ onMounted(async () => {
     />
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p class="text-xs text-gray-400 uppercase font-bold">Total Presupuestos / mes</p>
+            <p class="text-2xl font-bold servi-blue-font">{{ stats.total }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p class="text-xs text-gray-400 uppercase font-bold">Pendientes / mes</p>
+            <p class="text-2xl font-bold text-yellow-600">{{ stats.pendientes }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p class="text-xs text-gray-400 uppercase font-bold">Confirmados / mes</p>
+            <p class="text-2xl font-bold text-green-600">{{ stats.confirmados }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <p class="text-xs text-gray-400 uppercase font-bold">Flujo Potencial / mes</p>
+            <p class="text-lg font-bold text-gray-700">{{ formatearDinero(stats.dineroPendiente) }}</p>
+        </div>
+      </div>
+      <Transition name="slide-stats">
+        <div v-show="showStats" class="md:hidden grid grid-cols-2 gap-3 mb-6">
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-400 uppercase font-bold">Total / mes</p>
+              <p class="text-xl font-bold servi-blue-font">{{ stats.total }}</p>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-400 uppercase font-bold">Pendientes / mes</p>
+              <p class="text-xl font-bold text-yellow-600">{{ stats.pendientes }}</p>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-400 uppercase font-bold">Confirmados / mes</p>
+              <p class="text-xl font-bold text-green-600">{{ stats.confirmados }}</p>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-400 uppercase font-bold">Flujo Potencial / mes</p>
+              <p class="text-lg font-bold text-gray-700">{{ formatearDinero(stats.dineroPendiente) }}</p>
+          </div>
+        </div>
+      </Transition>
 
-      <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-        <div class="flex w-full md:w-auto flex-col">
+      <div class="flex justify-between items-center mb-6">
+        <div>
             <h2 class="text-xl font-bold servi-blue-font">Listado de Presupuestos</h2>
             <p class="text-sm text-gray-500">Administra y revisa el estado de tus cotizaciones</p>
         </div>
-        <div class="flex gap-2 ">
-          <div class="md:hidden mb-4">
+        <div class="flex items-center gap-2">
           <button 
-            @click="showStats = !showStats"
-            class="w-full flex justify-between items-center px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-700 font-medium shadow-sm active:bg-gray-50 transition-colors"
+            @click="showStats = !showStats" 
+            class="md:hidden bg-white servi-blue-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2"
           >
-            <span>
-              {{ showStats ? 'Ocultar Resumen' : 'Ver Resumen' }}
-            </span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              class="h-5 w-5 transform transition-transform duration-200"
+              class="h-4 w-4 transition-transform duration-300" 
               :class="{ 'rotate-180': showStats }"
               fill="none" 
               viewBox="0 0 24 24" 
@@ -121,14 +179,14 @@ onMounted(async () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-      </div>
-        <button 
-          @click="irACrear" 
-          class="servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
-        >
-          <span class="text-xl leading-none mb-1">+</span>
-          <span class="hidden sm:inline">Nuevo Presupuesto</span>
-        </button>
+          
+          <button 
+            @click="irACrear" 
+            class="servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
+          >
+            <span class="text-xl leading-none mb-1">+</span>
+            <span class="hidden sm:inline">Nuevo Presupuesto</span>
+          </button>
         </div>
       </div>
 
@@ -145,12 +203,15 @@ onMounted(async () => {
       <div v-else class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-100">
+                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
                     <th class="p-4 font-semibold">Folio</th>
                     <th class="p-4 font-semibold">Cliente</th>
                     <th class="p-4 font-semibold">Vehículo</th>
+                    <th class="p-4 font-semibold">Diagnóstico</th>
+                    <th class="p-4 font-semibold text-center">Emisión</th>
                     <th class="p-4 font-semibold text-right">Monto Total</th>
                     <th class="p-4 font-semibold text-center">Estado</th>
+                    <th class="p-4 font-semibold text-center">Vencimiento</th>
                     <th class="p-4 font-semibold text-center">Acción</th>
                 </tr>
             </thead>
@@ -170,16 +231,30 @@ onMounted(async () => {
                         <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ item.vehiculo?.patente }}</span>
                         <div class="text-xs text-gray-500 mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
                     </td>
+                    <td class="p-4 text-gray-700">
+                        <span class="block max-w-[200px] truncate" :title="item.diagnostico">{{ item.diagnostico }}</span>
+                    </td>
+                    <td class="p-4 text-center whitespace-nowrap">
+                      <span class="text-gray-400">{{ formatearFecha(item.created_at) }}</span>
+                    </td>
                     <td class="p-4 text-right font-bold servi-blue-font">
                         {{ formatearDinero(item.total_final) }}
                     </td>
                     <td class="p-4 text-center">
-                        <span :class="['px-3 py-1 rounded-full text-xs font-medium', handleEstados(item.estado).clase]">
-                            {{ handleEstados(item.estado).texto }}
+                        <span :class="['px-3 py-1 rounded-full text-xs font-medium border', claseEstado(item.estado).clase]">
+                            {{ claseEstado(item.estado).texto }}
                         </span>
                     </td>
                     <td class="p-4 text-center">
-                        <button class="text-gray-400 hover:text-blue-600 transition-colors" @click="irADetalle(item.id)"> 
+                        <span v-if="item.estado===1" class="text-gray-400 hover:text-blue-600 transition-colors">
+                            {{ formatearFecha(item.vencimiento) }}
+                        </span>
+                        <span v-else class="text-gray-400 hover:text-blue-600 transition-colors">
+                            --- 
+                        </span>
+                    </td>
+                    <td class="p-4 text-center">
+                        <button class="text-gray-400 hover:text-blue-600 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
@@ -190,7 +265,7 @@ onMounted(async () => {
         </table>
       </div>
 
-      <div class="md:hidden grid grid-cols-1 gap-4">
+      <div class="md:hidden grid grid-cols-1">
         <presupuestoCard
           v-for="item in servicios"
           :key="item.id"
@@ -204,39 +279,24 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.badge-confirmado {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #36f04c5c;
-  color: #1b5e20;
-  border-radius: 4px;
-  text-transform: uppercase;
+.slide-stats-enter-active,
+.slide-stats-leave-active {
+  transition: all 0.3s ease-out;
+  overflow: hidden;
 }
 
-.badge-descartado {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #ff4c4c;
-  color: #ffffff;
-  border-radius: 4px;
-  text-transform: uppercase;
+.slide-stats-enter-from,
+.slide-stats-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  transform: translateY(-10px);
 }
 
-.badge-en-espera-de-confirmación {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #ffd900;
-  color: #515151;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
-.badge-cerrado {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #52026f;
-  color: #ffffff;
-  border-radius: 4px;
-  text-transform: uppercase;
+.slide-stats-enter-to,
+.slide-stats-leave-from {
+  opacity: 1;
+  max-height: 200px;
+  transform: translateY(0);
 }
 </style>
