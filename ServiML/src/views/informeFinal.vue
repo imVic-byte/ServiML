@@ -296,7 +296,7 @@ onMounted( async () => {
             >
               <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
               <td class="p-3 text-right font-bold">
-                {{ formatoPesos(item.valor_total) }}
+                {{ formatoPesos(item.valor_total) }} <!-- Aqui hay un bug y no muestra el valor correcto, anteriormente funcionaba so idk, cuando haga el merge veré q pasa pq no lo alteré, tendrá que ver con las tablas?-->
               </td>
             </tr>
 
@@ -344,7 +344,7 @@ onMounted( async () => {
 
           <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">
             <span class="font-bold text-md">TOTAL FINAL</span>
-            <span class="font-bold text-md">{{ formatoPesos(informeData.total_final) }}</span>
+            <span class="font-bold text-md">{{ formatoPesos(totalFinalCalculado) }}</span>
           </div>
         </div>
       </div>
