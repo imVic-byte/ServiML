@@ -1,77 +1,94 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { supabase } from '../lib/supabaseClient.js'
-import { useRouter } from 'vue-router'
+import { supabase } from '../lib/supabaseClient'
 
-export const useUserStore = defineStore('user', () => {
-  const user = ref(null)
-  const trabajador = ref(null)
-  const rol = ref(null)
-  const router = useRouter()
+const withTimeout = (promise, timeoutMs = 10000) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
+    )
+  ])
+}
 
-  const isGerente = computed(() => {
-    return rol.value === 'Gerente'
-  })
+export const useUserStore = defineStore('user', {
+  state: () => ({
+    user: null,
+    trabajador: null,
+    loading: true
+  }),
 
-  const obtenerTrabajador = async () => {
-    const { data: authData } = await supabase.auth.getUser()
-    if (authData?.user) {
-      user.value = authData.user
-      const { data: trabajadorData } = await supabase
-        .from('trabajadores')
-        .select('*')
-        .eq('id', user.value.id) 
-        .single()
+  actions: {
+    async fetchTrabajador() {
+      if (!this.user) return
+      
+      try {
+        const { data, error } = await supabase
+          .from('trabajadores')
+          .select('*')
+          .eq('id', this.user.id)
+          .single()
         
-      if (trabajadorData) {
-        trabajador.value = trabajadorData
-        rol.value = trabajadorData.rol
+        if (error) {
+          this.trabajador = null
+        } else {
+          this.trabajador = data
+        }
+      } catch (error) {
+        console.error(error)
       }
-    } else {
-        user.value = null
-        trabajador.value = null
-        rol.value = null
+    },
+
+    async initializeAuth() {
+      this.loading = true
+      try {
+        const { data } = await supabase.auth.getSession()
+        this.user = data.session?.user || null
+
+        if (this.user) {
+          await this.fetchTrabajador()
+        }
+
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          this.user = session?.user || null
+          
+          if (this.user) {
+             if (!this.trabajador) await this.fetchTrabajador()
+          } else {
+             this.trabajador = null
+          }
+        })
+
+      } catch (error) {
+        console.error(error)
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async signIn(email, password) {
+      this.loading = true
+      try {
+        const { data, error } = await withTimeout(
+            supabase.auth.signInWithPassword({ email, password }), 
+            8000
+        )
+        
+        if (error) throw error
+        
+        this.user = data.user
+        
+        return true
+      } catch (error) {
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async signOut() {
+      await supabase.auth.signOut()
+      this.user = null
+      this.trabajador = null
     }
-  }
-
-  const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-    if (error) throw error
-    
-    user.value = data.user
-    await obtenerTrabajador()
-    router.push('/')
-  }
-
-  
-
-  const logout = async () => {
-    await supabase.auth.signOut()
-    user.value = null
-    trabajador.value = null
-    rol.value = null
-    router.push('/login')
-  }
-
-  const invitarTrabajador = async (datos) => {
-    const { data, error } = await supabase.functions.invoke('smart-action', {
-      body:datos
-    })
-    if(error) throw error
-    return data
-  };
-
-  return {
-    user,
-    trabajador,
-    rol,
-    isGerente,
-    obtenerTrabajador,
-    signIn,
-    logout,
-    invitarTrabajador
   }
 })

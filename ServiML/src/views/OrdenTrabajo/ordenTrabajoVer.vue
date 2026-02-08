@@ -1,30 +1,54 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
 import cargando from "../../components/componentes/cargando.vue";
 import subirFotos from "../../components/componentes/subir-fotos.vue";
 import modal from "../../components/componentes/modal.vue";
 
+// Eliminamos la importacion de enviarInformeFinal.js porque lo haremos via Router
+// import enviarInformeFinal from "../../js/enviarInformeFinal.js"; 
+
+const isCerrado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const redirigir = () => {
   modalState.value.visible = false;
 };
 const route = useRoute();
+const router = useRouter();
 const orden = ref({});
 const loading = ref(true);
 const listaFotos = ref([]);
 const estados = ref([]);
 const showModal = ref(false);
+const showSecondModal = ref(false); 
+const showThirdModal = ref(false);
 const selectedEstado = ref(null);
 const observaciones = ref([]);
+
+const redirigirInformeFinal = () => {
+  router.push({ name: 'ver-informe-final', params: { id: orden.value.id } });
+};
 
 const manejarBloqueo = (estado) => {
   loading.value = estado;
 };
 
+const verificarEstadoCerrado = () => {
+  if (isCerrado.value) {
+    modalState.value = {
+      visible: true,
+      titulo: "Acción no permitida",
+      mensaje: "No se pueden realizar cambios en una orden de trabajo cerrada.",
+      exito: false,
+    };
+    return true;
+  }
+}
+
 const agregarObservacion = () => {
+  if (verificarEstadoCerrado()) return;
   observaciones.value.push({
     id: Date.now(),
     texto: "",
@@ -34,10 +58,12 @@ const agregarObservacion = () => {
 };
 
 const eliminarObservacion = (index) => {
+  if (verificarEstadoCerrado()) return;
   observaciones.value.splice(index, 1);
 };
 
 const guardarCambios = async () => {
+  if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
   const { error } = await supabase
     .from("orden_trabajo")
@@ -78,6 +104,7 @@ const guardarCambios = async () => {
   };
   manejarBloqueo(false);
 };
+
 const traerObservaciones = async () => {
   const { data } = await supabase
     .from("OT_bitacora")
@@ -103,6 +130,16 @@ const obtenerFotos = async () => {
   listaFotos.value = data;
 };
 
+const handleIsCerrado = async (estado_actual_id) => {
+  const {data} = await supabase
+    .from('tabla_estados')
+    .select('*')
+    .eq('id', estado_actual_id);
+  if (data && data.length > 0) {
+    isCerrado.value = data[0].finaliza;
+  }
+}
+
 const obtenerOrden = async () => {
   manejarBloqueo(true);
   const { data } = await supabase
@@ -115,7 +152,7 @@ const obtenerOrden = async () => {
     await obtenerFotos();
   }
   manejarBloqueo(false);
-  console.log(orden.value);
+  await handleIsCerrado(orden.value.estado_actual_id);
 };
 
 const obtenerEstados = async () => {
@@ -129,6 +166,7 @@ const obtenerEstados = async () => {
 };
 
 const borrarFoto = async (id) => {
+  if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
   const { error } = await supabase.from("imagenes").delete("*").eq("id", id);
   if (error) {
@@ -146,33 +184,74 @@ const openModal = (estado) => {
 
 const closeModal = () => {
   showModal.value = false;
+  showSecondModal.value = false;
+  showThirdModal.value = false;
   selectedEstado.value = null;
 };
 
-const confirmarCambioEstado = async () => {
+const confirmarCambioEstado = () => {
+  if (verificarEstadoCerrado()) return;
+  
   if (selectedEstado.value) {
-    manejarBloqueo(true);
-    const { error } = await supabase.from("OT_bitacora").insert({
-      ot_id: route.params.id,
-      nuevo_estado_id: selectedEstado.value.id,
-      tipo_evento: "cambio_estado",
-    });
-
-    if (error) {
-      console.error("Error al actualizar estado:", error);
-      alert("Hubo un error al actualizar el estado.");
-    } else {
-      orden.value.estado_actual_id = selectedEstado.value.id;
-      console.log("Estado actualizado:", selectedEstado.value.estado);
+    if (selectedEstado.value.id === 7 || selectedEstado.value.id === 8) {
+      showModal.value = false;
+      showSecondModal.value = true;
+      return;
     }
-
-    closeModal();
-    manejarBloqueo(false);
+    if (selectedEstado.value.id === 6) {
+      showThirdModal.value = true;
+      return;
+    }
+    ejecutarCambioReal();
   }
 };
 
-onMounted(() => {
-  obtenerOrden();
+const handleGenerarInformeFinal = async () => {
+  // Primero insertamos el registro en la base de datos
+  const {data, error} = await supabase.from("informe_final").insert({
+    ot_id: orden.value.id,
+    created_at: new Date().toISOString()
+  }).select().single();
+
+  if (error) {
+    console.error("Error al generar informe final:", error);
+    alert("Hubo un error al generar el informe final.");
+    return;
+  }
+
+  // AQUI EL CAMBIO: Redirigimos al informe con la orden de enviar
+  router.push({ 
+    name: 'ver-informe-final', // Asegurate que esta ruta exista en tu router.js
+    params: { id: orden.value.id },
+    query: { enviar: 'true' } 
+  });
+};
+
+const ejecutarCambioReal = async () => {
+  manejarBloqueo(true);
+  const { error } = await supabase.from("OT_bitacora").insert({
+    ot_id: route.params.id,
+    nuevo_estado_id: selectedEstado.value.id,
+    tipo_evento: "cambio_estado",
+  });
+
+  if (error) {
+    console.error("Error al actualizar estado:", error);
+    alert("Hubo un error al actualizar el estado.");
+  } else {
+    orden.value.estado_actual_id = selectedEstado.value.id;
+    await handleIsCerrado(selectedEstado.value.id);
+    if (selectedEstado.value.id === 6) {
+      await handleGenerarInformeFinal(); // Esperamos a que termine antes de continuar
+    }
+  }
+
+  closeModal();
+  manejarBloqueo(false);
+}
+
+onMounted( async () => {
+  await obtenerOrden();
   obtenerEstados();
   traerObservaciones();
 });
@@ -184,8 +263,16 @@ onMounted(() => {
     :subtitulo="'OT No. ' + orden.presupuesto?.numero_folio"
     class="navbar"
     searchInput="false"
+    v-if="!loading"
   />
-
+  <div v-if="isCerrado">
+    <div class="m-5 p-4 servi-blue servi-yellow-font rounded-xl shadow-sm flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <p class="font-bold">La orden de trabajo está cerrada. No se pueden realizar modificaciones.</p>
+    </div>
+  </div>
   <div
     v-if="loading"
     class="flex justify-center items-center h-screen w-full fixed top-0 left-0 bg-white z-50"
@@ -195,7 +282,6 @@ onMounted(() => {
   <div
     class="w-full bg-gray-100 p-4 rounded-lg shadow-inner justify-center items-center flex"
   >
-  
     <div class="flex overflow-x-auto snap-x cursor-grab active:cursor-grabbing">
       <div
         v-for="estado in estados"
@@ -240,8 +326,8 @@ onMounted(() => {
     <div
       class="servi-blue rounded-lg p-6 max-w-sm w-full shadow-xl pointer-events-auto"
     >
-      <h3 class="text-xl font-bold servi-yellow-font mb-2">Confirmar cambio</h3>
-      <p class="servi-yellow-font text-sm mb-6">
+      <h3 class="text-xl font-bold servi-white-font mb-2">Confirmar cambio</h3>
+      <p class="servi-white-font text-sm mb-6">
         ¿Confirmas que el nuevo estado es "{{ selectedEstado?.estado }}"?
       </p>
       <div class="flex justify-end gap-3">
@@ -253,14 +339,86 @@ onMounted(() => {
         </button>
         <button
           @click="confirmarCambioEstado()"
-          class="px-4 py-2 servi-yellow servi-blue-font rounded-md"
+          class="px-4 py-2 servi-yellow servi-blue-font rounded-md font-bold"
         >
           Confirmar
         </button>
       </div>
     </div>
   </div>
-  
+
+  <div
+    v-if="showSecondModal"
+    class="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none bg-black/70 backdrop-blur-md"
+  >
+    <div
+      class="bg-red-50 rounded-lg p-6 max-w-sm w-full shadow-2xl pointer-events-auto border-2 border-red-500"
+    >
+      <div class="flex items-center gap-2 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <h3 class="text-xl font-bold text-red-700">¡Acción Irreversible!</h3>
+      </div>
+      
+      <p class="text-gray-800 text-sm mb-2 font-semibold">
+        Estás a punto de marcar la orden como "{{ selectedEstado?.estado }}".
+      </p>
+      <p class="text-gray-600 text-xs mb-6">
+        Una vez confirmado, la Orden de Trabajo se cerrará permanentemente y no podrás realizar más ediciones ni cambios de estado.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button
+          @click="closeModal()"
+          class="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
+        >
+          Cancelar
+        </button>
+        <button
+          @click="ejecutarCambioReal()"
+          class="px-4 py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700 shadow-lg"
+        >
+          Sí, Finalizar OT
+        </button>
+      </div>
+    </div>
+  </div>
+  <div
+    v-if="showThirdModal"
+    class="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none bg-black/70 backdrop-blur-md"
+  >
+    <div
+      class="bg-red-50 rounded-lg p-6 max-w-sm w-full shadow-2xl pointer-events-auto border-2 border-red-500"
+    >
+      <div class="flex items-center gap-2 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <h3 class="text-xl font-bold text-red-700">¡Acción Irreversible!</h3>
+      </div>
+      
+      <p class="text-gray-800 text-sm mb-2 font-semibold">
+        Estás a punto de marcar la orden como "{{ selectedEstado?.estado }}".
+      </p>
+      <p class="text-gray-600 text-xs mb-6">
+        Una vez confirmado, se generará el informe final y se enviará por correo.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button
+          @click="closeModal()"
+          class="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-md"
+        >
+          Cancelar
+        </button>
+        <button
+          @click="ejecutarCambioReal()"
+          class="px-4 py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700 shadow-lg"
+        >
+          Sí, Generar Informe Final
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div
     v-show="!loading"
@@ -462,6 +620,14 @@ onMounted(() => {
       </div>
     </div>
     <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
-
+    <div v-if="!loading && orden.estado_actual_id === 6" class="flex justify-center items-center w-md mx-auto">
+      <button @click="redirigirInformeFinal" class="servi-yellow servi-blue-font px-4 py-2 rounded-xl flex items-center gap-1 text-sm font-bold transition-colors hover:opacity-90 shadow-md">
+        <span><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m8.9-4.414c.376.023.75.05 1.124.08 1.131.094 1.976 1.057 1.976 2.192V16.5A2.25 2.25 0 0 1 18 18.75h-2.25m-7.5-10.5H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V18.75m-7.5-10.5h6.375c.621 0 1.125.504 1.125 1.125v9.375m-8.25-3 1.5 1.5 3-3.75" />
+        </svg>
+        </span>
+        <span class="hidden sm:block">Ver Informe Final</span>
+      </button>
+    </div>
   </div>
 </template>

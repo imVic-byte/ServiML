@@ -1,36 +1,27 @@
 <script setup>
-import { onMounted } from 'vue';
-import serviFooter from "./components/componentes/footer.vue";
-import { useUserStore } from "./stores/user";
-import { supabase } from "./lib/supabaseClient";
-
-const userStore = useUserStore();
+import { onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
+import serviFooter from './components/componentes/footer.vue'
+import cargando from './components/componentes/cargando.vue'
+const userStore = useUserStore()
 
 onMounted(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    userStore.user = session.user;
-    await userStore.obtenerTrabajador();
-  }
-  supabase.auth.onAuthStateChange((_event, session) => {
-    userStore.user = session?.user || null;
-    if (session) {
-      userStore.obtenerTrabajador();
-    }
-  });
-});
+  await userStore.initializeAuth()
+})
 </script>
 
 <template>
   <div class="app-container">
-    <router-view/>
-    <div v-if="userStore.user">
-      <serviFooter />
+    <div v-if="userStore.loading" class="loading-screen">
+    </div>
+    <div v-else>
+      <router-view/>
+      <serviFooter v-if="userStore.user"/>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style>
 .app-container {
   font-family: sans-serif;
   background-color: #f8f9fa;
@@ -38,4 +29,17 @@ onMounted(async () => {
   position: relative;
   min-height: 100vh;
 }
-</style>
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.5rem;
+  color: #333;
+}
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+</style> 

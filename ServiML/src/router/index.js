@@ -87,24 +87,69 @@ const router = createRouter({
       name: 'crear-contraseña',
       component: () => import('../views/Gestion/crearContraseña.vue'),
       meta: { requiresAuth: false }
-    }
+    },
+    {
+      path: '/vehiculos-en-taller',
+      name: 'vehiculos-en-taller',
+      component: () => import('../views/dashboardCosas/vehiculosEnTaller.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ot-sin-asignar',
+      name: 'ot-sin-asignar',
+      component: () => import('../views/dashboardCosas/OTsinAsignar.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/ot-por-entregar',
+      name: 'ot-por-entregar',
+      component: () => import('../views/dashboardCosas/OTporEntregar.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/presupuestos-semana',
+      name: 'presupuestos-semana',
+      component: () => import('../views/dashboardCosas/presupuestosSemana.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/informe-final/:id',
+      name: 'ver-informe-final',
+      component: () => import('../views/informeFinal.vue'),
+      meta: { requiresAuth: true }
+    },
   ],
 })
 
 router.beforeEach(async (to, from, next) => {
-  const { data: { session } } = await supabase.auth.getSession()
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
+    
+    if (error) {
+      console.error('Router guard - getSession error:', error)
+      if (to.meta.requiresAuth) {
+        next('/login')
+      } else {
+        next()
+      }
+      return
+    }
 
-  if (to.meta.requiresAuth && !session) {
+    if (to.meta.requiresAuth && !session) {
+      next('/login')
+      return
+    }
+
+    if (session && (to.path === '/login' || to.path === '/register')) {
+      next('/')
+      return
+    }
+
+    next()
+  } catch (error) {
+    console.error('Router guard error:', error)
     next('/login')
-    return
   }
-
-  if (session && (to.path === '/login' || to.path === '/register')) {
-    next('/')
-    return
-  }
-
-  next()
 })
 
 export default router
