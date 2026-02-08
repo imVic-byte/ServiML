@@ -7,8 +7,8 @@ import cargando from "../../components/componentes/cargando.vue";
 import subirFotos from "../../components/componentes/subir-fotos.vue";
 import modal from "../../components/componentes/modal.vue";
 
-// Eliminamos la importacion de enviarInformeFinal.js porque lo haremos via Router
-// import enviarInformeFinal from "../../js/enviarInformeFinal.js"; 
+const hoy = new Date().toISOString().split('T')[0];
+console.log(hoy);
 
 const isCerrado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
@@ -207,7 +207,6 @@ const confirmarCambioEstado = () => {
 };
 
 const handleGenerarInformeFinal = async () => {
-  // Primero insertamos el registro en la base de datos
   const {data, error} = await supabase.from("informe_final").insert({
     ot_id: orden.value.id,
     created_at: new Date().toISOString()
@@ -219,9 +218,8 @@ const handleGenerarInformeFinal = async () => {
     return;
   }
 
-  // AQUI EL CAMBIO: Redirigimos al informe con la orden de enviar
   router.push({ 
-    name: 'ver-informe-final', // Asegurate que esta ruta exista en tu router.js
+    name: 'ver-informe-final',
     params: { id: orden.value.id },
     query: { enviar: 'true' } 
   });
@@ -242,10 +240,12 @@ const ejecutarCambioReal = async () => {
     orden.value.estado_actual_id = selectedEstado.value.id;
     await handleIsCerrado(selectedEstado.value.id);
     if (selectedEstado.value.id === 6) {
-      await handleGenerarInformeFinal(); // Esperamos a que termine antes de continuar
+      await handleGenerarInformeFinal();
+    }
+    if (selectedEstado.value.id == 11) {
+      await supabase.from('orden_trabajo').update({'fecha_ingreso': hoy}).eq('id', route.params.id);
     }
   }
-
   closeModal();
   manejarBloqueo(false);
 }
@@ -298,7 +298,7 @@ onMounted( async () => {
             backgroundColor: estado.color,
           }"
         >
-          <p class="font-bold text-gray-800 truncate">{{ estado.estado }}</p>
+          <p class="font-bold truncate" :style="{color: 'white'}">{{ estado.estado }}</p>
         </div>
         <svg
           v-if="estado.id === orden.estado_actual_id"

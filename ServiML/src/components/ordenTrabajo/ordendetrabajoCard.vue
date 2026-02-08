@@ -8,6 +8,7 @@ const empleados = ref([]);
 const modalAsignar = ref(false);
 const empleadoSeleccionado = ref('');
 const cargando = ref(false);
+
 const props = defineProps({
   orden: {
     type: Object,
@@ -72,8 +73,17 @@ const asignarOrden = async () => {
     emit('asignacion-exitosa');
   }
 }
-</script>
 
+const formatearFecha = (fechaString) => {
+  if (!fechaString) return '---'
+  const fecha = new Date(fechaString)
+  return fecha.toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric'
+  })
+}
+</script>
 <template>
   <div :class="estado.estado" class="servi-white mx-2 servi-blue-font card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
     
@@ -81,7 +91,7 @@ const asignarOrden = async () => {
       <div class="flex flex-col">
         <span class="font-bold text-xl">#{{ orden.presupuesto?.numero_folio || '---' }}</span>
       </div>
-      <span :style="{ backgroundColor: estado.color, color: '#333' }" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
+      <span :style="{ backgroundColor: estado.color, color: estado.texto }" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
         {{ estado.estado }}
       </span>
     </div>
@@ -101,6 +111,10 @@ const asignarOrden = async () => {
       
       <div class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600 italic line-clamp-2">
         "{{ orden.motivo_ingreso }}"
+      </div>
+      <div class="info-row" v-if="orden.fecha_ingreso">
+        <span class="label text-gray-500">Fecha Ingreso: </span>
+        <span class="valor text-gray-500"> {{ formatearFecha(orden.fecha_ingreso) }}</span>
       </div>
     </div>
 
