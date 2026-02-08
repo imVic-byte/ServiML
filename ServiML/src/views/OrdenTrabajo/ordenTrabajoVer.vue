@@ -207,7 +207,6 @@ const confirmarCambioEstado = () => {
 };
 
 const handleGenerarInformeFinal = async () => {
-  // Primero insertamos el registro en la base de datos
   const {data, error} = await supabase.from("informe_final").insert({
     ot_id: orden.value.id,
     created_at: new Date().toISOString()
@@ -219,9 +218,8 @@ const handleGenerarInformeFinal = async () => {
     return;
   }
 
-  // AQUI EL CAMBIO: Redirigimos al informe con la orden de enviar
   router.push({ 
-    name: 'ver-informe-final', // Asegurate que esta ruta exista en tu router.js
+    name: 'ver-informe-final',
     params: { id: orden.value.id },
     query: { enviar: 'true' } 
   });
@@ -229,20 +227,57 @@ const handleGenerarInformeFinal = async () => {
 
 const ejecutarCambioReal = async () => {
   manejarBloqueo(true);
-  const { error } = await supabase.from("OT_bitacora").insert({
+  
+  let updateData = {
+    estado_actual_id: selectedEstado.value.id
+  };
+
+  const fechaActual = new Date().toISOString();
+
+  if (selectedEstado.value.id === 9) { 
+    updateData.fecha_estacionamiento = fechaActual;
+    updateData.fecha_termino_estacionamiento = null;
+  } 
+
+  else if (orden.value.fecha_estacionamiento && !orden.value.fecha_termino_estacionamiento) {
+    updateData.fecha_termino_estacionamiento = fechaActual;
+  }
+
+  const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
     ot_id: route.params.id,
     nuevo_estado_id: selectedEstado.value.id,
     tipo_evento: "cambio_estado",
   });
 
-  if (error) {
-    console.error("Error al actualizar estado:", error);
-    alert("Hubo un error al actualizar el estado.");
+  if (errorBitacora) {
+    console.error("Error al actualizar bitácora:", errorBitacora);
+    alert("Hubo un error al actualizar el historial.");
+    manejarBloqueo(false);
+    return;
+  }
+
+  const { error: errorUpdate } = await supabase
+    .from("orden_trabajo")
+    .update(updateData)
+    .eq("id", route.params.id);
+
+  if (errorUpdate) {
+    console.error("Error al actualizar estado en OT:", errorUpdate);
+    alert("Hubo un error al actualizar el estado de la orden.");
   } else {
     orden.value.estado_actual_id = selectedEstado.value.id;
+    
+    if (updateData.fecha_estacionamiento) {
+        orden.value.fecha_estacionamiento = updateData.fecha_estacionamiento;
+    }
+    if (updateData.fecha_termino_estacionamiento) {
+        orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
+    }
+    
     await handleIsCerrado(selectedEstado.value.id);
+    
     if (selectedEstado.value.id === 6) {
-      await handleGenerarInformeFinal(); // Esperamos a que termine antes de continuar
+      await handleGenerarInformeFinal();
     }
   }
 

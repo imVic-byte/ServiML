@@ -63,6 +63,12 @@ const obtenerOT = async () => {
       .single();
     if (errorDetalles) throw errorDetalles;
     OrdenTrabajo.value = data || [];
+
+    console.log("=== DATOS RECIBIDOS DE SUPABASE ===");
+    console.log("Inicio:", OrdenTrabajo.value.fecha_estacionamiento);
+    console.log("Término:", OrdenTrabajo.value.fecha_termino_estacionamiento);
+    console.log("Objeto completo:", OrdenTrabajo.value);
+
     const { data:detalles, error2 } = await supabase
     .from('detalle_presupuesto')
     .select('*')
@@ -145,21 +151,31 @@ const generarYEnviarPDF = async () => {
 
 const datosEstacionamiento = computed(() => {
   if (!OrdenTrabajo.value.fecha_estacionamiento) {
-    return { diasCobrar: 0, total: 0 };
+    return { diasTotales: 0, diasCobrar: 0, total: 0 };
   }
 
   const fechaInicio = new Date(OrdenTrabajo.value.fecha_estacionamiento);
-  const fechaActual = new Date();
-  
-  const diffTime = Math.abs(fechaActual - fechaInicio);
-  const diasTotales = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
+  const fechaFin = OrdenTrabajo.value.fecha_termino_estacionamiento
+    ? new Date(OrdenTrabajo.value.fecha_termino_estacionamiento)
+    : new Date();
+
+  const diasTotales = Math.ceil(
+    (fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)
+  );
+
   let diasACobrar = diasTotales - 3;
-  
   if (diasACobrar < 0) diasACobrar = 0;
-  
+
+  console.log("Cálculo Estacionamiento:", {
+    fechaInicio,
+    fechaFin,
+    diasTotales,
+    diasACobrar,
+    total: diasACobrar * 5000
+  });
+
   return {
-    diasTotales: diasTotales,
+    diasTotales,
     diasCobrar: diasACobrar,
     total: diasACobrar * 5000
   };
@@ -296,7 +312,7 @@ onMounted( async () => {
             >
               <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
               <td class="p-3 text-right font-bold">
-                {{ formatoPesos(item.valor_total) }} <!-- Aqui hay un bug y no muestra el valor correcto, anteriormente funcionaba so idk, cuando haga el merge veré q pasa pq no lo alteré, tendrá que ver con las tablas?-->
+                {{ formatoPesos(item.monto || item.valor_total || item.total || item.precio) }} <!-- Aqui hay un bug y no muestra el valor correcto, anteriormente funcionaba so idk, cuando haga el merge veré q pasa pq no lo alteré, tendrá que ver con las tablas?-->
               </td>
             </tr>
 
