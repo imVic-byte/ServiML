@@ -70,7 +70,7 @@ const totalFinal = computed(() => {
             Fecha: {{ formatoFecha(presupuesto.created_at) }}
         </p>
         <div class="mt-2 inline-block bg-[#fee2e2] text-[#991b1b] px-2 py-1 rounded font-bold text-[10px] uppercase border border-[#fecaca]">
-          Validez: 7 Días
+          Validez: 14 Días
         </div>
       </div>
     </div>
@@ -91,24 +91,20 @@ const totalFinal = computed(() => {
         <ul class="text-[#374151] space-y-1">
           <li>
             <span class="font-bold text-[#111827]">Cliente:</span> 
-            {{ presupuesto.cliente?.nombre || 'Sin Nombre' }}
+            {{ presupuesto.cliente?.nombre + ' ' + presupuesto.cliente?.apellido || 'Sin Nombre' }}
           </li>
           <li>
-            <span class="font-bold text-[#111827]">RUT:</span> 
-            {{ presupuesto.cliente?.rut || 'Sin RUT' }}
+            <span class="font-bold text-[#111827]">Fono:</span> 
+            +{{ presupuesto.cliente?.codigo_pais + ' ' + presupuesto.cliente?.telefono || 'Sin Teléfono' }}
           </li>
           <li>
             <span class="font-bold text-[#111827]">Correo:</span> 
             {{ presupuesto.cliente?.email || 'Sin Correo' }}
           </li>
           <li>
-            <span class="font-bold text-[#111827]">Fono:</span> 
-            {{ presupuesto.cliente?.telefono || 'Sin Teléfono' }}
-          </li>
-          <li>
             <span class="font-bold text-[#111827]">Vehículo:</span> 
             <span v-if="presupuesto.vehiculo?.patente" class="ml-2 bg-[#fef08a] px-1 border border-[#fde047] text-[#854d0e] font-bold rounded">
-                {{ presupuesto.vehiculo.patente }}
+                {{ presupuesto.vehiculo.patente }} - {{ presupuesto.vehiculo.marca }} {{ presupuesto.vehiculo.modelo }}
             </span>
           </li>
         </ul>
@@ -131,12 +127,11 @@ const totalFinal = computed(() => {
             class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64] "
           >
             <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
-            <td class="p-3 text-right font-bold">{{ formatoPesos(item.valor_total) }}</td>
+            <td class="p-3 text-right font-bold">{{ formatoPesos(item.monto) }}</td>
           </tr>
           <tr v-if="!presupuesto.detalle_presupuesto || presupuesto.detalle_presupuesto.length < 5" class="h-24">
             <td colspan="4"></td>
           </tr>
-
         </tbody>
       </table>
     </div>
@@ -163,13 +158,9 @@ const totalFinal = computed(() => {
           <span>{{ formatoPesos(presupuesto.subtotal) }}</span>
         </div>
         
-        <div v-if="presupuesto.descuento > 0" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
+        <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
           <span class="font-medium">Descuento</span>
-          <span>- {{ formatoPesos(presupuesto.descuento) }}</span>
-        </div>
-        <div v-if="presupuesto.incremento > 0" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#dc2626]">
-          <span class="font-medium">Incremento</span>
-          <span>+ {{ formatoPesos(presupuesto.incremento) }}</span>
+          <span>- {{ presupuesto.descuento }}%</span>
         </div>
 
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">

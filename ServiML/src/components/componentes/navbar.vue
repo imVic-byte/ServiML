@@ -17,7 +17,7 @@ defineProps({
 const emit = defineEmits(['buscar'])
 
 const onInput = (event) => {
-  emit('buscar', event.target.value)
+  emit('buscar', event.target.value.toUpperCase())
 }
 
 </script>
@@ -66,6 +66,7 @@ const onInput = (event) => {
   background-color: white;
   color: black;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  text-transform: uppercase;
 }
 
 .search-icon {

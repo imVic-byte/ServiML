@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
-
+import { useInterfaz } from '../stores/interfaz'
 const email = ref('')
 const password = ref('')
 const errorMsg = ref('')
@@ -10,21 +10,19 @@ const loading = ref(false)
 
 const router = useRouter()
 const userStore = useUserStore()
+const uiStore = useInterfaz()
 
 const handleLogin = async () => {
   loading.value = true
   errorMsg.value = ''
+  uiStore.showLoading()
   
   try {
-    // Si esta línea termina sin error, el login fue exitoso
     await userStore.signIn(email.value, password.value)
-    
-    // Redirección directa y forzada
     router.replace('/')
     
   } catch (error) {
     console.error("Error en login:", error)
-    // Mensaje de error más amigable si es timeout
     if (error.message.includes('timeout')) {
         errorMsg.value = 'El servidor tarda en responder. Verifica tu conexión.'
     } else {
@@ -32,6 +30,7 @@ const handleLogin = async () => {
     }
   } finally {
     loading.value = false
+    uiStore.hideLoading()
   }
 }
 </script>

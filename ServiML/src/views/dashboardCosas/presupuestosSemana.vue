@@ -2,11 +2,10 @@
 import { ref, onMounted } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
 import presupuestoCard from "../../components/presupuesto/presupuestoCard.vue";
-
+import { useInterfaz } from '../../stores/interfaz.js'
 import navbar from "../../components/componentes/navbar.vue";
-import cargando from "../../components/componentes/cargando.vue";
 const servicios = ref([]);
-const loading = ref(true);
+const uiStore = useInterfaz()
 
 const handleInicioSemanaTimezone = () => {
     const fecha = new Date();
@@ -18,7 +17,6 @@ const handleInicioSemanaTimezone = () => {
 }
 
 const obtenerPresupuestos = async () => {
-  loading.value = true;
   
   try {
     const { data, error } = await supabase
@@ -35,17 +33,16 @@ const obtenerPresupuestos = async () => {
   } catch (err) {
     console.error(err);
   } finally {
-    loading.value = false;
+    uiStore.hideLoading()
   }
 };
 onMounted(async () => {
+  uiStore.showLoading()
   await obtenerPresupuestos();
 });
 </script>
 
 <template>
-  <cargando v-if="loading"></cargando>
-  <div v-else>
     <navbar
       titulo="ServiML"
       subtitulo="Presupuestos Semanales"
@@ -63,7 +60,6 @@ onMounted(async () => {
         />
       </div>
     </div>
-  </div>
 </template>
 <style scoped>
 .navbar {

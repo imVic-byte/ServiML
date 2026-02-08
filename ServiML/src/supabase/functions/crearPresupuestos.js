@@ -25,25 +25,16 @@ serve(async (req) => {
 
     if (userError || !user) throw new Error('Invalid User')
     
-    const { patente, cliente, rut, contacto, email, diagnostico, detalles, ...presupuestoData } = await req.json()
+    const { patente, marca, modelo, nombre, apellido, codigoPais, telefono, email, diagnostico, detalles, ...presupuestoData } = await req.json()
 
     let clienteId = null
 
-    if (rut) {
+    if (nombre && apellido) {
       const { data } = await supabase
         .from('cliente')
         .select('id')
-        .eq('rut', rut)
-        .maybeSingle()
-      
-      if (data) clienteId = data.id
-    } 
-
-    if (!clienteId && cliente) {
-      const { data } = await supabase
-        .from('cliente')
-        .select('id')
-        .eq('nombre', cliente)
+        .eq('nombre', nombre.toUpperCase())
+        .eq('apellido', apellido.toUpperCase())
         .maybeSingle()
       
       if (data) clienteId = data.id
@@ -53,9 +44,10 @@ serve(async (req) => {
       const { data, error } = await supabase
         .from('cliente')
         .insert({ 
-          nombre: cliente, 
-          rut: rut || null, 
-          telefono: contacto, 
+          nombre: nombre, 
+          apellido: apellido, 
+          codigo_pais: codigoPais, 
+          telefono: telefono, 
           email: email 
         })
         .select('id')
@@ -68,16 +60,16 @@ serve(async (req) => {
     let { data: vehiculoData } = await supabase
       .from('vehiculo')
       .select('id')
+      .eq('id_cliente', clienteId)
       .eq('patente', patente)
       .maybeSingle()
 
     if (!vehiculoData) {
       const { data: nuevoVehiculo, error } = await supabase
         .from('vehiculo')
-        .insert({ patente, modelo: 'N/A', id_cliente: clienteId })
+        .insert({ patente: patente.toUpperCase(), marca: marca.toUpperCase(), modelo: modelo.toUpperCase(), id_cliente: clienteId })
         .select('id')
         .single()
-
       if (error) throw error
       vehiculoData = nuevoVehiculo
     }
@@ -88,7 +80,6 @@ serve(async (req) => {
         ...presupuestoData,
         id_cliente: clienteId,
         id_vehiculo: vehiculoData.id,
-        numero_folio: `FOL-${Date.now()}`,
         diagnostico: diagnostico
       })
       .select()
@@ -100,7 +91,7 @@ serve(async (req) => {
       const detallesConId = detalles.map((d) => ({
         id_presupuesto: nuevoPresupuesto.id,
         descripcion: d.descripcion,
-        valor_total: d.monto
+        monto: d.monto
       }))
       const { error: errorDetalles } = await supabase
         .from('detalle_presupuesto')

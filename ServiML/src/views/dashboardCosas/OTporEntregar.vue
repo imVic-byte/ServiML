@@ -3,9 +3,9 @@ import { ref, onMounted } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
 import ordenTrabajoCard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import navbar from "../../components/componentes/navbar.vue";
-import cargando from "../../components/componentes/cargando.vue";
+import { useInterfaz } from '../../stores/interfaz.js'
 const ordenes = ref([]);
-const loading = ref(true);
+const uiStore = useInterfaz()
 const estados = ref([]);
 
 const obtenerEstados = async () => {
@@ -31,18 +31,17 @@ const obtenerOrdenes = async () => {
   if (data) {
     ordenes.value = data;
   }
-  loading.value = false;
+  uiStore.hideLoading()
 };
 
 onMounted(async () => {
+  uiStore.showLoading()
   await obtenerEstados();
   await obtenerOrdenes();
 });
 </script>
 
 <template>
-  <cargando v-if="loading"></cargando>
-  <div v-else>
     <navbar
       titulo="ServiML"
       subtitulo="OT Por Entregar"
@@ -62,8 +61,7 @@ onMounted(async () => {
         />
       </div>
     </div>
-  </div>
-</template>
+</template> 
 <style scoped>
 .navbar {
   position: sticky;

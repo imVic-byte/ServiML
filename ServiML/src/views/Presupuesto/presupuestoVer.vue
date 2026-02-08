@@ -10,13 +10,22 @@ import modal from '../../components/componentes/modal.vue'
 import pdf from './presupuestoPDF.vue'
 import html2pdf from 'html2pdf.js'
 import { subirFacturas } from '../../js/subirFacturas.js'
+import { useInterfaz } from '@/stores/interfaz.js'
+
+const interfaz = useInterfaz()
 const route = useRoute()
 const presupuesto = ref(null)
 const n_presupuesto = ref()
-const loading = ref(true)
+const loading = ref(false)
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const id = ref(route.params.id)
 const router = useRouter();
+
+const camelCase = (texto) => {
+    if (!texto) return '';
+    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+}
+
 const redirigir = () => {
     modalState.value.visible = false;
     router.push({ name: "listado-presupuestos" });
@@ -27,7 +36,7 @@ const manejarConfirmacion = async () => {
     try {
     const { error } = await supabase
         .from('presupuesto')
-        .update({ estado: 'Confirmado' , updated_at: new Date()})
+        .update({ estado: 2 , updated_at: new Date()})
         .eq('id', route.params.id)
 
     if (error) {
@@ -74,7 +83,7 @@ if (presupuesto.value.cliente?.email) {
         }
     
     await creacionOT(id.value)
-    presupuesto.value.estado = 'Confirmado'
+    presupuesto.value.estado = 2
     loading.value = false
     modalState.value = {
         visible: true,
@@ -102,14 +111,14 @@ const manejarDescarte = async () => {
     try {
     const { error } = await supabase
         .from('presupuesto')
-        .update({ estado: 'Descartado' })
+        .update({ estado: 3 })
         .eq('id', route.params.id)
 
     if (error) {
         console.error(error)
         return
     }
-    presupuesto.value.estado = 'Descartado'
+    presupuesto.value.estado = 3
     loading.value = false
     modalState.value = {
         visible: true,
@@ -131,21 +140,18 @@ const manejarDescarte = async () => {
         loading.value = false
     }
 }
-
-onMounted(async () => {
-    const { data, error } = await supabase
-    .from('presupuesto')
-    .select('*,vehiculo(*),cliente(*),detalle_presupuesto(*)')
-    .eq('id', route.params.id)
-    if (data) {
-        presupuesto.value = data[0]
-        n_presupuesto.value = data[0].numero_folio
-    } else {
-        console.log(error)
-    }
-    loading.value = false
-})
-
+const handleEstados = (estado) => {
+  switch (estado) {
+    case 2:
+      return {clase: 'badge-confirmado', texto: 'Confirmado'}
+    case 3:
+      return {clase: 'badge-descartado', texto: 'Descartado'}
+    case 1:
+      return {clase: 'badge-en-espera-de-confirmación', texto: 'En espera de confirmación'}
+    default:
+      return {clase: 'badge-cerrado', texto: 'Cerrado'}
+  }
+}
 const generarPDF = () => {
   const elemento = document.getElementById('elemento-a-imprimir');
   
@@ -160,98 +166,190 @@ const generarPDF = () => {
   html2pdf().set(opciones).from(elemento).save();
 };
 
+const formatearNumero = (numero) => {
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(numero);
+}
+
+onMounted(async () => {
+    interfaz.showLoading();
+    const { data, error } = await supabase
+    .from('presupuesto')
+    .select('*,vehiculo(*),cliente(*),detalle_presupuesto(*)')
+    .eq('id', route.params.id)
+    if (data) {
+        presupuesto.value = data[0]
+        n_presupuesto.value = data[0].numero_folio
+    } else {
+        console.log(error)
+    }
+    interfaz.hideLoading();
+})
+
 </script>
 <template>
-<div v-if="presupuesto">
-    <navbar :titulo="'Presupuesto No. ' + n_presupuesto" subtitulo="" />
-    <div class="pb-28 mx-auto p-4 max-w-lg">
-        <div class="servi-blue servi-white-font rounded-xl flex flex-col shadow-sm border p-4 mt-3">
-        <h2 class="servi-white-font font-bold border-b pb-1 mb-3">Datos del presupuesto</h2>
-        <p class="rounded-md py-1">
-        Cliente: {{ presupuesto.cliente?.nombre || 'Cliente no registrado' }}
-        </p>
-        <p class="rounded-md py-1">
-        Rut: {{ presupuesto.cliente?.rut || 'Rut no registrado' }}
-        </p>
-        <p class="rounded-md py-1">
-        Contacto: {{ presupuesto.cliente?.telefono || 'Contacto no registrado' }}
-        </p>
-        <p class="rounded-md py-1">
-        Email: {{ presupuesto.cliente?.email || 'Email no registrado' }}
-        </p>
-        <p class="rounded-md py-1">
-        Vehiculo: {{ presupuesto.vehiculo?.patente || 'Vehiculo no registrado' }} - Modelo: {{presupuesto.vehiculo.marca}} {{presupuesto.vehiculo.modelo}} {{presupuesto.vehiculo.anio}}
-        </p>
-        <p class="rounded-md py-1">
-        Diagnostico: {{ presupuesto.diagnostico || 'Diagnostico no registrado' }}
-        </p>
-        <p class="rounded-md py-1">
-        Estado: {{ presupuesto.estado || 'Estado no registrado' }}
-        </p>
-    </div>
-    <div v-if="presupuesto.detalle_presupuesto.length > 0" class="shadow-sm flex-col grid servi-white mt-3 border border-gray-100 rounded-xl p-4">
-        <p class="servi-blue-font font-bold border-b pb-1 mb-3">Servicios:</p>
-            <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="flex justify-between servi-yellow servi-blue-font text-sm p-2 mb-2 rounded-lg">
-                <span>{{ detalle.descripcion }}</span>
-                <span class="font-bold">${{ detalle.valor_total }}</span>
-            </div>
-    </div>
-    <div v-if="presupuesto.detalle_presupuesto.length > 0" class=" bg-white rounded-xl shadow-sm border border-gray-100 p-4 mt-3">
-      <h3 class="text-sm font-bold text-gray-700 mb-3 border-b pb-2">Desglose Financiero</h3>
-      <div class="flex justify-between items-center mb-2 text-sm">
-        <span>Subtotal Neto</span>
-        <span v-if="presupuesto.total_neto" class="font-medium text-gray-600">${{ presupuesto.total_neto }}</span>
-      </div>
-      <div class="flex justify-between items-center mb-2 text-sm">
-        <p>Descuento (-)</p>
-        <span v-if="presupuesto.descuento" class="text-gray-600">${{ presupuesto.descuento }}</span>
-        <span v-else class="text-gray-600">${{ presupuesto.descuento || 'No registrado' }}</span>
-      </div>
-      <div class="flex justify-between items-center mb-2 text-sm">
-        <p>Incremento/Extras (+)</p>
-        <span v-if="presupuesto.incremento" class="text-gray-600">${{ presupuesto.incremento }}</span>
-        <span v-else class="text-gray-600">${{ presupuesto.incremento || 'No registrado' }}</span>
-      </div>
-      <div class="flex justify-between items-center mb-3 text-sm">
-        <p>IVA</p>
-        <span v-if="presupuesto.iva" class="text-gray-600">${{ presupuesto.iva }}</span>
-        <span v-else class="text-gray-600">${{ presupuesto.iva || 'No registrado' }}</span>
-      </div>
-      <div class="flex justify-between items-center pt-3 border-t">
-        <span class="font-bold text-gray-800">TOTAL</span>
-        <span v-if="presupuesto.total_final" class="font-bold text-xl text-blue-900">${{ presupuesto.total_final }}</span>
-        <span v-else class="font-bold text-xl text-blue-900">${{ presupuesto.total_final || 'No registrado' }}</span>
-      </div>
-    </div >
-    <div class="flex justify-between mt-3 ">
-        <div v-if="presupuesto.estado === 'En espera de Confirmación'" class="flex justify-between items-center align-center gap-2">
-        <acciones
-        @confirmar="manejarConfirmacion"
-        @descartar="manejarDescarte"
-        />
-    </div>
-    <div >
-       <button 
-         @click="generarPDF"
-         class="servi-yellow servi-blue-font font-bold py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer hover:scale-105 transition duration-150"
-       >
-         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-         </svg>
-         <p class="hidden md:block">Descargar PDF</p>
-         <p class="block md:hidden">PDF</p>
-       </button>
-     </div>
-    </div>
+<div v-if="presupuesto" class="bg-gray-50 min-h-screen">
+    <navbar :titulo="'Presupuesto #' + n_presupuesto" subtitulo="Detalle de servicio" />
     
-     <div class="fixed left-[-9999px] top-0">   
-        <pdf :presupuesto="presupuesto" />
-     </div>
+    <div class="mx-auto p-4 max-w-5xl pb-28">
+        
+        <div class="flex flex-col lg:flex-row gap-6 mt-6">
+            
+            <div class="lg:w-2/3 space-y-6">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="servi-blue px-6 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <h2 class="servi-white-font font-bold text-lg">Información General</h2>
+                        <span :class="handleEstados(presupuesto.estado).clase" class="px-3 py-1 rounded-full text-xs servi-white-font">
+                            {{ handleEstados(presupuesto.estado).texto }}
+                        </span>
+                    </div>
+                    
+                    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Datos del Cliente</h3>
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <p class="flex flex-col">
+                                    <span class="font-bold text-gray-900">{{ camelCase(presupuesto.cliente?.nombre) + ' ' + camelCase(presupuesto.cliente?.apellido) || 'No registrado' }}</span>
+                                    <span class="text-gray-500 text-xs">Cliente</span>
+                                </p>
+                                <p>
+                                    <span class="block text-xs text-gray-400">Email</span>
+                                    {{ presupuesto.cliente?.email || 'No registrado' }}
+                                </p>
+                                <p>
+                                    <span class="block text-xs text-gray-400">Teléfono</span>
+                                    +{{ presupuesto.cliente?.codigo_pais + ' ' + presupuesto.cliente?.telefono || 'No registrado' }}
+                                </p>
+                            </div>
+                        </div>
 
-    <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
+                        <div>
+                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Datos del Vehículo</h3>
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <p class="flex flex-col">
+                                    <span class="font-bold text-gray-900">{{ presupuesto.vehiculo?.patente || 'S/P' }}</span>
+                                    <span class="text-gray-500 text-xs">Patente</span>
+                                </p>
+                                <p>
+                                    <span class="block text-xs text-gray-400">Vehículo</span>
+                                    {{presupuesto.vehiculo?.marca}} {{presupuesto.vehiculo?.modelo}} {{presupuesto.vehiculo?.anio}}
+                                </p>
+                                <p>
+                                    <span class="block text-xs text-gray-400">Diagnóstico Inicial</span>
+                                    <span class="italic text-gray-600">{{ camelCase(presupuesto.diagnostico) || 'No registrado' }}</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                        <h3 class="servi-blue-font font-bold">Servicios Solicitados</h3>
+                    </div>
+                    <div class="divide-y divide-gray-100">
+                        <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
+                            <span class="text-sm text-gray-700 font-medium">{{ camelCase(detalle.descripcion) }}</span>
+                            <span class="text-sm font-bold servi-blue-font">{{ formatearNumero(detalle.monto) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:w-1/3 space-y-6">
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-sm font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">Resumen Financiero</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span>Subtotal</span>
+                            <span class="font-medium">{{ formatearNumero(presupuesto.subtotal || 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span>Descuento</span>
+                            <span class="text-green-600 font-medium">- {{ presupuesto.descuento || '0' }}%</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span>Neto</span>
+                            <span class="font-medium">{{ formatearNumero(presupuesto.total_neto || 0) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-gray-600">
+                            <span>IVA (19%)</span>
+                            <span class="font-medium">{{ formatearNumero(presupuesto.iva || 0) }}</span>
+                        </div>
+                        
+                        <div class="pt-4 mt-2 border-t border-gray-100 flex justify-between items-center">
+                            <span class="font-bold text-gray-900 text-lg">TOTAL</span>
+                            <span class="font-extrabold text-2xl servi-blue-font">{{ formatearNumero(presupuesto.total_final || 0) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Acciones</h3>
+                    
+                    <div>
+                        <acciones
+                            :estado="presupuesto.estado"
+                            @confirmar="manejarConfirmacion"
+                            @descartar="manejarDescarte"
+                            @pdf="generarPDF"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed left-[-9999px] top-0">   
+            <pdf :presupuesto="presupuesto" />
+        </div>
+
+        <modal 
+            v-if="modalState.visible" 
+            :titulo="modalState.titulo" 
+            :mensaje="modalState.mensaje" 
+            :exito="modalState.exito" 
+            @cerrar="redirigir" 
+        />
     </div>
     <cargando2 v-if="loading"/>
 </div>
 </template>
 <style>
+
+.badge-confirmado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #46e450ec;
+  color: #4d4d4d;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-descartado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #ff4c4c;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-en-espera-de-confirmación {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #fbd446fd;
+  color: #514d4d;
+  font-weight: bold;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-cerrado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #52026f;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
 </style>

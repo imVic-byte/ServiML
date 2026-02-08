@@ -2,10 +2,13 @@
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import navbar from '../components/componentes/navbar.vue'
-import cargando from '../components/componentes/cargando.vue'
+import { useInterfaz } from '../stores/interfaz.js'
+import { onMounted } from 'vue'
 
 const userStore = useUserStore()
 const router = useRouter()
+const uiStore = useInterfaz()
+
 
 const manejarCierreSesion = async () => {
   try {
@@ -15,11 +18,17 @@ const manejarCierreSesion = async () => {
     alert('Error al cerrar sesión: ' + error.message)
   }
 }
+onMounted(() => {
+  uiStore.showLoading()
+  setTimeout(() => {
+    uiStore.hideLoading()
+  }, 1000)
+})
+
 </script>
 <template>
-  <cargando v-if="userStore.loading"></cargando>
   
-  <div v-else class="min-h-screen bg-gray-50 font-sans pb-20">
+  <div class="min-h-screen bg-gray-50 font-sans pb-20">
     <navbar 
       subtitulo="Panel de Control ServiML" 
       class="navbar shadow-sm" 
