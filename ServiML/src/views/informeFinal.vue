@@ -143,6 +143,33 @@ const generarYEnviarPDF = async () => {
     }
 };
 
+const datosEstacionamiento = computed(() => {
+  if (!OrdenTrabajo.value.fecha_estacionamiento) {
+    return { diasCobrar: 0, total: 0 };
+  }
+
+  const fechaInicio = new Date(OrdenTrabajo.value.fecha_estacionamiento);
+  const fechaActual = new Date();
+  
+  const diffTime = Math.abs(fechaActual - fechaInicio);
+  const diasTotales = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  let diasACobrar = diasTotales - 3;
+  
+  if (diasACobrar < 0) diasACobrar = 0;
+  
+  return {
+    diasTotales: diasTotales,
+    diasCobrar: diasACobrar,
+    total: diasACobrar * 5000
+  };
+});
+
+const totalFinalCalculado = computed(() => {
+  const totalBase = informeData.value.total_final || 0;
+  return totalBase + datosEstacionamiento.value.total;
+});
+
 onMounted( async () => {
   await obtenerDatos();
   await obtenerOT();
@@ -269,7 +296,16 @@ onMounted( async () => {
             >
               <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
               <td class="p-3 text-right font-bold">
-                {{ formatoPesos(item.valor_total) }}
+                {{ formatoPesos(item.valor_total) }} <!-- Aqui hay un bug y no muestra el valor correcto, anteriormente funcionaba so idk, cuando haga el merge veré q pasa pq no lo alteré, tendrá que ver con las tablas?-->
+              </td>
+            </tr>
+
+            <tr v-if="datosEstacionamiento.total > 0" class="bg-yellow-50 shadow-lg border-b border-[#1f3d64]">
+              <td class="p-3 font-medium text-[#1f3d64]">
+                Servicio de Estacionamiento ({{ datosEstacionamiento.diasCobrar }} días facturables tras 3 días de gracia)
+              </td>
+              <td class="p-3 text-right font-bold text-red-600">
+                {{ formatoPesos(datosEstacionamiento.total) }}
               </td>
             </tr>
           </tbody>
@@ -301,9 +337,14 @@ onMounted( async () => {
             <span>{{ formatoPesos(iva) }}</span>
           </div>
 
+          <div v-if="datosEstacionamiento.total > 0" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+            <span class="font-medium">Estacionamiento</span>
+            <span>{{ formatoPesos(datosEstacionamiento.total) }}</span>
+          </div>
+
           <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">
             <span class="font-bold text-md">TOTAL FINAL</span>
-            <span class="font-bold text-md">{{ formatoPesos(informeData.total_final) }}</span>
+            <span class="font-bold text-md">{{ formatoPesos(totalFinalCalculado) }}</span>
           </div>
         </div>
       </div>
