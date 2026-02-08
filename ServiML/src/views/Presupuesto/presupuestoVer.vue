@@ -52,12 +52,36 @@ const manejarConfirmacion = async () => {
     };
     const elemento = document.getElementById('elemento-a-imprimir');
     const pdfBlob = await html2pdf().set(opciones).from(elemento).output('blob');
+    
     const exitoPDF = await subirFacturas(id.value, pdfBlob)
     if (!exitoPDF.exito) {
         console.error(exitoPDF.error)
         console.error("error al subir el pdf")
         return
     }
+    
+if (presupuesto.value.cliente?.email) {
+            const { data: dataMail, error: errorMail } = await supabase.functions.invoke('super-task', {
+                body: {
+                    emailCliente: presupuesto.value.cliente.email,
+                    nombreCliente: presupuesto.value.cliente.nombre,
+                    urlPdf: exitoPDF.url,
+                    folio: n_presupuesto.value
+                },
+                headers: {
+                    Authorization: `Bearer ${import.meta.env.SUPABASE_ANON_KEY}`
+                }
+            })
+
+            if (errorMail) {
+                console.error("❌ Error enviando correo:", errorMail)
+            } else {
+                console.log("✅ Correo enviado con éxito:", dataMail)
+            }
+        } else {
+            console.warn("⚠️ El cliente no tiene email registrado, se omitió el envío.");
+        }
+    
     await creacionOT(id.value)
     presupuesto.value.estado = 2
     loading.value = false
@@ -291,41 +315,4 @@ onMounted(async () => {
 </div>
 </template>
 <style>
-
-.badge-confirmado {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #46e450ec;
-  color: #4d4d4d;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
-.badge-descartado {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #ff4c4c;
-  color: #ffffff;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
-.badge-en-espera-de-confirmación {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #fbd446fd;
-  color: #514d4d;
-  font-weight: bold;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
-
-.badge-cerrado {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-  background: #52026f;
-  color: #ffffff;
-  border-radius: 4px;
-  text-transform: uppercase;
-}
 </style>
