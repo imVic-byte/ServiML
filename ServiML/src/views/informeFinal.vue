@@ -379,6 +379,7 @@ onMounted( async () => {
           </div>
         </div>
 
+<<<<<<< HEAD
         <div class="mb-6 border border-[#e5e7eb] rounded-lg overflow-hidden">
           <table class="w-full text-left border-collapse">
             <thead>
@@ -396,6 +397,30 @@ onMounted( async () => {
                 </td>
               </tr>
               <tr v-if="datosEstacionamiento.total > 0" class="bg-yellow-50 shadow-lg border-b border-[#1f3d64]">
+=======
+      <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
+              <th class="p-3 font-semibold">Descripción del Servicio / Repuesto</th>
+              <th class="p-3 w-28">Total</th>
+            </tr>
+          </thead>
+          <tbody class="text-[#1f2937] text-[11px]">
+            
+            <tr 
+              v-for="(item, index) in detalle_presupuesto" 
+              :key="index"
+              class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64]"
+            >
+              <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
+              <td class="p-3 text-right font-bold">
+                {{ formatoPesos(item.valor_total) }} <!-- Aqui hay un bug y no muestra el valor correcto, anteriormente funcionaba so idk, cuando haga el merge veré q pasa pq no lo alteré, tendrá que ver con las tablas?-->
+              </td>
+            </tr>
+
+            <tr v-if="datosEstacionamiento.total > 0" class="bg-yellow-50 shadow-lg border-b border-[#1f3d64]">
+>>>>>>> bf6fc02 (Implementacion de calculo estacionamiento)
               <td class="p-3 font-medium text-[#1f3d64]">
                 Servicio de Estacionamiento ({{ datosEstacionamiento.diasCobrar }} días facturables tras 3 días de gracia)
               </td>
