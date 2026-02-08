@@ -14,13 +14,13 @@ export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
     trabajador: null,
-    loading: true
+    loading: false,
+    initialized: false
   }),
 
   actions: {
     async fetchTrabajador() {
       if (!this.user) return
-      
       try {
         const { data, error } = await supabase
           .from('trabajadores')
@@ -28,17 +28,18 @@ export const useUserStore = defineStore('user', {
           .eq('id', this.user.id)
           .single()
         
-        if (error) {
-          this.trabajador = null
-        } else {
+        if (error) throw error
+
+        if (data) {
           this.trabajador = data
         }
       } catch (error) {
-        console.error(error)
+        console.error('Error fetching trabajador:', error.message)
       }
     },
 
     async initializeAuth() {
+      if (this.initialized) return
       this.loading = true
       try {
         const { data } = await supabase.auth.getSession()
@@ -49,12 +50,15 @@ export const useUserStore = defineStore('user', {
         }
 
         supabase.auth.onAuthStateChange(async (event, session) => {
+          const previousUser = this.user
           this.user = session?.user || null
           
-          if (this.user) {
-             if (!this.trabajador) await this.fetchTrabajador()
-          } else {
+          if (event === 'SIGNED_OUT' || !this.user) {
              this.trabajador = null
+             this.user = null
+          } else if (event === 'SIGNED_IN' || (this.user && !this.trabajador)) {
+             await this.fetchTrabajador()
+          } else if (event === 'TOKEN_REFRESHED') {
           }
         })
 
@@ -62,6 +66,7 @@ export const useUserStore = defineStore('user', {
         console.error(error)
       } finally {
         this.loading = false
+        this.initialized = true
       }
     },
 
@@ -76,6 +81,7 @@ export const useUserStore = defineStore('user', {
         if (error) throw error
         
         this.user = data.user
+        await this.fetchTrabajador() 
         
         return true
       } catch (error) {

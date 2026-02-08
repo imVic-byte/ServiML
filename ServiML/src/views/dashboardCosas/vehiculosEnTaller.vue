@@ -3,9 +3,9 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '../../lib/supabaseClient.js'
 import navbar from '../../components/componentes/navbar.vue'
-import cargando from '../../components/componentes/cargando.vue'
+import { useInterfaz } from '../../stores/interfaz.js'
 
-const loading = ref(true)
+const uiStore = useInterfaz()
 const router = useRouter()
 const vehiculos = ref([])
 const estados = ref([])
@@ -44,7 +44,6 @@ const colorPorId = (id) => {
 }
 
 const handleVehiculos = async (busqueda = '') => {
-    loading.value = true;
     let query = supabase.from("orden_trabajo");
 
     if (busqueda) {
@@ -65,10 +64,11 @@ const handleVehiculos = async (busqueda = '') => {
     } else {
         vehiculos.value = data
     }
-    loading.value = false
+    uiStore.hideLoading()
 }
 
 onMounted(async () => {
+    uiStore.showLoading()
     await handleEstados()
     await handleVehiculos()
 })
@@ -76,8 +76,7 @@ onMounted(async () => {
 
 <template>
     <navbar :titulo="'ServiMl'" subtitulo="Vehículos en taller" search-input="true" class="navbar" @buscar="handleBusqueda"/>
-    <cargando v-if="loading" />
-    <div v-else class="min-h-screen bg-gray-50 pb-20">        
+    <div class="min-h-screen bg-gray-50 pb-20">        
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div 
