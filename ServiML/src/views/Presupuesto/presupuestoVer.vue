@@ -65,6 +65,7 @@ if (presupuesto.value.cliente?.email) {
                 body: {
                     emailCliente: presupuesto.value.cliente.email,
                     nombreCliente: presupuesto.value.cliente.nombre,
+                    apellidoCliente: presupuesto.value.cliente.apellido,
                     urlPdf: exitoPDF.url,
                     folio: n_presupuesto.value
                 },
@@ -315,4 +316,41 @@ onMounted(async () => {
 </div>
 </template>
 <style>
+
+.badge-confirmado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #46e450ec;
+  color: #4d4d4d;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-descartado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #ff4c4c;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-en-espera-de-confirmación {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #fbd446fd;
+  color: #514d4d;
+  font-weight: bold;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-cerrado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #52026f;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
 </style>
