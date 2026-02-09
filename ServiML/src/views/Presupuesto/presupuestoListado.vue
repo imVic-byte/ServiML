@@ -5,9 +5,11 @@ import { supabase } from "../../lib/supabaseClient.js";
 import presupuestoCard from "../../components/presupuesto/presupuestoCard.vue";
 import navbar from "../../components/componentes/navbar.vue";
 import { useInterfaz } from '../../stores/interfaz.js'
+import presupuestoList from '../../components/presupuesto/presupuestoList.vue'
 
 const router = useRouter();
 const servicios = ref([]);
+const todosLosServicios = ref([]);
 const uiStore = useInterfaz()
 const showStats = ref(false)
 let searchTimeout = null;
@@ -30,7 +32,7 @@ const handleBusqueda = (texto) => {
   }, 500);
 };
 
-const obtenerPresupuestos = async (busqueda = '') => {
+const obtenerPresupuestos = async (busqueda = '', esCargaInicial = false) => {
   let query = supabase.from("presupuesto");
 
   if (busqueda) {
@@ -49,6 +51,9 @@ const obtenerPresupuestos = async (busqueda = '') => {
     console.error(error);
   } else if (data) {
     servicios.value = data;
+    if (esCargaInicial) {
+      todosLosServicios.value = data;
+    }
   }
   uiStore.hideLoading()
 };
@@ -72,8 +77,8 @@ const camelCase = (texto) => {
 }
 
 const stats = computed(() => {
-  if (!servicios.value) return { total: 0, pendientes: 0, confirmados: 0, dineroPendiente: 0 };
-  const serviciosMes = servicios.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
+  if (!todosLosServicios.value.length) return { total: 0, pendientes: 0, confirmados: 0, dineroPendiente: 0 };
+  const serviciosMes = todosLosServicios.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
     const total = serviciosMes.length;
     const pendientes = serviciosMes.filter(s => s.estado === 1).length;
     const confirmados = serviciosMes.filter(s => s.estado === 2).length;
@@ -105,7 +110,7 @@ const formatearFecha = (fechaString) => {
 
 onMounted(async () => {
   uiStore.showLoading()
-  await obtenerPresupuestos();
+  await obtenerPresupuestos('', true);
 });
 </script>
 
@@ -195,81 +200,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div v-if="servicios.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
-        <div class="text-gray-400 mb-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-        </div>
-        <p class="text-gray-500 text-lg">No se encontraron presupuestos</p>
-        <p class="text-sm text-gray-400">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>
-      </div>
-
-      <div v-else class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
-                    <th class="p-4 font-semibold">Folio</th>
-                    <th class="p-4 font-semibold">Cliente</th>
-                    <th class="p-4 font-semibold">Vehículo</th>
-                    <th class="p-4 font-semibold">Diagnóstico</th>
-                    <th class="p-4 font-semibold text-center">Emisión</th>
-                    <th class="p-4 font-semibold text-right">Monto Total</th>
-                    <th class="p-4 font-semibold text-center">Estado</th>
-                    <th class="p-4 font-semibold text-center">Vencimiento</th>
-                    <th class="p-4 font-semibold text-center">Acción</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                <tr 
-                    v-for="item in servicios" 
-                    :key="item.id" 
-                    class="hover:bg-gray-50 transition-colors cursor-pointer"
-                    @click="irADetalle(item.id)"
-                >
-                    <td class="p-4 font-medium text-gray-900">#{{ item.numero_folio }}</td>
-                    <td class="p-4 text-gray-700">
-                        <div class="font-medium">{{ camelCase(item.cliente?.nombre) }} {{ camelCase(item.cliente?.apellido) }}</div>
-                        <div class="text-xs text-gray-400">{{ item.cliente?.email }}</div>
-                    </td>
-                    <td class="p-4 text-gray-700">
-                        <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ item.vehiculo?.patente }}</span>
-                        <div class="text-xs text-gray-500 mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
-                    </td>
-                    <td class="p-4 text-gray-700">
-                        <span class="block max-w-[200px] truncate" :title="item.diagnostico">{{ camelCase(item.diagnostico) }}</span>
-                    </td>
-                    <td class="p-4 text-center whitespace-nowrap">
-                      <span class="text-gray-400">{{ formatearFecha(item.created_at) }}</span>
-                    </td>
-                    <td class="p-4 text-right font-bold servi-blue-font">
-                        {{ formatearDinero(item.total_final) }}
-                    </td>
-                    <td class="p-4 text-center">
-                        <span :class="['px-3 py-1 rounded-full text-xs font-medium border', claseEstado(item.estado).clase]">
-                            {{ claseEstado(item.estado).texto }}
-                        </span>
-                    </td>
-                    <td class="p-4 text-center">
-                        <span v-if="item.estado===1" class="text-gray-400 hover:text-blue-600 transition-colors">
-                            {{ formatearFecha(item.vencimiento) }}
-                        </span>
-                        <span v-else class="text-gray-400 hover:text-blue-600 transition-colors">
-                            --- 
-                        </span>
-                    </td>
-                    <td class="p-4 text-center">
-                        <button class="text-gray-400 hover:text-blue-600 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-      </div>
-
+      <presupuestoList :servicios="servicios" />
       <div class="md:hidden grid grid-cols-1">
         <presupuestoCard
           v-for="item in servicios"
@@ -277,6 +208,15 @@ onMounted(async () => {
           :data="item"
           @click="irADetalle(item.id)"
         />
+      </div>  
+      <div v-if="servicios.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
+        <div class="text-gray-400 mb-2">
+          <p class="text-gray-500 text-lg">No se encontraron presupuestos</p>
+          <p class="text-sm text-gray-400">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
       </div>
 
     </div>

@@ -5,9 +5,11 @@ import { supabase } from "../../lib/supabaseClient.js";
 import ordenTrabajoCard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import navbar from "../../components/componentes/navbar.vue";
 import { useInterfaz } from '../../stores/interfaz.js'
+import ordentrabajoListado from '../../components/ordenTrabajo/ordentrabajoListado.vue'
 
 const router = useRouter();
 const ordenes = ref([]);
+const todasLasOrdenes = ref([]);
 const uiStore = useInterfaz()
 const estados = ref([]);
 const showStats = ref(false)
@@ -42,15 +44,15 @@ const handleEstados = (id) => {
   return estados.value.find((estado) => estado.id === id) || { nombre: 'Desconocido' };
 } 
 
-const obtenerOrdenes = async (busqueda = '') => {
+const obtenerOrdenes = async (busqueda = '', esCargaInicial = false) => {
   let query = supabase.from("orden_trabajo");
 
   if (busqueda) {
     query = query
-      .select("*,presupuesto(*),vehiculo!inner(*),cliente(*)")
+      .select("*,presupuesto(*),vehiculo!inner(*),cliente(*),id_empleado(*)")
       .ilike('vehiculo.patente', `%${busqueda}%`);
   } else {
-    query = query.select("*,presupuesto(*),vehiculo(*),cliente(*)");
+    query = query.select("*,presupuesto(*),vehiculo(*),cliente(*),id_empleado(*)");
   }
 
   query = query.order("id", { ascending: false });
@@ -61,6 +63,9 @@ const obtenerOrdenes = async (busqueda = '') => {
     console.error(error);
   } else if (data) {
     ordenes.value = data;
+    if (esCargaInicial) {
+      todasLasOrdenes.value = data;
+    }
   }
   uiStore.hideLoading()
 };
@@ -72,74 +77,20 @@ const handleBusqueda = (texto) => {
   }, 500);
 };
 
-const irACrear = () => {
-  router.push({ name: "nueva-orden-de-trabajo" });
-};
-
-const irADetalle = (id) => {
-    // Asumiendo que tienes una ruta para ver el detalle, si no, puedes redirigir a donde necesites
-    console.log("Ir a detalle de OT:", id);
-    // router.push({ name: 'detalle-orden', params: { id } }); 
-}
-
-// Helpers de formato
-const formatearDinero = (monto) => {
-    if (!monto) return '$0';
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
-}
-
-const camelCase = (texto) => {
-    if (!texto) return '';
-    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
-}
-
-const formatearFecha = (fechaString) => {
-  if (!fechaString) return '---'
-  const fecha = new Date(fechaString)
-  return fecha.toLocaleDateString('es-CL', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric'
-  })
-}
-
-// Lógica de colores para los estados de la OT
-const colorEstado = (nombreEstado) => {
-    if (!nombreEstado) return 'bg-gray-100 text-gray-800 border-gray-200';
-    const estado = nombreEstado.toLowerCase();
-    
-    if (estado.includes('terminad') || estado.includes('entregad') || estado.includes('finaliz')) {
-        return 'bg-green-100 text-green-800 border-green-200';
-    } else if (estado.includes('proceso') || estado.includes('taller')) {
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-    } else if (estado.includes('espera') || estado.includes('pendiente')) {
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    } else {
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-}
-
-// Estadísticas
 const stats = computed(() => {
-  if (!ordenes.value.length) return { total: 0, dinero: 0, activas: 0 };
-  
-  const ordenesMes = ordenes.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
-  
+  if (!todasLasOrdenes.value.length) return { total: 0, recientes: 0, sinAsignar: 0 };
+  const ordenesMes = todasLasOrdenes.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
   const total = ordenesMes.length;
-  // Calculamos dinero sumando el total_final del presupuesto vinculado
-  const dinero = ordenesMes.reduce((acc, curr) => acc + (curr.presupuesto?.total_final || 0), 0);
-  
-  // Aquí puedes ajustar la lógica de "activas" según tus IDs de estado
-  // Por ahora cuento todas las del mes como métrica simple
-  const activas = total; 
+  const recientes = todasLasOrdenes.value.filter(s => new Date(s.created_at) >= estaSemana.value.inicio && new Date(s.created_at) <= estaSemana.value.fin).length;
+  const sinAsignar = ordenesMes.filter(s => s.id_empleado === null).length;
 
-  return { total, dinero, activas };
+  return { total, recientes, sinAsignar };
 });
 
 onMounted(async () => {
   uiStore.showLoading()
   await obtenerEstados();
-  await obtenerOrdenes();
+  await obtenerOrdenes('', true);
 });
 </script>
 
@@ -161,24 +112,28 @@ onMounted(async () => {
             <p class="text-2xl font-bold servi-blue-font">{{ stats.total }}</p>
         </div>
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs text-gray-400 uppercase font-bold">Facturación Est. / mes</p>
-            <p class="text-2xl font-bold text-green-600">{{ formatearDinero(stats.dinero) }}</p>
+            <p class="text-xs text-gray-400 uppercase font-bold">Recientes</p>
+            <p class="text-2xl font-bold text-green-600">{{ stats.recientes }}</p>
         </div>
         <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs text-gray-400 uppercase font-bold">Recientes</p>
-            <p class="text-lg font-bold text-gray-700">{{ stats.activas }}</p>
+            <p class="text-xs text-gray-400 uppercase font-bold">Sin asignar</p>
+            <p class="text-lg font-bold text-gray-700">{{ stats.sinAsignar }}</p>
         </div>
       </div>
 
       <Transition name="slide-stats">
         <div v-show="showStats" class="md:hidden grid grid-cols-2 gap-3 mb-6">
           <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-              <p class="text-xs text-gray-400 uppercase font-bold">Total / mes</p>
+              <p class="text-xs text-gray-400 uppercase font-bold">Órdenes / mes</p>
               <p class="text-xl font-bold servi-blue-font">{{ stats.total }}</p>
           </div>
           <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-              <p class="text-xs text-gray-400 uppercase font-bold">$$$ / mes</p>
-              <p class="text-xl font-bold text-green-600">{{ formatearDinero(stats.dinero) }}</p>
+              <p class="text-xs text-gray-400 uppercase font-bold">Recientes</p>
+              <p class="text-xl font-bold text-green-600">{{ stats.recientes }}</p>
+          </div>
+          <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+              <p class="text-xs text-gray-400 uppercase font-bold">Sin asignar</p>
+              <p class="text-lg font-bold text-gray-700">{{ stats.sinAsignar }}</p>
           </div>
         </div>
       </Transition>
@@ -207,79 +162,9 @@ onMounted(async () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          
-          <button 
-            @click="irACrear" 
-            class="servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
-          >
-            <span class="text-xl leading-none mb-1">+</span>
-            <span class="hidden sm:inline">Nueva OT</span>
-          </button>
         </div>
       </div>
-
-      <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
-        <div class="text-gray-400 mb-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-        </div>
-        <p class="text-gray-500 text-lg">No hay órdenes de trabajo</p>
-        <p class="text-sm text-gray-400">Crea una nueva orden para comenzar.</p>
-      </div>
-
-      <div v-else class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
-                    <th class="p-4 font-semibold">OT ID</th>
-                    <th class="p-4 font-semibold">Cliente</th>
-                    <th class="p-4 font-semibold">Vehículo</th>
-                    <th class="p-4 font-semibold text-center">Ingreso</th>
-                    <th class="p-4 font-semibold text-right">Presupuesto</th>
-                    <th class="p-4 font-semibold text-center">Estado Actual</th>
-                    <th class="p-4 font-semibold text-center">Acción</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                <tr 
-                    v-for="item in ordenes" 
-                    :key="item.id" 
-                    class="hover:bg-gray-50 transition-colors cursor-pointer"
-                    @click="irADetalle(item.id)"
-                >
-                    <td class="p-4 font-medium text-gray-900">#{{ item.id }}</td>
-                    <td class="p-4 text-gray-700">
-                        <div class="font-medium">{{ camelCase(item.cliente?.nombre) }} {{ camelCase(item.cliente?.apellido) }}</div>
-                        <div class="text-xs text-gray-400">{{ item.cliente?.email || 'Sin correo' }}</div>
-                    </td>
-                    <td class="p-4 text-gray-700">
-                        <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">{{ item.vehiculo?.patente }}</span>
-                        <div class="text-xs text-gray-500 mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
-                    </td>
-                    <td class="p-4 text-center whitespace-nowrap">
-                      <span class="text-gray-400">{{ formatearFecha(item.created_at) }}</span>
-                    </td>
-                    <td class="p-4 text-right font-bold servi-blue-font">
-                        {{ formatearDinero(item.presupuesto?.total_final) }}
-                    </td>
-                    <td class="p-4 text-center">
-                        <span :class="['px-3 py-1 rounded-full text-xs font-medium border', colorEstado(handleEstados(item.estado_actual_id).nombre)]">
-                            {{ handleEstados(item.estado_actual_id).nombre }}
-                        </span>
-                    </td>
-                    <td class="p-4 text-center">
-                        <button class="text-gray-400 hover:text-blue-600 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-      </div>
-
+      <ordentrabajoListado :ordenes="ordenes" :estados="estados" @actualizar="obtenerOrdenes()"  />
       <div class="md:hidden grid grid-cols-1">
         <ordenTrabajoCard
           v-for="item in ordenes"
@@ -288,6 +173,15 @@ onMounted(async () => {
           :estado="handleEstados(item.estado_actual_id)"
           @asignacion-exitosa="() => obtenerOrdenes()"
         />
+      </div>
+      <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
+        <div class="text-gray-400 mb-2">
+          <p class="text-gray-500 text-lg">No se encontraron ordenes de trabajo</p>
+          <p class="text-sm text-gray-400">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
       </div>
 
     </div>

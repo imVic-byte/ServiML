@@ -65,6 +65,7 @@ if (presupuesto.value.cliente?.email) {
                 body: {
                     emailCliente: presupuesto.value.cliente.email,
                     nombreCliente: presupuesto.value.cliente.nombre,
+                    apellidoCliente: presupuesto.value.cliente.apellido,
                     urlPdf: exitoPDF.url,
                     folio: n_presupuesto.value
                 },
