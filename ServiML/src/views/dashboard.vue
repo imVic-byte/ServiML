@@ -6,6 +6,8 @@ import { storeToRefs } from 'pinia'
 import { computed, ref, onMounted } from 'vue'
 import { supabase } from '../lib/supabaseClient'
 import tablero from '../components/dashboard/tablero.vue'
+
+const capacidad = ref(15)
 const otSinAsignar = ref([])
 const otLista = ref([])
 const otPorEntregar = ref([])
@@ -17,7 +19,7 @@ const userStore = useUserStore()
 const {trabajador, loading: authLoading} = storeToRefs(userStore)
 
 const nombreCompleto = computed(() => {
-  if (authLoading.value) return 'Verificando Sesión'
+  if (authLoading.value) return 'Verificando Sesión...'
   if (trabajador.value) {
     if (!trabajador.value.apellido) {
       return trabajador.value.nombre
@@ -76,28 +78,46 @@ const handlePresupuestosSemana = async () => {
   } 
   PresupuestosSemana.value = data || []
 }
+
 const handleAprobadosHoy = async () => {
     const hoy = new Date()
     const inicioDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0)
-    const {data} = await supabase
+    const {data, error} = await supabase
     .from('presupuesto')
     .select('*')
     .eq('estado', 2)
     .gte('updated_at', inicioDia.toISOString())
-
-    uiStore.hideLoading()
-    return aprobadosHoy.value = data.length
+    
+    if (error) {
+        console.error('Error fetching aprobados:', error)
+        return 0
+    }
+    // NOTA: Eliminé uiStore.hideLoading() de aquí para centralizarlo en onMounted
+    return aprobadosHoy.value = data ? data.length : 0
 }
+
 onMounted(async () => {
   uiStore.showLoading()
+  
+  // Aseguramos auth primero
   if (!userStore.initialized) {
     await userStore.initializeAuth()
   }
-  await Promise.all([
-    handleOT(),
-    handlePresupuestosSemana(),
-    handleAprobadosHoy()
-  ])
+
+  try {
+     // Promise.all permite que las peticiones se hagan en paralelo
+     await Promise.all([
+        handleOT(),
+        handlePresupuestosSemana(),
+        handleAprobadosHoy()
+     ])
+  } catch (error) {
+    console.error('Error crítico al obtener datos del dashboard:', error)
+  } finally {
+    // ESTO ES CRÍTICO: Se ejecuta SIEMPRE, haya error o no.
+    // Esto previene que la pantalla se quede congelada con el loading.
+    uiStore.hideLoading()
+  }
 });
 </script>
 <template>

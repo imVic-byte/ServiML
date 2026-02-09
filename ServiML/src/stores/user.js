@@ -1,100 +1,132 @@
 import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabaseClient'
-
-const withTimeout = (promise, timeoutMs = 10000) => {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
-    )
-  ])
-}
+import { useInterfaz } from './interfaz'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
     trabajador: null,
     loading: false,
-    initialized: false
+    initialized: false,
+    subscription: null
   }),
 
   actions: {
     async fetchTrabajador() {
       if (!this.user) return
+      // Pequeña optimización: si ya tenemos datos y es el mismo ID, no recargamos
+      if (this.trabajador && this.trabajador.id === this.user.id) return
+
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('trabajadores')
           .select('*')
           .eq('id', this.user.id)
           .single()
         
-        if (error) throw error
-
-        if (data) {
-          this.trabajador = data
-        }
+        if (data) this.trabajador = data
       } catch (error) {
-        console.error('Error fetching trabajador:', error.message)
+        console.warn('Error fetching trabajador:', error.message)
       }
     },
 
     async initializeAuth() {
-      if (this.initialized) return
-      this.loading = true
+      // Si ya hay suscripción activa, no hacemos nada
+      if (this.subscription) return 
+
+      const uiStore = useInterfaz()
+
       try {
+        // 1. Carga inicial
         const { data } = await supabase.auth.getSession()
         this.user = data.session?.user || null
 
         if (this.user) {
-          await this.fetchTrabajador()
+            await this.fetchTrabajador()
         }
 
-        supabase.auth.onAuthStateChange(async (event, session) => {
-          const previousUser = this.user
-          this.user = session?.user || null
+        // 2. Listener protegido (EL ARREGLO ESTÁ AQUI)
+        const { data: authData } = supabase.auth.onAuthStateChange(async (event, session) => {
           
-          if (event === 'SIGNED_OUT' || !this.user) {
-             this.trabajador = null
+          const incomingUser = session?.user || null
+          const currentUserId = this.user?.id
+          const incomingUserId = incomingUser?.id
+
+          // CASO A: Logout o usuario eliminado
+          if (event === 'SIGNED_OUT' || event === 'USER_DELETED' || !incomingUser) {
              this.user = null
-          } else if (event === 'SIGNED_IN' || (this.user && !this.trabajador)) {
-             await this.fetchTrabajador()
-          } else if (event === 'TOKEN_REFRESHED') {
+             this.trabajador = null
+             this.subscription = null
+             this.initialized = false
+             uiStore.hideLoading()
+             return
           }
+
+          // CASO B: El Guardián de IDs (ESTO EVITA EL CONGELAMIENTO)
+          // Si el usuario que llega es el mismo que ya tenemos, NO HACEMOS NADA.
+          if (currentUserId === incomingUserId) {
+              return 
+          }
+
+          // CASO C: Login real (usuario diferente)
+          this.user = incomingUser
+          await this.fetchTrabajador()
         })
 
+        this.subscription = authData.subscription
+
       } catch (error) {
-        console.error(error)
+        console.error('Error Auth:', error)
       } finally {
         this.loading = false
         this.initialized = true
+        uiStore.hideLoading()
       }
     },
 
     async signIn(email, password) {
+      const uiStore = useInterfaz()
       this.loading = true
       try {
-        const { data, error } = await withTimeout(
-            supabase.auth.signInWithPassword({ email, password }), 
-            8000
-        )
-        
+        uiStore.showLoading()
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         
         this.user = data.user
-        await this.fetchTrabajador() 
+        await this.fetchTrabajador()
+        
+        if (!this.subscription) await this.initializeAuth()
         
         return true
       } catch (error) {
         throw error
       } finally {
         this.loading = false
+        uiStore.hideLoading()
       }
     },
 
     async signOut() {
-      await supabase.auth.signOut()
-      this.user = null
-      this.trabajador = null
+      const uiStore = useInterfaz()
+      try {
+        uiStore.showLoading()
+        
+        if (this.subscription) {
+            this.subscription.unsubscribe()
+            this.subscription = null
+        }
+        
+        await supabase.auth.signOut()
+        
+        this.user = null
+        this.trabajador = null
+        this.initialized = false
+        
+      } catch (error) {
+        console.error('Error al salir:', error)
+      } finally {
+        uiStore.hideLoading()
+      }
     }
   }
 })
