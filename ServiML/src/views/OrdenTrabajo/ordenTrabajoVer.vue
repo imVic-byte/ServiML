@@ -6,9 +6,27 @@ import navbar from "../../components/componentes/navbar.vue";
 import { useInterfaz } from "@/stores/interfaz.js";
 import subirFotos from "../../components/componentes/subir-fotos.vue";
 import modal from "../../components/componentes/modal.vue";
-import cargando2 from "../../components/componentes/cargando2.vue";
+import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue";
 
-const hoy = new Date().toISOString().split('T')[0];
+const hoy = new Date()
+  .toLocaleString('sv-SE') // YYYY-MM-DD HH:mm:ss
+  .replace('T', ' ');
+
+const formatearFecha = (fechaStr) => {
+  if (!fechaStr) return '';
+
+  const fecha = new Date(fechaStr.replace(' ', 'T'));
+  if (isNaN(fecha)) return 'Fecha inválida';
+
+  return fecha.toLocaleString('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+};
 
 const isCerrado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
@@ -16,7 +34,6 @@ const redirigir = () => {
   modalState.value.visible = false;
 };
 const interfaz = useInterfaz();
-const cargando = ref(true);
 const route = useRoute();
 const router = useRouter();
 const orden = ref({});
@@ -29,17 +46,9 @@ const showThirdModal = ref(false);
 const selectedEstado = ref(null);
 const observaciones = ref([]);
 const fechaIngreso = ref(null);
+const nivelCombustible = ref(0);
 
-const formatearFecha = (fecha) => {
-  if (!fecha) return 'No registrado';
-  const fechaObj = new Date(fecha);
-  const dia = String(fechaObj.getDate()).padStart(2, '0');
-  const mes = String(fechaObj.getMonth() + 1).padStart(2, '0');
-  const anio = fechaObj.getFullYear();
-  const horas = String(fechaObj.getHours()).padStart(2, '0');
-  const minutos = String(fechaObj.getMinutes()).padStart(2, '0');
-  return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
-}
+
 
 const redirigirInformeFinal = () => {
   router.push({ name: 'ver-informe-final', params: { id: orden.value.id } });
@@ -160,6 +169,7 @@ const obtenerOrden = async () => {
   if (data) {
     orden.value = data;
     fechaIngreso.value = formatearFecha(data.fecha_ingreso);
+    nivelCombustible.value = data.combustible_inicial ?? 0;
     await obtenerFotos();
   }
   manejarBloqueo(false);
@@ -353,11 +363,11 @@ onMounted( async () => {
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Responsable</label>
                 <p v-if="!orden.id_empleado">No asignado</p>
-                <p v-else>{{ orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido }}</p>
+                <p v-else>{{ orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido || 'No asignado' }}</p>
               </div>
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label>
-                <p>{{ fechaIngreso }}</p>
+                <p>{{ fechaIngreso || 'No registrado' }}</p>
               </div>
             </div>
           </div>
@@ -379,14 +389,8 @@ onMounted( async () => {
 
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Combustible Inicial</label>
-                <div class="relative">
-                  <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="number" v-model="orden.combustible_inicial" />
-                  <span class="absolute right-3 top-2.5 text-gray-400 text-sm">%</span>
-                </div>
-              </div>
-
-              
-
+                <medidorCombustible v-model="nivelCombustible" />
+              </div>            
               <div class="space-y-1">
                 <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha Promesa</label>
                 <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="date" v-model="orden.fecha_promesa" />
