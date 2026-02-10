@@ -33,6 +33,7 @@ const redirigir = () => {
 
 const manejarConfirmacion = async () => {
     loading.value = true;
+    interfaz.showLoadingOverlay()
     try {
     const { error } = await supabase
         .from('presupuesto')
@@ -60,55 +61,57 @@ const manejarConfirmacion = async () => {
         return
     }
     
-if (presupuesto.value.cliente?.email) {
-            const { data: dataMail, error: errorMail } = await supabase.functions.invoke('super-task', {
-                body: {
-                    emailCliente: presupuesto.value.cliente.email,
-                    nombreCliente: presupuesto.value.cliente.nombre,
-                    apellidoCliente: presupuesto.value.cliente.apellido,
-                    urlPdf: exitoPDF.url,
-                    folio: n_presupuesto.value
-                },
-                headers: {
-                    Authorization: `Bearer ${import.meta.env.SUPABASE_ANON_KEY}`
-                }
-            })
+    if (presupuesto.value.cliente?.email) {
+                const { data: dataMail, error: errorMail } = await supabase.functions.invoke('super-task', {
+                    body: {
+                        emailCliente: presupuesto.value.cliente.email,
+                        nombreCliente: presupuesto.value.cliente.nombre,
+                        apellidoCliente: presupuesto.value.cliente.apellido,
+                        urlPdf: exitoPDF.url,
+                        folio: n_presupuesto.value
+                    },
+                    headers: {
+                        Authorization: `Bearer ${import.meta.env.SUPABASE_ANON_KEY}`
+                    }
+                })
 
-            if (errorMail) {
-                console.error("❌ Error enviando correo:", errorMail)
+                if (errorMail) {
+                    console.error("❌ Error enviando correo:", errorMail)
+                } else {
+                    console.log("✅ Correo enviado con éxito:", dataMail)
+                }
             } else {
-                console.log("✅ Correo enviado con éxito:", dataMail)
+                console.warn("⚠️ El cliente no tiene email registrado, se omitió el envío.");
             }
-        } else {
-            console.warn("⚠️ El cliente no tiene email registrado, se omitió el envío.");
-        }
-    
-    await creacionOT(id.value)
-    presupuesto.value.estado = 2
-    loading.value = false
-    modalState.value = {
-        visible: true,
-        titulo: "¡Éxito!",
-        mensaje: "El presupuesto ha sido confirmado correctamente.",
-        exito: true,
-    };
-    } catch (error) {
-        console.error(error)
+        
+        await creacionOT(id.value)
+        presupuesto.value.estado = 2
         loading.value = false
         modalState.value = {
             visible: true,
-            titulo: "¡Error!",
-            mensaje: "Error al confirmar el presupuesto.",
-            exito: false,
+            titulo: "¡Éxito!",
+            mensaje: "El presupuesto ha sido confirmado correctamente.",
+            exito: true,
         };
+        } catch (error) {
+            console.error(error)
+            loading.value = false
+            modalState.value = {
+                visible: true,
+                titulo: "¡Error!",
+                mensaje: "Error al confirmar el presupuesto.",
+                exito: false,
+            };
+        }
+        finally {
+            loading.value = false
+            interfaz.hideLoadingOverlay()
+        }
     }
-    finally {
-        loading.value = false
-    }
-}
 
 const manejarDescarte = async () => {
     loading.value = true;
+    interfaz.showLoadingOverlay()
     try {
     const { error } = await supabase
         .from('presupuesto')
@@ -139,6 +142,7 @@ const manejarDescarte = async () => {
     }
     finally {
         loading.value = false
+        interfaz.hideLoadingOverlay()
     }
 }
 const handleEstados = (estado) => {

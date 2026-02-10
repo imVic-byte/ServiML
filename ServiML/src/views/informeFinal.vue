@@ -14,11 +14,6 @@ const loading = ref(true);
 const OrdenTrabajo = ref({});
 const detalle_presupuesto = ref([]);
 const enviandoCorreo = ref(false);
-const iva = ref(0);
-
-const handleIva = () => {
-  iva.value = OrdenTrabajo.value.presupuesto.iva;
-}
 
 const formatoPesos = (valor) => {
   if (valor === undefined || valor === null) return '$0';
@@ -44,9 +39,7 @@ const obtenerDatos = async () => {
     console.error(error);
   } finally {
     loading.value = false;
-    // Si la URL viene con ?enviar=true, disparamos el proceso automáticamente
     if (route.query.enviar === 'true') {
-        // Un pequeño delay para asegurar que el DOM se renderizó
         setTimeout(() => {
             generarYEnviarPDF();
         }, 1500);
@@ -58,7 +51,7 @@ const obtenerOT = async () => {
   try {
     const { data, error: errorDetalles } = await supabase
       .from("orden_trabajo")
-      .select("*, cliente(*), vehiculo(*), presupuesto(*), OT_bitacora(*)")
+      .select("*, cliente(*), vehiculo(*), presupuesto(*), OT_bitacora(*), OT_fotos_ingreso(*)")
       .eq("id", route.params.id)
       .single();
     if (errorDetalles) throw errorDetalles;
@@ -75,7 +68,17 @@ const obtenerOT = async () => {
   }
 };
 
-// Configuracion reutilizable para el PDF
+const traerFotosBitacora = async () => {
+  if (!OrdenTrabajo.value.OT_bitacora) return;
+  for (const item of OrdenTrabajo.value.OT_bitacora) {
+    const { data } = await supabase
+      .from('OT_Fotos')
+      .select('*')
+      .eq('id_OT_bitacora', item.id);
+    item.fotos = data || [];
+  }
+};
+
 const getOpcionesPDF = () => {
     return {
         margin: 0,
@@ -91,48 +94,22 @@ const descargarPDF = () => {
   html2pdf().set(getOpcionesPDF()).from(elemento).save();
 };
 
-// --- LOGICA DE ENVIO AUTOMATICO ---
-
-const subirPdfASupabase = async (pdfBlob) => {
-    // Asegurate que el bucket 'documentos' exista y sea publico o accesible
-    const fileName = `informes/OT_${route.params.id}_${Date.now()}.pdf`;
-    
-    const { data, error } = await supabase.storage
-        .from('documentos') 
-        .upload(fileName, pdfBlob, {
-            contentType: 'application/pdf',
-            upsert: true
-        });
-
-    if (error) throw error;
-
-    const { data: publicData } = supabase.storage
-        .from('documentos')
-        .getPublicUrl(fileName);
-
-    return publicData.publicUrl;
-};
-
 const generarYEnviarPDF = async () => {
     if (enviandoCorreo.value) return;
     enviandoCorreo.value = true;
-
     try {
         const elemento = document.getElementById("elemento-a-imprimir");
         
-        // Generar Blob
         const pdfBlob = await html2pdf()
             .set(getOpcionesPDF())
             .from(elemento)
             .output('blob'); 
 
-        // Subir y Enviar
         const exito = await enviarInformeFinal(informeData.value.id,OrdenTrabajo.value.presupuesto.numero_folio, pdfBlob);
         if (!exito) throw new Error("Error al subir el informe");
         
         alert("Informe subido exitosamente.");
         
-        // Limpiamos la query para que no se re-envie al refrescar
         router.replace({ query: null });
 
     } catch (error) {
@@ -146,6 +123,7 @@ const generarYEnviarPDF = async () => {
 onMounted( async () => {
   await obtenerDatos();
   await obtenerOT();
+  await traerFotosBitacora();
 });
 </script>
 
@@ -227,11 +205,7 @@ onMounted( async () => {
           <ul class="text-[#374151] space-y-1">
             <li>
               <span class="font-bold text-[#111827]">Cliente:</span> 
-              {{ informeData.cliente_nombre || 'Sin Nombre' }}
-            </li>
-            <li>
-              <span class="font-bold text-[#111827]">RUT:</span> 
-              {{ informeData.cliente_rut || 'Sin RUT' }}
+              {{ informeData.cliente_nombre || 'Sin Nombre' }} {{ informeData.cliente_apellido || '' }}
             </li>
             <li>
               <span class="font-bold text-[#111827]">Correo:</span> 
@@ -239,11 +213,11 @@ onMounted( async () => {
             </li>
             <li>
               <span class="font-bold text-[#111827]">Fono:</span> 
-              {{ informeData.cliente_telefono || 'Sin Teléfono' }}
+              +{{ informeData.cliente_codigo_pais }} {{ informeData.cliente_telefono || 'Sin Teléfono' }}
             </li>
             <li>
               <span class="font-bold text-[#111827]">Vehículo:</span> 
-              {{ informeData.vehiculo_modelo || 'Vehículo' }}
+              {{ informeData.vehiculo_marca }} {{ informeData.vehiculo_modelo }} {{ informeData.vehiculo_anio }}
               <span v-if="informeData.vehiculo_patente" class="ml-2 bg-[#fef08a] px-1 border border-[#fde047] text-[#854d0e] font-bold rounded">
                   {{ informeData.vehiculo_patente }}
               </span>
@@ -276,29 +250,23 @@ onMounted( async () => {
         </table>
       </div>
 
-      <div class="flex justify-between items-start gap-8">
-        
-        <div class="w-3/5 bg-[#f8fafc] p-4 rounded-lg border border-[#e2e8f0]">
-          <h4 class="font-bold text-[#1f3d64] uppercase text-[10px] mb-2 flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#1f3d64]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            Observaciones Técnicas
-          </h4>
-          <div>
-            <div v-for="(observacion, idx) in OrdenTrabajo.OT_bitacora" :key="idx" class="text-[#374151] text-[11px] mb-2">
-              <p v-if="observacion.observacion">{{ observacion.observacion }}</p>
-            </div>
-          </div>
-        </div>
-
+      <div class="flex justify-end items-end gap-8">
         <div class="w-2/5">
           <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
-            <span class="font-medium">Subtotal Neto</span>
+            <span class="font-medium">Subtotal</span>
+            <span>{{ formatoPesos(informeData.sub_total) }}</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+            <span class="font-medium">Descuento</span>
+            <span>{{ formatoPesos(informeData.descuento) }}%</span>
+          </div>
+          <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+            <span class="font-medium">Total Neto</span>
             <span>{{ formatoPesos(informeData.total_neto) }}</span>
           </div>
-
           <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
             <span class="font-medium">IVA (19%)</span>
-            <span>{{ formatoPesos(iva) }}</span>
+            <span>{{ formatoPesos(informeData.iva) }}</span>
           </div>
 
           <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">
@@ -307,11 +275,53 @@ onMounted( async () => {
           </div>
         </div>
       </div>
-
-      <div class="mt-16 text-center border-t border-[#e5e7eb] pt-4">
-        <p class="text-[#9ca3af] text-[9px] uppercase tracking-wide">
-          Documento Generado Electrónicamente - ServiML
-        </p>
+      <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden mt-5">
+        <div class="w-full text-left border-collapse">
+          <div class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
+            <div class="p-3 font-semibold">Fotos de recepción</div>
+          </div>
+          <div class="text-[#1f2937] text-[11px] flex flex-wrap items-center">
+            
+            <div 
+              v-for="(item, index) in OrdenTrabajo.OT_fotos_ingreso" 
+              :key="index"
+              class="bg-[#ffffff] shadow-lg m-2"
+            >
+              <div class="p-3 font-medium text-[#1f3d64]">
+                <img :src="item.url" alt="Imagen de recepción" class="w-30 h-30 object-cover">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden mt-5">
+        <div class="w-full text-left border-collapse">
+          <div class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
+            <div class="p-3 font-semibold">Hallazgos y observaciones</div>
+          </div>
+          <div class="text-[#1f2937] text-[11px] flex flex-wrap">
+            
+            <div 
+              v-for="(item, index) in OrdenTrabajo.OT_bitacora.filter(item => item.observacion)" 
+              :key="index"
+              class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64] m-2 w-full"
+            >
+              <div class="p-3 font-medium text-[#1f3d64]" v-if="item.observacion">
+                <p>{{ item.observacion }}</p>
+                <div v-if="item.fotos && item.fotos.length > 0" class="flex flex-wrap gap-2 mt-2">
+                  <img 
+                    v-for="(foto, fIdx) in item.fotos" 
+                    :key="fIdx" 
+                    :src="foto.url" 
+                    alt="Foto hallazgo" 
+                    class="w-24 h-24 object-cover rounded border border-[#e5e7eb]"
+                  />
+                </div>
+                <span>{{  'Fecha: ' + formatoFecha(item.created_at) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
