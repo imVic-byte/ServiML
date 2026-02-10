@@ -3,10 +3,11 @@ import { ref, onMounted, watch } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useRoute, useRouter } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
-import { useInterfaz } from "@/stores/interfaz.js";
 import modal from "../../components/componentes/modal.vue";
 import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
 import {subirFotos} from "../../js/subirFotos.js";
+import { useInterfaz } from "@/stores/interfaz.js";
+
 const hoy = new Date()
   .toLocaleString('sv-SE')
   .replace('T', ' ');
@@ -28,7 +29,7 @@ const interfaz = useInterfaz();
 const route = useRoute();
 const router = useRouter();
 const orden = ref({});
-const loading = ref(true);
+const loading = ref(true)
 const listaFotos = ref([]);
 const estados = ref([]);
 const showModal = ref(false);
@@ -39,7 +40,7 @@ const observaciones = ref([]);
 const fechaIngreso = ref(null);
 const nivelCombustible = ref(0);
 
-const activarCamara = (index) => {
+const activarInput = (index, tipo) => {
   const id = tipo === 'camara' ? `input-camara-${index}` : `input-galeria-${index}`;
   const inputElement = document.getElementById(id);
   if (inputElement) inputElement.click();
@@ -105,6 +106,7 @@ const eliminarObservacion = (index) => {
 const guardarCambios = async () => {
   if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
+  interfaz.showLoadingOverlay();
   const { error } = await supabase
     .from("orden_trabajo")
     .update({
@@ -164,6 +166,7 @@ const guardarCambios = async () => {
   
   if(!error) {
      await traerObservaciones();
+     interfaz.hideLoadingOverlay();
   }
   manejarBloqueo(false);
 };
@@ -193,7 +196,7 @@ const traerObservaciones = async () => {
       }
     }
   }
-  interfaz.hideLoading()
+  interfaz.hideLoading();
 };
 
 const handleIsCerrado = async (estado_actual_id) => {
@@ -562,7 +565,7 @@ onMounted(async () => {
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
             <div class="flex flex-col gap-3">
-              <button @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2">
+              <button @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
