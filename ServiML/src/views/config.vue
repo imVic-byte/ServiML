@@ -122,7 +122,9 @@ onMounted(() => {
           </div>
         </div>
 
-      </div> </div>
+      </div> 
+    </div>
+    <span class="version-label">Versión 1.2</span>
   </div>
 </template>
 
@@ -131,5 +133,14 @@ onMounted(() => {
   position: sticky;
   top: 0;
   z-index: 1000;
+}
+.version-label {
+  position: fixed;
+  bottom: 90px;
+  right: 16px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  user-select: none;
+  pointer-events: none;
 }
 </style>
