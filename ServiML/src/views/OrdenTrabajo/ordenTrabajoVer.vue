@@ -23,6 +23,7 @@ const formatearFecha = (fechaStr) => {
 };
 
 const isCerrado = ref(false);
+const sinEmpleado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const redirigir = () => { modalState.value.visible = false; };
 const interfaz = useInterfaz();
@@ -182,8 +183,6 @@ const guardarCambios = async () => {
       }
     }
   }
-
-  // Subir fotos de recepción nuevas
   const fotosNuevas = fotosRecepcion.value.filter(f => f.isNew);
   if (fotosNuevas.length > 0) {
     const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/';
@@ -382,9 +381,18 @@ const ejecutarCambioReal = async () => {
   manejarBloqueo(false);
 }
 
+
 onMounted(async () => {
   interfaz.showLoading();
   await obtenerOrden();
+  if (!orden.value.id_empleado) {
+    sinEmpleado.value = true;
+    interfaz.hideLoading();
+    setTimeout(() => {
+      router.push({ name: 'ordenes-de-trabajo' });
+    }, 3000);
+    return;
+  }
   obtenerEstados();
   traerObservaciones();
   traerFotosRecepcion();
@@ -769,5 +777,20 @@ onMounted(async () => {
     </div>
 
     <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
+
+    <!-- Modal sin empleado asignado -->
+    <div v-if="sinEmpleado" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Orden sin empleado asignado</h3>
+        <p class="text-sm text-gray-500 mb-4">Esta orden de trabajo no tiene un empleado asignado. Serás redirigido al listado de órdenes.</p>
+        <div class="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-blue-500 mx-auto mb-2"></div>
+        <p class="text-xs text-gray-400">Redirigiendo...</p>
+      </div>
+    </div>
   </div>
 </template>

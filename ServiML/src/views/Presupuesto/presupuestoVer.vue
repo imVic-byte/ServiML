@@ -32,7 +32,6 @@ const redirigir = () => {
 }
 
 const manejarConfirmacion = async () => {
-    loading.value = true;
     interfaz.showLoadingOverlay()
     try {
     const { error } = await supabase
@@ -316,7 +315,6 @@ onMounted(async () => {
             @cerrar="redirigir" 
         />
     </div>
-    <cargando2 v-if="loading"/>
 </div>
 </template>
 <style>

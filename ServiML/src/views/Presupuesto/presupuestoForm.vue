@@ -5,8 +5,9 @@ import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import modal from "../../components/componentes/modal.vue";
 import cargando2 from "../../components/componentes/cargando2.vue";
-
+import { useInterfaz } from '@/stores/interfaz.js'
 const router = useRouter();
+const interfaz = useInterfaz();
 
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 
@@ -97,6 +98,7 @@ const dosSemanasDespues = () => {
 }
 
 const enviarFormulario = async () => {
+    interfaz.showLoadingOverlay()
   if (!validarFormulario()) return;
   if (alertaEmail.value && !correo.value) {
     handleCorreo();
@@ -137,6 +139,7 @@ const enviarFormulario = async () => {
     modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudo guardar el presupuesto.", exito: false };
   } finally {
     loading.value = false;
+    interfaz.hideLoadingOverlay()
   }
 };
 
@@ -333,7 +336,6 @@ const redirigir = () => {
         </div>
       </div>
       
-      <cargando2 v-if="loading" />
       <modal 
         v-if="modalState.visible" 
         :titulo="modalState.titulo" 
