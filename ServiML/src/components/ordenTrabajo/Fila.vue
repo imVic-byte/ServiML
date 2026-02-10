@@ -133,16 +133,16 @@ const formatearFecha = (fechaString) => {
         </td>
     </tr>
     <div v-if="modalAsignar" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-    <div class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div class="servi-white servi-blue-font rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
       
       <div class="px-6 py-4">
-        <h2 class="text-lg font-bold servi-yellow-font">Asignar Responsable</h2>
-        <p class="text-sm servi-white-font">OT #{{ orden.presupuesto?.numero_folio }} - {{ orden.vehiculo?.patente }}</p>
+        <h2 class="text-lg font-bold servi-blue-font">Asignar Responsable</h2>
+        <p class="text-sm servi-blue-font">OT #{{ orden.presupuesto?.numero_folio }} - {{ orden.vehiculo?.patente }}</p>
       </div>
 
       <div class="p-6">
         <label class="block text-sm font-medium mb-2">Seleccione un técnico</label>
-        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold">
+        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-blue servi-white-font font-bold">
           <option value="" disabled>-- Seleccionar --</option>
           <option v-for="emple in empleados" :key="emple.id" :value="emple.id">
             {{ emple.nombre }} {{ emple.apellido }}
@@ -151,13 +151,13 @@ const formatearFecha = (fechaString) => {
       </div>
 
       <div class="px-6 py-4 flex justify-end gap-3">
-        <button @click="modalAsignar = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-blue-font rounded-lg">
+        <button @click="modalAsignar = false" class="px-4 py-2 text-sm font-medium servi-blue-font rounded-lg cursor-pointer">
           Cancelar
         </button>
         <button 
           @click="asignarOrden" 
           :disabled="!empleadoSeleccionado || cargando"
-          class="px-4 py-2 text-s servi-yellow servi-blue-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 text-s servi-blue servi-white-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
         >
           <span v-if="cargando">Guardando...</span>
           <span v-else>Confirmar</span>
