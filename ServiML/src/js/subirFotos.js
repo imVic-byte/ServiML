@@ -2,28 +2,27 @@ import { supabase } from '../lib/supabaseClient'
 
 const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/' 
 
-export const subirFotos = async (idOrden,archivos) => {
+export const subirFotos = async (idOrden, numeroFolio, archivos) => {
 
   if (!archivos || archivos.length === 0) {
     return { exito: true, mensaje: 'Sin fotos' }
   }
 
   try {
-    const { data: ordenTrabajo } = await supabase
-      .from('orden_trabajo')
-      .select('*,presupuesto(numero_folio)')
+    const { data: OT_bitacora } = await supabase
+      .from('OT_bitacora')
+      .select('*')
       .eq('id', idOrden)
       .single()
     
-    if (!ordenTrabajo) {
+    if (!OT_bitacora) {
       throw new Error('Orden de trabajo no encontrada')
     }
-    const numeroFolio = ordenTrabajo.presupuesto.numero_folio
     const promesas = archivos.map(async (archivo, index) => {
       const archivoReal = archivo.file || archivo
       const formData = new FormData()
       const nombreLimpio = archivoReal.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-      const nombreUnico = `OT-${idOrden}-${Date.now()}-${nombreLimpio}` 
+      const nombreUnico = `OT-${numeroFolio}-${Date.now()}-${nombreLimpio}` 
       formData.append('file', archivoReal, nombreUnico)
       formData.append('numero_folio', numeroFolio)
 
@@ -49,13 +48,12 @@ export const subirFotos = async (idOrden,archivos) => {
     const resultados = await Promise.all(promesas)
 
     const registros = resultados.map(data => ({
-      id_orden_trabajo: idOrden,
-      url: data.url,
-      nombre: data.key
+      id_OT_bitacora: idOrden,
+      url: data.url
     }))
 
     const { error } = await supabase
-      .from('imagenes')
+      .from('OT_Fotos')
       .insert(registros)
 
     if (error) {
