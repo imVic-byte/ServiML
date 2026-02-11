@@ -118,6 +118,12 @@ const router = createRouter({
       component: () => import('../views/informeFinal.vue'),
       meta: { requiresAuth: true }
     },
+    {
+      path: '/deuda/:id',
+      name: 'ver-deuda',
+      component: () => import('../views/Deuda/deudaDetalle.vue'),
+      meta: { requiresAuth: true }
+    },
   ],
 })
 

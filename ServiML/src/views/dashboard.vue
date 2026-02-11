@@ -16,6 +16,7 @@ const aprobadosHoy = ref(0)
 const vehiculosLista = ref([])
 const uiStore = useInterfaz()
 const userStore = useUserStore()
+const deudasVencidas = ref([])
 const {trabajador, loading: authLoading} = storeToRefs(userStore)
 
 const nombreCompleto = computed(() => {
@@ -96,6 +97,24 @@ const handleAprobadosHoy = async () => {
     return aprobadosHoy.value = data ? data.length : 0
 }
 
+const handleAlertasCobranza = async () => {
+  const { data } = await supabase
+    .from('deudas')
+    .select('*')
+    .eq('estado', 'pendiente')
+    .gt('notificar_cada', 0);
+
+  if (!data) return;
+
+  const hoy = new Date();
+  deudasVencidas.value = data.filter(d => {
+      const ultima = new Date(d.ultima_notificacion || d.created_at);
+      const diffTiempo = hoy - ultima;
+      const diffDias = Math.ceil(diffTiempo / (1000 * 60 * 60 * 24)); 
+      return diffDias >= d.notificar_cada;
+  });
+}
+
 onMounted(async () => {
   uiStore.showLoading()
   
@@ -109,7 +128,8 @@ onMounted(async () => {
      await Promise.all([
         handleOT(),
         handlePresupuestosSemana(),
-        handleAprobadosHoy()
+        handleAprobadosHoy(),
+        handleAlertasCobranza()
      ])
   } catch (error) {
     console.error('Error crítico al obtener datos del dashboard:', error)
