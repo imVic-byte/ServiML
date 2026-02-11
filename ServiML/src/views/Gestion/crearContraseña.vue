@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '../lib/supabaseClient'
-import { useUserStore } from '../stores/user'
+import { supabase } from '../../lib/supabaseClient'
+import { useUserStore } from '../../stores/user'
 
 const password = ref('')
 const confirmPassword = ref('')
