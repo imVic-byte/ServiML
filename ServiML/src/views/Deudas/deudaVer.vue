@@ -33,7 +33,6 @@ const estadoUI = (item) => {
   const esPendiente = (item?.estado || '').toLowerCase() === 'pendiente';
   return {
     label: esPendiente ? 'Pendiente' : 'Pagada',
-    // Se mantiene con colores inline (compatibles) y el resto con estilo Servi
     bg: esPendiente ? '#EF4444' : '#22C55E',
     fg: '#FFFFFF',
   };
@@ -83,7 +82,6 @@ const crearDeuda = async () => {
     showModalCrear.value = false;
     form.value.nombre = '';
     await cargarDeudas();
-    // Si quieres quedarte en el listado, comenta la línea siguiente.
     router.push({ name: 'ver-deuda', params: { id: data.id } });
   }
 };
@@ -151,7 +149,7 @@ onMounted(() => {
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <!-- Filtros Estado -->
-          <div class="inline-flex rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div class="inline-flex self-start w-fit rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
             <button
               type="button"
               @click="filtroEstado = 'todas'"
@@ -302,7 +300,6 @@ onMounted(() => {
 
         <!-- Listado -->
         <div v-else>
-          <!-- Tabla estilo ordentrabajoListado (desktop) -->
           <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <table class="w-full text-left border-collapse">
               <thead>
@@ -374,7 +371,6 @@ onMounted(() => {
             </table>
           </div>
 
-          <!-- Cards estilo ordendetrabajoCard (mobile) -->
           <div class="md:hidden">
             <div
               v-for="item in deudasFiltradas"
@@ -435,7 +431,6 @@ onMounted(() => {
       </template>
     </div>
 
-    <!-- Modal Crear (mismo estilo que modal en ordendetrabajoCard) -->
     <div v-if="showModalCrear" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         <div class="px-6 py-4 border-b border-white/10">

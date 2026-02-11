@@ -1,3 +1,4 @@
+// stores/user.js
 import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabaseClient'
 import { useInterfaz } from './interfaz'
@@ -5,72 +6,73 @@ import { useInterfaz } from './interfaz'
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
-    trabajador: null,
+    trabajador: null, // Aquí vivirá el perfil con el campo 'rol'
     loading: false,
     initialized: false,
     subscription: null
   }),
 
+  getters: {
+    isAuthenticated: (state) => !!state.user,
+    isAdmin: (state) => state.trabajador?.rol === 'Administrador',
+    isTrabajador: (state) => state.trabajador?.rol === 'Trabajador',
+    isGerente: (state) => state.trabajador?.rol === 'Gerente',
+    isSoporte: (state) => state.trabajador?.rol === 'Soporte',
+    WhatIsMyRole: (state) => state.trabajador?.rol,
+    havePrivileges: (state) => state.trabajador?.rol === 'Administrador' || state.trabajador?.rol === 'Gerente' || state.trabajador?.rol === 'Soporte', 
+  },
+
   actions: {
     async fetchTrabajador() {
       if (!this.user) return
-      // Pequeña optimización: si ya tenemos datos y es el mismo ID, no recargamos
-      if (this.trabajador && this.trabajador.id === this.user.id) return
 
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('trabajadores')
           .select('*')
-          .eq('id', this.user.id)
+          .eq('id', this.user.id) 
           .single()
         
-        if (data) this.trabajador = data
+        if (error) throw error
+        if (data.activo ==false) {
+          await supabase.auth.signOut()
+          this.user = null
+          this.trabajador = null
+          throw new Error('Su cuenta ha sido desactivada, contacte a su administrador.')
+        }
+        this.trabajador = data
       } catch (error) {
-        console.warn('Error fetching trabajador:', error.message)
+        console.error('Error fetching trabajador:', error.message)
+        this.trabajador = null
+        this.user = null
+        window.location.href = '/login'
       }
     },
 
     async initializeAuth() {
-      // Si ya hay suscripción activa, no hacemos nada
       if (this.subscription) return 
 
       const uiStore = useInterfaz()
+      this.loading = true
 
       try {
-        // 1. Carga inicial
-        const { data } = await supabase.auth.getSession()
-        this.user = data.session?.user || null
-
-        if (this.user) {
-            await this.fetchTrabajador()
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user) {
+          this.user = session.user
+          await this.fetchTrabajador() 
         }
 
-        // 2. Listener protegido (EL ARREGLO ESTÁ AQUI)
         const { data: authData } = supabase.auth.onAuthStateChange(async (event, session) => {
-          
-          const incomingUser = session?.user || null
-          const currentUserId = this.user?.id
-          const incomingUserId = incomingUser?.id
-
-          // CASO A: Logout o usuario eliminado
-          if (event === 'SIGNED_OUT' || event === 'USER_DELETED' || !incomingUser) {
-             this.user = null
-             this.trabajador = null
-             this.subscription = null
-             this.initialized = false
-             uiStore.hideLoading()
-             return
+          if (session?.user) {
+            if (session.user.id !== this.user?.id) {
+              this.user = session.user
+              await this.fetchTrabajador()
+            }
+          } else {
+            this.user = null
+            this.trabajador = null
           }
-
-          // CASO B: El Guardián de IDs (ESTO EVITA EL CONGELAMIENTO)
-          // Si el usuario que llega es el mismo que ya tenemos, NO HACEMOS NADA.
-          if (currentUserId === incomingUserId) {
-              return 
-          }
-
-          // CASO C: Login real (usuario diferente)
-          this.user = incomingUser
-          await this.fetchTrabajador()
         })
 
         this.subscription = authData.subscription
@@ -79,7 +81,7 @@ export const useUserStore = defineStore('user', {
         console.error('Error Auth:', error)
       } finally {
         this.loading = false
-        this.initialized = true
+        this.initialized = true 
         uiStore.hideLoading()
       }
     },
@@ -87,15 +89,14 @@ export const useUserStore = defineStore('user', {
     async signIn(email, password) {
       const uiStore = useInterfaz()
       this.loading = true
+      uiStore.showLoading() 
+
       try {
-        uiStore.showLoading()
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         
         this.user = data.user
         await this.fetchTrabajador()
-        
-        if (!this.subscription) await this.initializeAuth()
         
         return true
       } catch (error) {
@@ -107,26 +108,17 @@ export const useUserStore = defineStore('user', {
     },
 
     async signOut() {
-      const uiStore = useInterfaz()
-      try {
+        const uiStore = useInterfaz()
         uiStore.showLoading()
-        
-        if (this.subscription) {
-            this.subscription.unsubscribe()
-            this.subscription = null
+        try {
+            await supabase.auth.signOut()
+            this.user = null
+            this.trabajador = null
+        } catch(e) {
+            console.error(e)
+        } finally {
+            uiStore.hideLoading()
         }
-        
-        await supabase.auth.signOut()
-        
-        this.user = null
-        this.trabajador = null
-        this.initialized = false
-        
-      } catch (error) {
-        console.error('Error al salir:', error)
-      } finally {
-        uiStore.hideLoading()
-      }
     }
   }
 })

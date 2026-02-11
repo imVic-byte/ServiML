@@ -357,7 +357,7 @@ onMounted( async () => {
             <ul class="text-[#374151] space-y-1">
               <li>
                 <span class="font-bold text-[#111827]">Cliente:</span>
-                {{ camelCase(informeData.cliente_nombre) || 'Sin Nombre' }} {{ camelCase(informeData.cliente_apellido) || '' }}
+                {{ informeData.cliente_nombre || 'Sin Nombre' }} {{ informeData.cliente_apellido || '' }}
               </li>
               <li>
                 <span class="font-bold text-[#111827]">Correo:</span>

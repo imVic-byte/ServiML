@@ -245,7 +245,6 @@ onMounted(cargarDatos);
     </div>
 
     <div v-else class="max-w-7xl mx-auto px-4 py-8">
-      <!-- Header / Resumen (estilo card tipo OT) -->
       <div class="servi-white card-shadow border border-gray-100 overflow-hidden mb-8">
         <div class="p-6 md:p-8 flex justify-between items-start flex-wrap gap-4">
           <div class="flex flex-col gap-2">
