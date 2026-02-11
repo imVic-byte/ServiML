@@ -13,9 +13,13 @@ export const useUserStore = defineStore('user', {
   }),
 
   getters: {
-    // 1. Getter útil para preguntar permisos rápidamente en el template o router
-    userRole: (state) => state.trabajador?.rol,
     isAuthenticated: (state) => !!state.user,
+    isAdmin: (state) => state.trabajador?.rol === 'Administrador',
+    isTrabajador: (state) => state.trabajador?.rol === 'Trabajador',
+    isGerente: (state) => state.trabajador?.rol === 'Gerente',
+    isSoporte: (state) => state.trabajador?.rol === 'Soporte',
+    WhatIsMyRole: (state) => state.trabajador?.rol,
+    havePrivileges: (state) => state.trabajador?.rol === 'Administrador' || state.trabajador?.rol === 'Gerente' || state.trabajador?.rol === 'Soporte', 
   },
 
   actions: {
@@ -26,7 +30,7 @@ export const useUserStore = defineStore('user', {
         const { data, error } = await supabase
           .from('trabajadores')
           .select('*')
-          .eq('id', this.user.id) // Asumiendo que id en trabajadores es el mismo UUID de auth
+          .eq('id', this.user.id) 
           .single()
         
         if (error) throw error
@@ -52,25 +56,20 @@ export const useUserStore = defineStore('user', {
       this.loading = true
 
       try {
-        // 1. Verificar sesión actual al cargar la página
         const { data: { session } } = await supabase.auth.getSession()
         
         if (session?.user) {
           this.user = session.user
-          await this.fetchTrabajador() // Cargamos el rol inmediatamente
+          await this.fetchTrabajador() 
         }
 
-        // 2. Configurar el listener
         const { data: authData } = supabase.auth.onAuthStateChange(async (event, session) => {
-          // Simplificamos la lógica. Si hay sesión, actualizamos. Si no, limpiamos.
           if (session?.user) {
-            // Solo actualizamos si el usuario cambió para evitar loops
             if (session.user.id !== this.user?.id) {
               this.user = session.user
               await this.fetchTrabajador()
             }
           } else {
-            // Logout
             this.user = null
             this.trabajador = null
           }
@@ -82,7 +81,7 @@ export const useUserStore = defineStore('user', {
         console.error('Error Auth:', error)
       } finally {
         this.loading = false
-        this.initialized = true // Marcamos como listo para que el Router sepa que puede proceder
+        this.initialized = true 
         uiStore.hideLoading()
       }
     },
@@ -90,15 +89,12 @@ export const useUserStore = defineStore('user', {
     async signIn(email, password) {
       const uiStore = useInterfaz()
       this.loading = true
-      uiStore.showLoading() // Muestra loader
+      uiStore.showLoading() 
 
       try {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         
-        // No necesitamos llamar a initializeAuth aquí ni a fetchTrabajador manualmente
-        // El onAuthStateChange (si ya se inicializó en App.vue) lo detectará.
-        // PERO, para feedback inmediato en el UI de Login, podemos setearlo:
         this.user = data.user
         await this.fetchTrabajador()
         
@@ -116,8 +112,6 @@ export const useUserStore = defineStore('user', {
         uiStore.showLoading()
         try {
             await supabase.auth.signOut()
-            // El listener se encargará de limpiar el estado (this.user = null)
-            // Pero podemos forzar limpieza local por si acaso
             this.user = null
             this.trabajador = null
         } catch(e) {
