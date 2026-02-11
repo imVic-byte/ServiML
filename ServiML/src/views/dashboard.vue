@@ -121,7 +121,7 @@ onMounted(async () => {
 });
 </script>
 <template>
-<navbar :titulo="nombreCompleto" subtitulo="Dashboard" class="navbar"/>
+<navbar :titulo="nombreCompleto + ' - ' + trabajador?.rol" subtitulo="Dashboard" class="navbar"/>
   <div class="min-h-screen flex flex-col">
     <div class="flex bg-gray-50 text-gray-800 font-sans sm:pb-10">
         <div class="flex-1 flex flex-col overflow-hidden">

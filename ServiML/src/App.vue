@@ -1,36 +1,42 @@
 <script setup>
-import { RouterView } from 'vue-router'
-import GlobalLoader from '@/components/componentes/globalLoader.vue'
-import Footer from '@/components/componentes/footer.vue'
+import { onMounted, watch } from "vue";
+import { RouterView } from "vue-router";
+import GlobalLoader from "@/components/componentes/globalLoader.vue";
+import Footer from "@/components/componentes/footer.vue";
+import { useInterfaz } from "./stores/interfaz";
+import { useUserStore } from "./stores/user";
 
-import { watch } from 'vue'
-import { useInterfaz } from './stores/interfaz'
-
-const uiStore = useInterfaz()
+const uiStore = useInterfaz();
+const userStore = useUserStore();
 let safetyTimer = null
-
-// Watchdog: Vigila el estado de loading
 watch(
-  () => uiStore.isLoading, // O como se llame tu variable de loading en la store de interfaz
+  () => uiStore.isLoading,
+
   (newVal) => {
     if (newVal) {
-      // Si se activa el loading, iniciamos una cuenta atrás de 10 segundos
-      if (safetyTimer) clearTimeout(safetyTimer)
+      if (safetyTimer) clearTimeout(safetyTimer);
+
       safetyTimer = setTimeout(() => {
-        console.warn('⚠️ ALERTA: El loading lleva mucho tiempo. Forzando desbloqueo.')
-        uiStore.hideLoading()
-      }, 10000) // 10 segundos máximo
+        console.warn(
+          "⚠️ ALERTA: El loading lleva mucho tiempo. Forzando desbloqueo."
+        );
+
+        uiStore.hideLoading();
+      }, 10000);
     } else {
-      // Si se desactiva, cancelamos la cuenta atrás
-      if (safetyTimer) clearTimeout(safetyTimer)
+      if (safetyTimer) clearTimeout(safetyTimer);
     }
   }
-) 
+);
+
+onMounted(() => {
+  userStore.initializeAuth();
+});
 </script>
 
 <template>
   <GlobalLoader />
-  <div class="main-layout">
+  <div class="app-container">
     <RouterView />
     <Footer v-if="$route.name !== 'login'" />
   </div>
