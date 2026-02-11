@@ -95,18 +95,20 @@ const obtenerOT = async () => {
       .eq("id", route.params.id)
       .single();
     if (errorDetalles) throw errorDetalles;
-    OrdenTrabajo.value = data || {};
+    OrdenTrabajo.value = data || [];
 
-    if (OrdenTrabajo.value.presupuesto) {
-      const { data: detalles, error2 } = await supabase
-        .from('detalle_presupuesto')
-        .select('*')
-        .eq('id_presupuesto', OrdenTrabajo.value.presupuesto.id);
+    console.log("=== DATOS RECIBIDOS DE SUPABASE ===");
+    console.log("Inicio:", OrdenTrabajo.value.fecha_estacionamiento);
+    console.log("Término:", OrdenTrabajo.value.fecha_termino_estacionamiento);
+    console.log("Objeto completo:", OrdenTrabajo.value);
 
-      if (error2) throw error2;
-      detalle_presupuesto.value = detalles || [];
-      iva.value = OrdenTrabajo.value.presupuesto.iva || 0;
-    }
+    const { data:detalles, error2 } = await supabase
+    .from('detalle_presupuesto')
+    .select('*')
+    .eq('id_presupuesto', OrdenTrabajo.value.presupuesto.id);
+    if (error2) throw error2;
+    detalle_presupuesto.value = detalles || [];
+    iva.value = OrdenTrabajo.value.presupuesto.iva;
   } catch (error) {
     console.error(error);
   }
@@ -238,12 +240,44 @@ const generarYEnviarPDF = async () => {
   }
 };
 
-const camelCase = (str) => {
-  if (!str) return '';
-  return str.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-}
+const datosEstacionamiento = computed(() => {
+  if (!OrdenTrabajo.value.fecha_estacionamiento) {
+    return { diasTotales: 0, diasCobrar: 0, total: 0 };
+  }
 
-onMounted(async () => {
+  const fechaInicio = new Date(OrdenTrabajo.value.fecha_estacionamiento);
+  const fechaFin = OrdenTrabajo.value.fecha_termino_estacionamiento
+    ? new Date(OrdenTrabajo.value.fecha_termino_estacionamiento)
+    : new Date();
+
+  const diasTotales = Math.ceil(
+    (fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)
+  );
+
+  let diasACobrar = diasTotales - 3;
+  if (diasACobrar < 0) diasACobrar = 0;
+
+  console.log("Cálculo Estacionamiento:", {
+    fechaInicio,
+    fechaFin,
+    diasTotales,
+    diasACobrar,
+    total: diasACobrar * 5000
+  });
+
+  return {
+    diasTotales,
+    diasCobrar: diasACobrar,
+    total: diasACobrar * 5000
+  };
+});
+
+const totalFinalCalculado = computed(() => {
+  const totalBase = informeData.value.total_final || 0;
+  return totalBase + datosEstacionamiento.value.total;
+});
+
+onMounted( async () => {
   interfaz.showLoadingOverlay();
   await obtenerDatos();
   await obtenerOT();
@@ -323,7 +357,7 @@ onMounted(async () => {
             <ul class="text-[#374151] space-y-1">
               <li>
                 <span class="font-bold text-[#111827]">Cliente:</span>
-                {{ camelCase(informeData.cliente_nombre) || 'Sin Nombre' }} {{ camelCase(informeData.cliente_apellido) || '' }}
+                {{ informeData.cliente_nombre || 'Sin Nombre' }} {{ informeData.cliente_apellido || '' }}
               </li>
               <li>
                 <span class="font-bold text-[#111827]">Correo:</span>
@@ -361,6 +395,14 @@ onMounted(async () => {
                   {{ formatoPesos(item.monto) }}
                 </td>
               </tr>
+              <tr v-if="datosEstacionamiento.total > 0" class="bg-yellow-50 shadow-lg border-b border-[#1f3d64]">
+              <td class="p-3 font-medium text-[#1f3d64]">
+                Servicio de Estacionamiento ({{ datosEstacionamiento.diasCobrar }} días facturables tras 3 días de gracia)
+              </td>
+              <td class="p-3 text-right font-bold text-red-600">
+                {{ formatoPesos(datosEstacionamiento.total) }}
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -490,6 +532,15 @@ onMounted(async () => {
           </div>
         </div>
 
+          <div v-if="datosEstacionamiento.total > 0" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+            <span class="font-medium">Estacionamiento</span>
+            <span>{{ formatoPesos(datosEstacionamiento.total) }}</span>
+          </div>
+
+          <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">
+            <span class="font-bold text-md">TOTAL FINAL</span>
+            <span class="font-bold text-md">{{ formatoPesos(totalFinalCalculado) }}</span>
+          </div>
         <div class="mt-4">
            <h3 class="flex items-center gap-3 text-sm font-bold text-[#1f3d64] uppercase border-b-2 border-[#1f3d64] pb-1 mb-3">
               <span class="bg-[#1f3d64] text-white w-5 h-5 flex items-center justify-center rounded text-[10px]">✔</span>

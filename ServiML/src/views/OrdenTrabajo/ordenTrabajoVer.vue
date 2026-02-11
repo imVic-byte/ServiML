@@ -343,9 +343,15 @@ const confirmarCambioEstado = () => {
 };
 
 const handleGenerarInformeFinal = async () => {
+  const d = new Date();
+  const fechaActual = new Date(
+    d.getTime() - d.getTimezoneOffset() * 60000
+  )
+    .toISOString()
+    .slice(0, 19);
   const { data, error } = await supabase.from("informe_final").insert({
     ot_id: orden.value.id,
-    created_at: new Date().toISOString()
+    created_at: fechaActual
   }).select().single();
   if (error) return;
 
@@ -358,17 +364,54 @@ const handleGenerarInformeFinal = async () => {
 
 const ejecutarCambioReal = async () => {
   manejarBloqueo(true);
-  const { error } = await supabase.from("OT_bitacora").insert({
+  
+  let updateData = {
+    estado_actual_id: selectedEstado.value.id
+  };
+
+  const d = new Date();
+  const fechaActual = new Date(
+    d.getTime() - d.getTimezoneOffset() * 60000
+  )
+    .toISOString()
+    .slice(0, 19);
+
+  if (selectedEstado.value.id === 9) { 
+    updateData.fecha_estacionamiento = fechaActual;
+    updateData.fecha_termino_estacionamiento = null;
+  } 
+
+  else if (orden.value.fecha_estacionamiento && !orden.value.fecha_termino_estacionamiento) {
+    updateData.fecha_termino_estacionamiento = fechaActual;
+  }
+
+  const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
     ot_id: route.params.id,
     nuevo_estado_id: selectedEstado.value.id,
     tipo_evento: "cambio_estado",
   });
 
-  if (error) {
+  if (errorBitacora) {
     console.error(error);
   } else {
     orden.value.estado_actual_id = selectedEstado.value.id;
+    const { error: errorUpdate } = await supabase
+    .from("orden_trabajo")
+    .update(updateData)
+    .eq("id", route.params.id);
+    if (errorUpdate) {
+    console.error("Error al actualizar estado en OT:", errorUpdate);
+    alert("Hubo un error al actualizar el estado de la orden.");
+    return;
+    }
+    if (updateData.fecha_estacionamiento) {
+        orden.value.fecha_estacionamiento = updateData.fecha_estacionamiento;
+    }
+    if (updateData.fecha_termino_estacionamiento) {
+        orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
+    }
     await handleIsCerrado(selectedEstado.value.id);
+    
     if (selectedEstado.value.id === 6) {
       await handleGenerarInformeFinal();
     }
@@ -724,7 +767,7 @@ onMounted(async () => {
                 Guardar Todo
               </button>
 
-              <button v-if="!loading && orden.estado_actual_id === 6" @click="redirigirInformeFinal" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold shadow-sm hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
+              <button v-if="!loading" @click="redirigirInformeFinal" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold shadow-sm hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
