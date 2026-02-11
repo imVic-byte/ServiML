@@ -103,6 +103,7 @@ const totalFinal = computed(() => {
           </li>
           <li>
             <span class="font-bold text-[#111827]">Vehículo:</span> 
+            {{ presupuesto.vehiculo?.marca }} {{ presupuesto.vehiculo?.modelo }}
             <span v-if="presupuesto.vehiculo?.patente" class="ml-2 bg-[#fef08a] px-1 border border-[#fde047] text-[#854d0e] font-bold rounded">
                 {{ presupuesto.vehiculo.patente }} - {{ presupuesto.vehiculo.marca }} {{ presupuesto.vehiculo.modelo }}
             </span>
@@ -154,7 +155,7 @@ const totalFinal = computed(() => {
 
       <div class="w-2/5">
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
-          <span class="font-medium">Subtotal Neto</span>
+          <span class="font-medium">Subtotal</span>
           <span>{{ formatoPesos(presupuesto.subtotal) }}</span>
         </div>
         
@@ -162,9 +163,12 @@ const totalFinal = computed(() => {
           <span class="font-medium">Descuento</span>
           <span>- {{ presupuesto.descuento }}%</span>
         </div>
-
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
-          <span class="font-medium">IVA</span>
+          <span class="font-medium">Total Neto</span>
+          <span>{{ formatoPesos(presupuesto.total_neto) }}</span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+          <span class="font-medium">IVA 19%</span>
           <span>{{ formatoPesos(presupuesto.iva) }}</span>
         </div>
 
