@@ -6,17 +6,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const userStore = useUserStore()
-const mostrarModalCerrar = ref(false)
-
-const manejarCierreSesion = async () => {
-  mostrarModalCerrar.value = false
-  try {
-    await userStore.signOut()
-    router.replace('/login')
-  } catch (error) {
-    alert('Error al cerrar sesión: ' + error.message)
-  }
-}
 </script>
 <template>
   <nav class="bottom-nav servi-blue servi-white-font">
@@ -45,7 +34,7 @@ const manejarCierreSesion = async () => {
       </span>
       <p>Presupuesto</p>
     </RouterLink>
-    <RouterLink to="/configuracion" class="nav-item ultimo" v-if="userStore.havePrivileges"><span><svg
+    <RouterLink to="/configuracion" class="nav-item ultimo"><span><svg
           xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
           class="size-6">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -54,34 +43,8 @@ const manejarCierreSesion = async () => {
       </span>
       <p>Panel</p>
     </RouterLink>
-    <div class="nav-item ultimo" v-if="!userStore.havePrivileges" @click="mostrarModalCerrar = true">
-      <span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l3 3m0 0-3 3m3-3H2.25" />
-        </svg>
-      </span>
-      <p>Cerrar Sesión</p>
-    </div>
+    
   </nav>
-
-  <!-- Modal de confirmación -->
-  <Teleport to="body">
-    <div v-if="mostrarModalCerrar" class="modal-overlay" @click.self="mostrarModalCerrar = false">
-      <div class="modal-card">
-        <div class="modal-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
-          </svg>
-        </div>
-        <h3 class="servi-blue-font">Cerrar Sesión</h3>
-        <p>¿Estás seguro de que deseas cerrar tu sesión?</p>
-        <div class="modal-actions">
-          <button class="btn-cancelar" @click="mostrarModalCerrar = false">Cancelar</button>
-          <button class="btn-confirmar" @click="manejarCierreSesion">Confirmar</button>
-        </div>
-      </div>
-    </div>
-  </Teleport>
 </template>
 
 <style scoped>

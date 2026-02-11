@@ -38,7 +38,7 @@ const router = createRouter({
       component: () => import('../views/config.vue'),
       meta: { 
         requiresAuth: true,
-        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte', 'Trabajador']
       }
     },
     {
@@ -162,6 +162,18 @@ const router = createRouter({
       path: '/unauthorized',
       name: 'unauthorized',
       component: () => import('../views/unauthorized.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/perfil',
+      name: 'perfil',
+      component: () => import('../views/Gestion/perfil.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/perfil/historial',
+      name: 'perfil-historial',
+      component: () => import('../views/Gestion/perfilHistorial.vue'),
       meta: { requiresAuth: true }
     }
   ],
