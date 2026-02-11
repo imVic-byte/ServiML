@@ -131,6 +131,18 @@ const eliminarObservacion = (index) => {
   observaciones.value.splice(index, 1);
 };
 
+const handleEnTaller = async () => {
+  await supabase.from('vehiculos').update({
+    en_taller: true
+  }).eq('id', orden.value.vehiculo_id);
+}
+
+const handleNoEnTaller = async () => {
+  await supabase.from('vehiculos').update({
+    en_taller: false
+  }).eq('id', orden.value.vehiculo_id);
+}
+
 const guardarCambios = async () => {
   if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
@@ -337,6 +349,12 @@ const confirmarCambioEstado = () => {
     if (selectedEstado.value.id === 6) {
       showThirdModal.value = true;
       return;
+    }
+    if(selectedEstado.value.id === 11) {
+      handleEnTaller();
+    }
+    if (selectedEstado.value.id === 7 || selectedEstado.value.id === 8) {
+      handleNoEnTaller();
     }
     ejecutarCambioReal();
   }
