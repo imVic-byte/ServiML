@@ -49,7 +49,7 @@ const onInput = (event) => {
 .header {
   border-radius: 0 0 30px 30px;
   position: sticky;
-  top: 0;S
+  top: 0;
   z-index: 1000;
 }
 
