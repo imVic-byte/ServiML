@@ -358,7 +358,23 @@ const handleGenerarInformeFinal = async () => {
 
 const ejecutarCambioReal = async () => {
   manejarBloqueo(true);
-  const { error } = await supabase.from("OT_bitacora").insert({
+  
+  let updateData = {
+    estado_actual_id: selectedEstado.value.id
+  };
+
+  const fechaActual = new Date().toISOString();
+
+  if (selectedEstado.value.id === 9) { 
+    updateData.fecha_estacionamiento = fechaActual;
+    updateData.fecha_termino_estacionamiento = null;
+  } 
+
+  else if (orden.value.fecha_estacionamiento && !orden.value.fecha_termino_estacionamiento) {
+    updateData.fecha_termino_estacionamiento = fechaActual;
+  }
+
+  const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
     ot_id: route.params.id,
     nuevo_estado_id: selectedEstado.value.id,
     tipo_evento: "cambio_estado",
@@ -368,7 +384,16 @@ const ejecutarCambioReal = async () => {
     console.error(error);
   } else {
     orden.value.estado_actual_id = selectedEstado.value.id;
+    
+    if (updateData.fecha_estacionamiento) {
+        orden.value.fecha_estacionamiento = updateData.fecha_estacionamiento;
+    }
+    if (updateData.fecha_termino_estacionamiento) {
+        orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
+    }
+    
     await handleIsCerrado(selectedEstado.value.id);
+    
     if (selectedEstado.value.id === 6) {
       await handleGenerarInformeFinal();
     }
