@@ -83,7 +83,7 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
-      path: '/set-password',
+      path: '/crear-contrasena',
       name: 'crear-contraseña',
       component: () => import('../views/Gestion/crearContraseña.vue'),
       meta: { requiresAuth: false }
@@ -117,6 +117,12 @@ const router = createRouter({
       name: 'ver-informe-final',
       component: () => import('../views/informeFinal.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/invitar-usuarios',
+      name: 'invitar-usuarios',
+      component: () => import('../views/Gestion/invitarUsuarios.vue'),
+      meta: { requiresAuth: true, gerente: true }
     },
   ],
 })

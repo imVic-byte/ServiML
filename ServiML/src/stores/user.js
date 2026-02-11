@@ -1,3 +1,4 @@
+// stores/user.js
 import { defineStore } from 'pinia'
 import { supabase } from '../lib/supabaseClient'
 import { useInterfaz } from './interfaz'
@@ -5,72 +6,68 @@ import { useInterfaz } from './interfaz'
 export const useUserStore = defineStore('user', {
   state: () => ({
     user: null,
-    trabajador: null,
+    trabajador: null, // Aquí vivirá el perfil con el campo 'rol'
     loading: false,
     initialized: false,
     subscription: null
   }),
 
+  getters: {
+    // 1. Getter útil para preguntar permisos rápidamente en el template o router
+    userRole: (state) => state.trabajador?.rol,
+    isAuthenticated: (state) => !!state.user,
+  },
+
   actions: {
     async fetchTrabajador() {
       if (!this.user) return
-      // Pequeña optimización: si ya tenemos datos y es el mismo ID, no recargamos
-      if (this.trabajador && this.trabajador.id === this.user.id) return
 
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('trabajadores')
           .select('*')
-          .eq('id', this.user.id)
+          .eq('id', this.user.id) // Asumiendo que id en trabajadores es el mismo UUID de auth
           .single()
         
-        if (data) this.trabajador = data
+        if (error) throw error
+        this.trabajador = data
       } catch (error) {
-        console.warn('Error fetching trabajador:', error.message)
+        console.error('Error fetching trabajador:', error.message)
+        // Opcional: Si falla esto, ¿deberíamos desloguear al usuario? 
+        // Por seguridad, a veces es mejor dejar trabajador en null.
+        this.trabajador = null
       }
     },
 
     async initializeAuth() {
-      // Si ya hay suscripción activa, no hacemos nada
       if (this.subscription) return 
 
       const uiStore = useInterfaz()
+      this.loading = true
 
       try {
-        // 1. Carga inicial
-        const { data } = await supabase.auth.getSession()
-        this.user = data.session?.user || null
-
-        if (this.user) {
-            await this.fetchTrabajador()
+        // 1. Verificar sesión actual al cargar la página
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session?.user) {
+          this.user = session.user
+          await this.fetchTrabajador() // Cargamos el rol inmediatamente
         }
 
-        // 2. Listener protegido (EL ARREGLO ESTÁ AQUI)
+        // 2. Configurar el listener
         const { data: authData } = supabase.auth.onAuthStateChange(async (event, session) => {
-          
-          const incomingUser = session?.user || null
-          const currentUserId = this.user?.id
-          const incomingUserId = incomingUser?.id
-
-          // CASO A: Logout o usuario eliminado
-          if (event === 'SIGNED_OUT' || event === 'USER_DELETED' || !incomingUser) {
-             this.user = null
-             this.trabajador = null
-             this.subscription = null
-             this.initialized = false
-             uiStore.hideLoading()
-             return
+          // Simplificamos la lógica. Si hay sesión, actualizamos. Si no, limpiamos.
+          if (session?.user) {
+            // Solo actualizamos si el usuario cambió para evitar loops
+            if (session.user.id !== this.user?.id) {
+              this.user = session.user
+              await this.fetchTrabajador()
+            }
+          } else {
+            // Logout
+            this.user = null
+            this.trabajador = null
           }
-
-          // CASO B: El Guardián de IDs (ESTO EVITA EL CONGELAMIENTO)
-          // Si el usuario que llega es el mismo que ya tenemos, NO HACEMOS NADA.
-          if (currentUserId === incomingUserId) {
-              return 
-          }
-
-          // CASO C: Login real (usuario diferente)
-          this.user = incomingUser
-          await this.fetchTrabajador()
         })
 
         this.subscription = authData.subscription
@@ -79,7 +76,7 @@ export const useUserStore = defineStore('user', {
         console.error('Error Auth:', error)
       } finally {
         this.loading = false
-        this.initialized = true
+        this.initialized = true // Marcamos como listo para que el Router sepa que puede proceder
         uiStore.hideLoading()
       }
     },
@@ -87,15 +84,17 @@ export const useUserStore = defineStore('user', {
     async signIn(email, password) {
       const uiStore = useInterfaz()
       this.loading = true
+      uiStore.showLoading() // Muestra loader
+
       try {
-        uiStore.showLoading()
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
         
+        // No necesitamos llamar a initializeAuth aquí ni a fetchTrabajador manualmente
+        // El onAuthStateChange (si ya se inicializó en App.vue) lo detectará.
+        // PERO, para feedback inmediato en el UI de Login, podemos setearlo:
         this.user = data.user
         await this.fetchTrabajador()
-        
-        if (!this.subscription) await this.initializeAuth()
         
         return true
       } catch (error) {
@@ -107,26 +106,19 @@ export const useUserStore = defineStore('user', {
     },
 
     async signOut() {
-      const uiStore = useInterfaz()
-      try {
+        const uiStore = useInterfaz()
         uiStore.showLoading()
-        
-        if (this.subscription) {
-            this.subscription.unsubscribe()
-            this.subscription = null
+        try {
+            await supabase.auth.signOut()
+            // El listener se encargará de limpiar el estado (this.user = null)
+            // Pero podemos forzar limpieza local por si acaso
+            this.user = null
+            this.trabajador = null
+        } catch(e) {
+            console.error(e)
+        } finally {
+            uiStore.hideLoading()
         }
-        
-        await supabase.auth.signOut()
-        
-        this.user = null
-        this.trabajador = null
-        this.initialized = false
-        
-      } catch (error) {
-        console.error('Error al salir:', error)
-      } finally {
-        uiStore.hideLoading()
-      }
     }
   }
 })
