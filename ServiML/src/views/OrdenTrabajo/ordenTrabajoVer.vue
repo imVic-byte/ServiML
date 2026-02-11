@@ -3,10 +3,11 @@ import { ref, onMounted, watch } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useRoute, useRouter } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
-import { useInterfaz } from "@/stores/interfaz.js";
 import modal from "../../components/componentes/modal.vue";
 import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
 import {subirFotos} from "../../js/subirFotos.js";
+import { useInterfaz } from "@/stores/interfaz.js";
+
 const hoy = new Date()
   .toLocaleString('sv-SE')
   .replace('T', ' ');
@@ -22,13 +23,14 @@ const formatearFecha = (fechaStr) => {
 };
 
 const isCerrado = ref(false);
+const sinEmpleado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const redirigir = () => { modalState.value.visible = false; };
 const interfaz = useInterfaz();
 const route = useRoute();
 const router = useRouter();
 const orden = ref({});
-const loading = ref(true);
+const loading = ref(true)
 const listaFotos = ref([]);
 const estados = ref([]);
 const showModal = ref(false);
@@ -38,9 +40,16 @@ const selectedEstado = ref(null);
 const observaciones = ref([]);
 const fechaIngreso = ref(null);
 const nivelCombustible = ref(0);
+const fotosRecepcion = ref([]);
 
-const activarCamara = (index) => {
+const activarInput = (index, tipo) => {
   const id = tipo === 'camara' ? `input-camara-${index}` : `input-galeria-${index}`;
+  const inputElement = document.getElementById(id);
+  if (inputElement) inputElement.click();
+};
+
+const activarInputRecepcion = (tipo) => {
+  const id = tipo === 'camara' ? 'input-camara-recepcion' : 'input-galeria-recepcion';
   const inputElement = document.getElementById(id);
   if (inputElement) inputElement.click();
 };
@@ -64,6 +73,26 @@ const procesarFotos = (event, index) => {
 const removerFotoObservacion = (obsIndex, fotoIndex) => {
   if (verificarEstadoCerrado()) return;
   observaciones.value[obsIndex].fotos.splice(fotoIndex, 1);
+};
+
+const procesarFotosRecepcion = (event) => {
+  const files = event.target.files;
+  if (!files.length) return;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    fotosRecepcion.value.push({
+      file: file,
+      url: URL.createObjectURL(file),
+      nombre: file.name,
+      isNew: true
+    });
+  }
+  event.target.value = '';
+};
+
+const removerFotoRecepcion = (index) => {
+  if (verificarEstadoCerrado()) return;
+  fotosRecepcion.value.splice(index, 1);
 };
 
 const redirigirInformeFinal = () => {
@@ -105,6 +134,7 @@ const eliminarObservacion = (index) => {
 const guardarCambios = async () => {
   if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
+  interfaz.showLoadingOverlay();
   const { error } = await supabase
     .from("orden_trabajo")
     .update({
@@ -153,6 +183,33 @@ const guardarCambios = async () => {
       }
     }
   }
+  const fotosNuevas = fotosRecepcion.value.filter(f => f.isNew);
+  if (fotosNuevas.length > 0) {
+    const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/';
+    const registros = [];
+    for (const foto of fotosNuevas) {
+      const archivoReal = foto.file || foto;
+      const nombreLimpio = archivoReal.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const formData = new FormData();
+      const nombreUnico = `OT-${orden.value.presupuesto.numero_folio}-recepcion-${Date.now()}-${nombreLimpio}`;
+      formData.append('file', archivoReal, nombreUnico);
+      formData.append('numero_folio', orden.value.presupuesto.numero_folio);
+      try {
+        const res = await fetch(WORKER_URL, { method: 'POST', body: formData });
+        if (res.ok) {
+          const data = await res.json();
+          registros.push({ url: data.url, id_OT: route.params.id });
+        }
+      } catch (e) {
+        console.error('Error subiendo foto de recepción:', e);
+      }
+    }
+    if (registros.length > 0) {
+      const { error: errorFotos } = await supabase.from('OT_fotos_ingreso').insert(registros);
+      if (errorFotos) console.error('Error guardando fotos de recepción:', errorFotos);
+    }
+  }
+
   modalState.value = {
     visible: true,
     titulo: error ? "Error" : "¡Éxito!",
@@ -164,6 +221,8 @@ const guardarCambios = async () => {
   
   if(!error) {
      await traerObservaciones();
+     await traerFotosRecepcion();
+     interfaz.hideLoadingOverlay();
   }
   manejarBloqueo(false);
 };
@@ -193,7 +252,20 @@ const traerObservaciones = async () => {
       }
     }
   }
-  interfaz.hideLoading()
+  interfaz.hideLoading();
+};
+
+const traerFotosRecepcion = async () => {
+  const { data } = await supabase
+    .from('OT_fotos_ingreso')
+    .select('*')
+    .eq('id_OT', route.params.id);
+  if (data) {
+    fotosRecepcion.value = data.map(f => ({
+      url: f.url,
+      isNew: false
+    }));
+  }
 };
 
 const handleIsCerrado = async (estado_actual_id) => {
@@ -309,11 +381,21 @@ const ejecutarCambioReal = async () => {
   manejarBloqueo(false);
 }
 
+
 onMounted(async () => {
   interfaz.showLoading();
   await obtenerOrden();
+  if (!orden.value.id_empleado) {
+    sinEmpleado.value = true;
+    interfaz.hideLoading();
+    setTimeout(() => {
+      router.push({ name: 'ordenes-de-trabajo' });
+    }, 3000);
+    return;
+  }
   obtenerEstados();
   traerObservaciones();
+  traerFotosRecepcion();
 });
 </script>
 
@@ -456,6 +538,79 @@ onMounted(async () => {
             </div>
           </div>
 
+          <!-- FOTOS DE RECEPCIÓN -->
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="servi-blue px-6 py-4 flex justify-between items-center">
+              <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Fotos de Recepción</h3>
+            </div>
+
+            <div class="p-6">
+              <!-- Upload buttons -->
+              <div class="flex gap-3 mb-5">
+                <input 
+                  type="file" 
+                  id="input-camara-recepcion" 
+                  class="hidden" 
+                  accept="image/*" 
+                  capture="environment"
+                  @change="(e) => procesarFotosRecepcion(e)"
+                />
+                <input 
+                  type="file" 
+                  id="input-galeria-recepcion" 
+                  class="hidden" 
+                  accept="image/*" 
+                  multiple
+                  @change="(e) => procesarFotosRecepcion(e)"
+                />
+
+                <button 
+                  @click="activarInputRecepcion('camara')"
+                  class="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-lg transition-colors border border-blue-200 cursor-pointer"
+                  title="Tomar foto ahora"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Cámara
+                </button>
+
+                <button 
+                  @click="activarInputRecepcion('galeria')"
+                  class="flex items-center gap-2 text-sm font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-4 py-2.5 rounded-lg transition-colors border border-gray-300 cursor-pointer"
+                  title="Seleccionar de galería"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Galería
+                </button>
+              </div>
+
+              <!-- Photo grid -->
+              <div v-if="fotosRecepcion && fotosRecepcion.length > 0" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div v-for="(foto, fIndex) in fotosRecepcion" :key="fIndex" class="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group shadow-sm hover:shadow-md transition-shadow">
+                  <img :src="foto.url" class="w-full h-full object-cover" />
+                  <button @click="removerFotoRecepcion(fIndex)" class="absolute top-1.5 right-1.5 bg-red-500 hover:bg-red-600 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Empty state -->
+              <div v-else class="flex flex-col items-center justify-center py-10 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-sm font-medium">No hay fotos de recepción</p>
+                <p class="text-xs mt-1">Use los botones de arriba para agregar fotos</p>
+              </div>
+            </div>
+          </div>
+
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Bitácora de Observaciones</h3>
@@ -562,7 +717,7 @@ onMounted(async () => {
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
             <div class="flex flex-col gap-3">
-              <button @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2">
+              <button @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
@@ -622,5 +777,20 @@ onMounted(async () => {
     </div>
 
     <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
+
+    <!-- Modal sin empleado asignado -->
+    <div v-if="sinEmpleado" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Orden sin empleado asignado</h3>
+        <p class="text-sm text-gray-500 mb-4">Esta orden de trabajo no tiene un empleado asignado. Serás redirigido al listado de órdenes.</p>
+        <div class="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-blue-500 mx-auto mb-2"></div>
+        <p class="text-xs text-gray-400">Redirigiendo...</p>
+      </div>
+    </div>
   </div>
 </template>

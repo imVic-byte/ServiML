@@ -32,7 +32,7 @@ const redirigir = () => {
 }
 
 const manejarConfirmacion = async () => {
-    loading.value = true;
+    interfaz.showLoadingOverlay()
     try {
     const { error } = await supabase
         .from('presupuesto')
@@ -60,54 +60,57 @@ const manejarConfirmacion = async () => {
         return
     }
     
-if (presupuesto.value.cliente?.email) {
-            const { data: dataMail, error: errorMail } = await supabase.functions.invoke('super-task', {
-                body: {
-                    emailCliente: presupuesto.value.cliente.email,
-                    nombreCliente: presupuesto.value.cliente.nombre,
-                    urlPdf: exitoPDF.url,
-                    folio: n_presupuesto.value
-                },
-                headers: {
-                    Authorization: `Bearer ${import.meta.env.SUPABASE_ANON_KEY}`
-                }
-            })
+    if (presupuesto.value.cliente?.email) {
+                const { data: dataMail, error: errorMail } = await supabase.functions.invoke('super-task', {
+                    body: {
+                        emailCliente: presupuesto.value.cliente.email,
+                        nombreCliente: presupuesto.value.cliente.nombre,
+                        apellidoCliente: presupuesto.value.cliente.apellido,
+                        urlPdf: exitoPDF.url,
+                        folio: n_presupuesto.value
+                    },
+                    headers: {
+                        Authorization: `Bearer ${import.meta.env.SUPABASE_ANON_KEY}`
+                    }
+                })
 
-            if (errorMail) {
-                console.error("❌ Error enviando correo:", errorMail)
+                if (errorMail) {
+                    console.error("❌ Error enviando correo:", errorMail)
+                } else {
+                    console.log("✅ Correo enviado con éxito:", dataMail)
+                }
             } else {
-                console.log("✅ Correo enviado con éxito:", dataMail)
+                console.warn("⚠️ El cliente no tiene email registrado, se omitió el envío.");
             }
-        } else {
-            console.warn("⚠️ El cliente no tiene email registrado, se omitió el envío.");
-        }
-    
-    await creacionOT(id.value)
-    presupuesto.value.estado = 2
-    loading.value = false
-    modalState.value = {
-        visible: true,
-        titulo: "¡Éxito!",
-        mensaje: "El presupuesto ha sido confirmado correctamente.",
-        exito: true,
-    };
-    } catch (error) {
-        console.error(error)
+        
+        await creacionOT(id.value)
+        presupuesto.value.estado = 2
         loading.value = false
         modalState.value = {
             visible: true,
-            titulo: "¡Error!",
-            mensaje: "Error al confirmar el presupuesto.",
-            exito: false,
+            titulo: "¡Éxito!",
+            mensaje: "El presupuesto ha sido confirmado correctamente.",
+            exito: true,
         };
+        } catch (error) {
+            console.error(error)
+            loading.value = false
+            modalState.value = {
+                visible: true,
+                titulo: "¡Error!",
+                mensaje: "Error al confirmar el presupuesto.",
+                exito: false,
+            };
+        }
+        finally {
+            loading.value = false
+            interfaz.hideLoadingOverlay()
+        }
     }
-    finally {
-        loading.value = false
-    }
-}
 
 const manejarDescarte = async () => {
     loading.value = true;
+    interfaz.showLoadingOverlay()
     try {
     const { error } = await supabase
         .from('presupuesto')
@@ -138,6 +141,7 @@ const manejarDescarte = async () => {
     }
     finally {
         loading.value = false
+        interfaz.hideLoadingOverlay()
     }
 }
 const handleEstados = (estado) => {
@@ -311,8 +315,44 @@ onMounted(async () => {
             @cerrar="redirigir" 
         />
     </div>
-    <cargando2 v-if="loading"/>
 </div>
 </template>
 <style>
+
+.badge-confirmado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #46e450ec;
+  color: #4d4d4d;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-descartado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #ff4c4c;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-en-espera-de-confirmación {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #fbd446fd;
+  color: #514d4d;
+  font-weight: bold;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-cerrado {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+  background: #52026f;
+  color: #ffffff;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
 </style>

@@ -1,12 +1,13 @@
 <script setup>
 import { useInterfaz } from '@/stores/interfaz'
 import { storeToRefs } from 'pinia'
+import cargando2 from './cargando2.vue';
 
 const uiStore = useInterfaz()
 const { isLoading } = storeToRefs(uiStore)
 </script>
-
 <template>
+  <cargando2 />
   <div v-if="isLoading" class="loader-overlay">
     <img src="/GIF.svg" alt="Cargando" class="custom-loader" />
   </div>

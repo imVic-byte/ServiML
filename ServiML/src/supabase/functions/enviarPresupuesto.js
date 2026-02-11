@@ -12,14 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const { emailCliente, nombreCliente, urlPdf, folio } = await req.json();
+    const { emailCliente, nombreCliente, apellidoCliente, urlPdf, folio } = await req.json();
+    const nombreFinal = `${nombreCliente} ${apellidoCliente}`.trim() || 'Cliente';
 
     if (!emailCliente || !urlPdf) {
       throw new Error('Faltan datos (email o URL)');
     }
 
     const transporter = createTransport({
-      host: "smtp.gmail.com",
+      host: "mail.serviml.cl",
       port: 465,
       secure: true,
       auth: {
@@ -32,7 +33,7 @@ serve(async (req) => {
     
     const cuerpoHtml = `
       <div style="font-family: Arial, sans-serif; color: #333;">
-        <h2>¡Hola ${nombreCliente || 'Cliente'}!</h2>
+        <h2>¡Hola ${nombreFinal}!</h2>
         <p>Tu presupuesto ha sido confirmado exitosamente.</p>
         <p>Puedes descargar tu comprobante (PDF) en el siguiente enlace:</p>
         <div style="margin: 20px 0;">
@@ -47,7 +48,7 @@ serve(async (req) => {
     `;
 
     const info = await transporter.sendMail({
-      from: `"ServiML" <${Deno.env.get("SMTP_USER")}>`,
+      from: `"ServiML Soporte" <${Deno.env.get("SMTP_USER")}>`,
       to: emailCliente,
       subject: asunto,
       html: cuerpoHtml,
