@@ -54,12 +54,14 @@ export const enviarInformeFinal = async (informeId, numeroFolio, pdf) => {
         }
         if (!email.cliente.email) {
             console.log('El cliente no tiene correo');
+            return { exito: false, error: 'El cliente no tiene correo' }
         }
         const clienteEmail = email.cliente.email;
         const {data:dataMail, error:errorMail} = await supabase.functions.invoke('informe-final', {
             body: {
                 emailCliente: clienteEmail,
                 nombreCliente: email.cliente.nombre,
+                apellidoCliente: email.cliente.apellido,
                 urlPdf: informe.url,
                 folio: numeroFolio
             },
@@ -69,6 +71,7 @@ export const enviarInformeFinal = async (informeId, numeroFolio, pdf) => {
         })
         if (errorMail) {
             console.log(errorMail);
+            return { exito: false, error: 'Error al enviar el correo' }
         }
         return { exito: true, data: dataMail }
     } catch (error) {
