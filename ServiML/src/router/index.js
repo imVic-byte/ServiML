@@ -119,9 +119,15 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/deudas',
+      name: 'listado-deudas',
+      component: () => import('../views/Deudas/deudaVer.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/deuda/:id',
       name: 'ver-deuda',
-      component: () => import('../views/Deuda/deudaDetalle.vue'),
+      component: () => import('../views/Deudas/deudaDetalle.vue'),
       meta: { requiresAuth: true }
     },
   ],

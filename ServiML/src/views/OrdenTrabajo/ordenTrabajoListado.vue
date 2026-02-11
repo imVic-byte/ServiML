@@ -87,66 +87,6 @@ const stats = computed(() => {
   return { total, recientes, sinAsignar };
 });
 
-const irADetalle = (id) => {
-    // Asumiendo que tienes una ruta para ver el detalle, si no, puedes redirigir a donde necesites
-    console.log("Ir a detalle de OT:", id);
-    // router.push({ name: 'detalle-orden', params: { id } }); 
-}
-
-// Helpers de formato
-const formatearDinero = (monto) => {
-    if (!monto) return '$0';
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
-}
-
-const camelCase = (texto) => {
-    if (!texto) return '';
-    return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
-}
-
-const formatearFecha = (fechaString) => {
-  if (!fechaString) return '---'
-  const fecha = new Date(fechaString)
-  return fecha.toLocaleDateString('es-CL', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric'
-  })
-}
-
-// Lógica de colores para los estados de la OT
-const colorEstado = (nombreEstado) => {
-    if (!nombreEstado) return 'bg-gray-100 text-gray-800 border-gray-200';
-    const estado = nombreEstado.toLowerCase();
-    
-    if (estado.includes('terminad') || estado.includes('entregad') || estado.includes('finaliz')) {
-        return 'bg-green-100 text-green-800 border-green-200';
-    } else if (estado.includes('proceso') || estado.includes('taller')) {
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-    } else if (estado.includes('espera') || estado.includes('pendiente')) {
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    } else {
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-}
-
-// Estadísticas
-const stats = computed(() => {
-  if (!ordenes.value.length) return { total: 0, dinero: 0, activas: 0 };
-  
-  const ordenesMes = ordenes.value.filter(s => new Date(s.created_at) >= esteMes.value.inicio && new Date(s.created_at) <= esteMes.value.fin);
-  
-  const total = ordenesMes.length;
-  // Calculamos dinero sumando el total_final del presupuesto vinculado
-  const dinero = ordenesMes.reduce((acc, curr) => acc + (curr.presupuesto?.total_final || 0), 0);
-  
-  // Aquí puedes ajustar la lógica de "activas" según tus IDs de estado
-  // Por ahora cuento todas las del mes como métrica simple
-  const activas = total; 
-
-  return { total, dinero, activas };
-});
-
 onMounted(async () => {
   uiStore.showLoading()
   await obtenerEstados();

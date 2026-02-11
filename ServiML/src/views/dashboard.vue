@@ -203,6 +203,18 @@ onMounted(async () => {
                         <p class="text-sm text-gray-500 mt-4 font-medium">Se sugiere contactar clientes</p>
                     </div>
                     </RouterLink>
+                    <RouterLink v-if="deudasVencidas.length > 0" :to="{ name: 'ver-deuda', params: { id: deudasVencidas[0].id } }">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-6 shadow-sm relative overflow-hidden cursor-pointer hover:shadow-md transition-all">
+                            <div class="absolute top-3 right-3 flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </div>
+                            
+                            <p class="text-xs font-bold text-red-600 uppercase tracking-wide">Recordatorios de Pago</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ deudasVencidas.length }}</h3>
+                            <p class="text-sm text-gray-600 mt-2">Cuentas requieren gestión</p>
+                        </div>
+                    </RouterLink>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
