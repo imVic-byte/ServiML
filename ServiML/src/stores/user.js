@@ -30,12 +30,18 @@ export const useUserStore = defineStore('user', {
           .single()
         
         if (error) throw error
+        if (data.activo ==false) {
+          await supabase.auth.signOut()
+          this.user = null
+          this.trabajador = null
+          throw new Error('Su cuenta ha sido desactivada, contacte a su administrador.')
+        }
         this.trabajador = data
       } catch (error) {
         console.error('Error fetching trabajador:', error.message)
-        // Opcional: Si falla esto, ¿deberíamos desloguear al usuario? 
-        // Por seguridad, a veces es mejor dejar trabajador en null.
         this.trabajador = null
+        this.user = null
+        window.location.href = '/login'
       }
     },
 

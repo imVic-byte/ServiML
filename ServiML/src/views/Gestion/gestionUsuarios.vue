@@ -33,10 +33,15 @@ const invitarUsuario = () => {
 }
 
 const alternarEstado = async (id, estadoActual) => {
+  if (estadoActual) {
+    if (!confirm('¿Está seguro de que desea desactivar este usuario?')) {
+      return;
+    }
+  }
   try {
     const { error } = await supabase
       .from('trabajadores')
-      .update({ activo: !estadoActual })
+      .update({ activo: !estadoActual})
       .eq('id', id);
 
     if (error) throw error;
