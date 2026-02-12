@@ -138,7 +138,7 @@ onMounted(async () => {
 </script>
 <template>
   <div class="bg-slate-50 flex flex-col font-sans">
-    <navbar class="navbar" :titulo="'Dashboard'" :subtitulo="'Resumen de operaciones'" />
+    <navbar class="navbar" :titulo="'Dashboard'" notificaciones="true" :subtitulo="'Resumen de operaciones'" />
     
     <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-20">
       <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
