@@ -19,8 +19,6 @@ const esTrabajador = computed(() => userStore.isTrabajador)
 const Todas = ref(esTrabajador.value ? false : true)
 
 const handleTodas = () => {
-  console.log('Todas', Todas.value)
-  console.log('esTrabajador', esTrabajador.value)
   Todas.value = !Todas.value
   obtenerOrdenes()
 }

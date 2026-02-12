@@ -1,28 +1,152 @@
 <script setup>
 import navbar from '../components/componentes/navbar.vue'
-import { computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useUserStore } from '../stores/user'
+import { useRouter } from 'vue-router'
+import { useInterfaz } from '@/stores/interfaz'
+import { supabase } from '@/lib/supabaseClient'
 
+const interfaz = useInterfaz()
 const userStore = useUserStore()
-const nombreCompleto = userStore.user.nombre + ' ' + userStore.user.apellido || 'Usuario'
+const router = useRouter()
+const nombreCompleto = computed(() => userStore.trabajador?.nombre + ' ' + userStore.trabajador?.apellido || 'Usuario')
 const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 const diaSemana = new Date().getDay()
+const fechaInicioSemana = computed(() => {
+  const fecha = new Date()
+  const dia = fecha.getDay()
+  const diferencia = dia === 0 ? -6 : 1 - dia
+  fecha.setDate(fecha.getDate() + diferencia)
+  return fecha.toISOString().split('T')[0]
+})
+const fechaFinSemana = computed(() => {
+  const fecha = new Date()
+  const dia = fecha.getDay()
+  const diferencia = dia === 0 ? 0 : 7 - dia
+  fecha.setDate(fecha.getDate() + diferencia)
+  return fecha.toISOString().split('T')[0]
+})
 const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
-</script>
+const vehiculosEnTaller = ref(0)
+const listaOT = ref([])
+const listaOTRecientes = ref([])
+const otSinAsignar = ref(0)
+const listaPresupuestos = ref([])
+const presupuestosSemana = ref(0)
+const aprobadosHoy = ref(0)
+const otPorEntregar = ref(0)
+const capacidadMaxima = ref(15)
+const listaEstados = ref([])
+const porcentajeCapacidad = computed(() => (vehiculosEnTaller.value / capacidadMaxima.value) * 100)
+const TruncarPorcentaje = computed(() => Math.trunc(porcentajeCapacidad.value))
 
+const VehiculosEnTaller = () => {
+  router.push({ name: 'vehiculos-en-taller' })
+}
+
+const SinAsignar = () => {
+  router.push({ name: 'ot-sin-asignar' })
+}
+
+const PresupuestosSemana = () => {
+  router.push({ name: 'presupuestos-semana' })
+}
+
+const ListoParaEntregar = () => {
+  router.push({ name: 'ot-por-entregar' })
+}
+
+const verTablero = () => {
+  router.push({ name: 'ordenes-de-trabajo' })
+}
+
+const handleVehiculos = async () => {
+  try {
+    const {data, error} = await supabase.from('vehiculo').select('*').eq('en_taller', true)
+    if (error) throw error
+    vehiculosEnTaller.value = data.length
+  } catch (error) {
+    console.error('Error al obtener vehiculos:', error)
+  }
+}
+
+const handleOT = async () => {
+  try {
+    const {data, error} = await supabase.from('orden_trabajo').select('*, vehiculo(*), cliente(*), presupuesto(*)')
+    if (error) throw error
+    listaOT.value = data
+  } catch (error) {
+    console.error('Error al obtener OT sin asignar:', error)
+  }
+}
+
+const handleOTSinAsignar = async () => {
+  otSinAsignar.value = listaOT.value.filter(ot => ot.id_empleado === null).length
+}
+
+
+const handlePresupuestosSemana = async () => {
+  try {
+    const { data, error } = await supabase.from('presupuesto').select('*').gte('created_at', fechaInicioSemana.value).lte('created_at', fechaFinSemana.value).eq('estado', 2)
+    if (error) throw error
+    listaPresupuestos.value = data
+    presupuestosSemana.value = data.length
+  } catch (error) {
+    console.error('Error al obtener presupuestos:', error)
+  }
+}
+
+const handleAprobadosHoy = () => {
+  const hoy = new Date().toISOString().split('T')[0]
+  aprobadosHoy.value = listaPresupuestos.value.filter(presupuesto => presupuesto.created_at.split('T')[0] === hoy).length
+}
+
+const handlePorEntregar = () => {
+  otPorEntregar.value = listaOT.value.filter(ot => ot.estado_actual_id === 6 || ot.estado_actual_id === 9).length
+}
+
+const handleOTRecientes = () => {
+  listaOTRecientes.value = listaOT.value.filter(ot => ot.created_at >= fechaInicioSemana.value && ot.created_at <= fechaFinSemana.value).slice(0, 5)
+}
+
+const handleEstados = async () => {
+  try {
+    const {data,error} = await supabase.from('tabla_estados').select('*')
+    if (error) throw error
+    listaEstados.value = data
+  } catch (error) {
+    console.error('Error al obtener estados:', error)
+  }
+}
+
+const handleOrdenarEstado = (estado) => {
+  return listaEstados.value.find(e => e.id === estado) || {estado: 'Desconocido', color: 'bg-gray-500'}
+}
+
+onMounted(async () => {
+  interfaz.showLoading()
+  await handleVehiculos()
+  await handleOT()
+  await handleOTSinAsignar()
+  await handlePresupuestosSemana()
+  await handleAprobadosHoy()
+  await handlePorEntregar()
+  await handleOTRecientes()
+  await handleEstados()
+  interfaz.hideLoading()
+})
+</script>
 <template>
-  <div class="min-h-screen bg-slate-50 flex flex-col font-sans">
-    <navbar class="navbar" :titulo="'Panel de Control'" :subtitulo="'Resumen de operaciones'" />
+  <div class="bg-slate-50 flex flex-col font-sans">
+    <navbar class="navbar" :titulo="'Dashboard'" :subtitulo="'Resumen de operaciones'" />
     
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
-      
-      <!-- Saludo -->
-      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-20">
+      <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="text-2xl font-bold text-slate-800">Hola, {{ nombreCompleto }}</h1>
           <p class="text-slate-500 capitalize">{{ fechaHoy }}</p>
         </div>
-        <div class="mt-4 sm:mt-0">
+        <div class="mt-2 sm:mt-0">
           <span v-if="!esFinDeSemana" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-servi-blue border border-blue-100">
             <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
             Taller Operativo
@@ -34,11 +158,8 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
         </div>
       </div>
 
-      <!-- Tarjetas de métricas -->
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        
-        <!-- Vehículos en Taller -->
-        <div class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
+        <div @click="VehiculosEnTaller" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -52,17 +173,16 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Vehículos en Taller</dt>
-                <dd class="text-xl sm:text-2xl font-bold text-slate-900">8</dd>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ vehiculosEnTaller }}</dd>
               </div>
             </div>
           </div>
           <div class="bg-slate-50 px-4 sm:px-5 py-2.5">
-            <div class="text-xs font-medium text-servi-blue">53% capacidad</div>
+            <div class="text-xs font-medium text-servi-blue" :class="{ 'text-red-600': TruncarPorcentaje > 80 }">{{ TruncarPorcentaje }}% capacidad</div>
           </div>
         </div>
 
-        <!-- OT Sin Asignar -->
-        <div class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="SinAsignar" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -74,17 +194,19 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Sin Asignar</dt>
-                <dd class="text-xl sm:text-2xl font-bold text-slate-900">3</dd>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ otSinAsignar }}</dd>
               </div>
             </div>
           </div>
-          <div class="bg-slate-50 px-4 sm:px-5 py-2.5">
+          <div v-if="otSinAsignar>5" class="bg-slate-50 px-4 sm:px-5 py-2.5">
             <span class="text-xs font-bold text-red-600">Requiere acción</span>
+          </div>
+          <div v-else class="bg-slate-50 px-4 sm:px-5 py-2.5">
+            <span class="text-xs font-bold text-green-600">Todo en orden</span>
           </div>
         </div>
 
-        <!-- Presupuestos Semana -->
-        <div class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="PresupuestosSemana" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -96,18 +218,17 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Presupuestos Semana</dt>
-                <dd class="text-xl sm:text-2xl font-bold text-slate-900">12</dd>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ presupuestosSemana }}</dd>
               </div>
             </div>
           </div>
           <div class="bg-slate-50 px-4 sm:px-5 py-2.5 flex justify-between items-center">
             <div class="text-xs text-slate-500">Aprobados hoy</div>
-            <div class="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">+4</div>
+            <div class="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">+{{ aprobadosHoy }}</div>
           </div>
         </div>
 
-        <!-- Listos para Entrega -->
-        <div class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="ListoParaEntregar" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -119,7 +240,7 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Listos para Entrega</dt>
-                <dd class="text-xl sm:text-2xl font-bold text-slate-900">5</dd>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ otPorEntregar }}</dd>
               </div>
             </div>
           </div>
@@ -136,7 +257,7 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <h2 class="text-lg font-bold text-slate-800">Flujo de Trabajo Reciente</h2>
-            <button class="text-sm text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
+            <button @click="verTablero" class="text-sm text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
@@ -149,44 +270,12 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-5 py-3.5 font-medium text-slate-800">#1042</td>
-                  <td class="px-5 py-3.5 text-slate-600">BBKL-23</td>
-                  <td class="px-5 py-3.5 text-slate-600">Cambio de frenos</td>
+                <tr v-for="ot in listaOTRecientes" :key="ot.id" class="hover:bg-slate-50 transition-colors">
+                  <td class="px-5 py-3.5 font-medium text-slate-800">#{{ ot.id }}</td>
+                  <td class="px-5 py-3.5 text-slate-600">{{ ot.vehiculo.patente }}</td>
+                  <td class="px-5 py-3.5 text-slate-600">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
                   <td class="px-5 py-3.5">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">En progreso</span>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-5 py-3.5 font-medium text-slate-800">#1041</td>
-                  <td class="px-5 py-3.5 text-slate-600">DFRT-87</td>
-                  <td class="px-5 py-3.5 text-slate-600">Service completo</td>
-                  <td class="px-5 py-3.5">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Esperando repuestos</span>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-5 py-3.5 font-medium text-slate-800">#1040</td>
-                  <td class="px-5 py-3.5 text-slate-600">GHKP-45</td>
-                  <td class="px-5 py-3.5 text-slate-600">Alineación y balanceo</td>
-                  <td class="px-5 py-3.5">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Completado</span>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-5 py-3.5 font-medium text-slate-800">#1039</td>
-                  <td class="px-5 py-3.5 text-slate-600">JKLM-12</td>
-                  <td class="px-5 py-3.5 text-slate-600">Revisión suspensión</td>
-                  <td class="px-5 py-3.5">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">En progreso</span>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50 transition-colors">
-                  <td class="px-5 py-3.5 font-medium text-slate-800">#1038</td>
-                  <td class="px-5 py-3.5 text-slate-600">WXYZ-99</td>
-                  <td class="px-5 py-3.5 text-slate-600">Diagnóstico motor</td>
-                  <td class="px-5 py-3.5">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">Diagnóstico</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleOrdenarEstado(ot.estado_actual_id).color, color: handleOrdenarEstado(ot.estado_actual_id).texto }">{{ handleOrdenarEstado(ot.estado_actual_id).estado }}</span>
                   </td>
                 </tr>
               </tbody>
@@ -194,10 +283,8 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
           </div>
         </div>
 
-        <!-- Panel lateral (1/3) -->
         <div class="space-y-6">
           
-          <!-- Métricas de Eficiencia -->
           <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="p-5 border-b border-slate-100 bg-slate-50/50">
               <h3 class="font-bold text-slate-800">Métricas de Eficiencia</h3>
@@ -236,44 +323,6 @@ const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
             </div>
           </div>
 
-          <!-- Actividad Reciente -->
-          <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 class="font-bold text-slate-800">Actividad Reciente</h3>
-            </div>
-            <div class="p-5">
-              <ul class="space-y-4">
-                <li class="flex items-start gap-3">
-                  <div class="mt-1 w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
-                  <div>
-                    <p class="text-sm text-slate-700 font-medium">OT #1040 completada</p>
-                    <p class="text-xs text-slate-400">Hace 25 min</p>
-                  </div>
-                </li>
-                <li class="flex items-start gap-3">
-                  <div class="mt-1 w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
-                  <div>
-                    <p class="text-sm text-slate-700 font-medium">Presupuesto #508 aprobado</p>
-                    <p class="text-xs text-slate-400">Hace 1 hora</p>
-                  </div>
-                </li>
-                <li class="flex items-start gap-3">
-                  <div class="mt-1 w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0"></div>
-                  <div>
-                    <p class="text-sm text-slate-700 font-medium">Repuesto recibido - OT #1041</p>
-                    <p class="text-xs text-slate-400">Hace 2 horas</p>
-                  </div>
-                </li>
-                <li class="flex items-start gap-3">
-                  <div class="mt-1 w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></div>
-                  <div>
-                    <p class="text-sm text-slate-700 font-medium">OT #1039 sin técnico asignado</p>
-                    <p class="text-xs text-slate-400">Hace 3 horas</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
 
         </div>
       </div>
