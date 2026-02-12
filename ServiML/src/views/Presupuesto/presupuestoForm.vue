@@ -98,13 +98,13 @@ const dosSemanasDespues = () => {
 }
 
 const enviarFormulario = async () => {
-    interfaz.showLoadingOverlay()
   if (!validarFormulario()) return;
   if (alertaEmail.value && !correo.value) {
     handleCorreo();
     return;
   }
   
+  interfaz.showLoadingOverlay()
   loading.value = true;
   try {
     const { data: { session } } = await supabase.auth.getSession();

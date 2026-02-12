@@ -10,7 +10,7 @@ const emit = defineEmits(["cerrar"]);
 <template>
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
         <div class="rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div class="p-6 text-center servi-white">
+            <div class="p-6 text-center servi-white servi-blue-font">
                 <div :class="[
                     'mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4',
                     exito
@@ -28,8 +28,8 @@ const emit = defineEmits(["cerrar"]);
                             d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </div>
-                <h3 class="text-xl font-black servi-white-font">{{ titulo }}</h3>
-                <p class="servi-white-font mt-2">{{ mensaje }}</p>
+                <h3 class="text-xl font-black">{{ titulo }}</h3>
+                <p class="mt-2">{{ mensaje }}</p>
             </div>
 
             <div class="p-4 servi-white flex justify-center">
