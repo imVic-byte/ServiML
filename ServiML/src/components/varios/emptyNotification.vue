@@ -22,8 +22,8 @@
 }
 
 .bell-icon {
-    width: 1.625rem;
-    height: 1.625rem;
+    width: 2rem;
+    height: 2rem;
     color: rgba(255, 255, 255, 0.65);
     transition: color 0.2s;
 }

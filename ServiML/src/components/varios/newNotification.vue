@@ -26,8 +26,8 @@
 }
 
 .bell-icon {
-    width: 1.625rem;
-    height: 1.625rem;
+    width: 2rem;
+    height: 2rem;
     color: #ffffff;
     animation: ring 2s ease-in-out infinite;
     transform-origin: top center;
@@ -37,8 +37,8 @@
     position: absolute;
     top: 0.375rem;
     right: 0.375rem;
-    width: 0.625rem;
-    height: 0.625rem;
+    width: 1rem;
+    height: 1rem;
     background-color: #ef4444;
     border-radius: 9999px;
     border: 2px solid #1f3d64;
