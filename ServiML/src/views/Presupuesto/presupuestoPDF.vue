@@ -105,7 +105,7 @@ const totalFinal = computed(() => {
             <span class="font-bold text-[#111827]">Vehículo:</span> 
             {{ presupuesto.vehiculo?.marca }} {{ presupuesto.vehiculo?.modelo }}
             <span v-if="presupuesto.vehiculo?.patente" class="ml-2 bg-[#fef08a] px-1 border border-[#fde047] text-[#854d0e] font-bold rounded">
-                {{ presupuesto.vehiculo.patente }}
+                {{ presupuesto.vehiculo.patente }} - {{ presupuesto.vehiculo.marca }} {{ presupuesto.vehiculo.modelo }}
             </span>
           </li>
         </ul>

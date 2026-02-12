@@ -150,6 +150,18 @@ const router = createRouter({
       }
     },
     {
+      path: '/deudas',
+      name: 'listado-deudas',
+      component: () => import('../views/Deudas/deudaVer.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/deuda/:id',
+      name: 'ver-deuda',
+      component: () => import('../views/Deudas/deudaDetalle.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/invitar-usuarios',
       name: 'invitar-usuarios',
       component: () => import('../views/Gestion/invitarUsuarios.vue'),
