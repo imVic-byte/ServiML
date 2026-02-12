@@ -16,9 +16,11 @@ const estados = ref([]);
 const showStats = ref(false)
 let searchTimeout = null;
 const esTrabajador = computed(() => userStore.isTrabajador)
-const Todas = ref(true)
+const Todas = ref(esTrabajador.value ? false : true)
 
 const handleTodas = () => {
+  console.log('Todas', Todas.value)
+  console.log('esTrabajador', esTrabajador.value)
   Todas.value = !Todas.value
   obtenerOrdenes()
 }
@@ -64,7 +66,7 @@ const obtenerOrdenes = async (busqueda = '', esCargaInicial = false) => {
 
   query = query.order("id", { ascending: false });
 
-  if (esTrabajador.value && !Todas.value) {
+  if (!Todas.value) {
     query = query.eq('id_empleado', userStore.user.id)
   }
 
@@ -154,12 +156,12 @@ onMounted(async () => {
             <h2 class="text-xl font-bold servi-blue-font">Listado de Órdenes</h2>
             <p class="text-sm text-gray-500">Gestiona los trabajos activos en el taller</p>
         </div>
-        <div>
-            <button @click="handleTodas()" class="servi-blue rounded-full servi-white-font font-bold py-2 px-4 shadow-sm border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2">
-              {{ Todas ? 'Ver mis OTs' : 'Ver todas' }}
-            </button>
-        </div>
-        <div class="flex items-center gap-2">
+        <div class="flex justify-end w-full items-center gap-2">
+
+          <button @click="handleTodas()" class="servi-blue rounded-full servi-white-font font-bold py-2 px-4 shadow-sm border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2">
+            {{ Todas ? 'Ver mis OTs' : 'Ver todas' }}
+          </button>
+          
           <button 
             @click="showStats = !showStats" 
             class="md:hidden bg-white servi-blue-font font-bold py-2 px-4 rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2"

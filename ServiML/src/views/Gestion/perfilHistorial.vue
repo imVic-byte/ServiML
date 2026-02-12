@@ -60,9 +60,9 @@ onMounted( async () => {
 </script>
 
 <template>
-    <navbar titulo="Historial" subtitulo="Registro de actividades"/>
+    <navbar titulo="Historial" subtitulo="Registro de actividades" class="navbar"/>
 
-    <div class="max-w-4xl mx-auto p-4">
+    <div class="max-w-4xl mx-auto p-4 pb-20">
         
         <div v-if="cargando" class="flex justify-center py-10">
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
@@ -78,7 +78,7 @@ onMounted( async () => {
             <p class="text-gray-500 max-w-sm">Aún no tienes órdenes de trabajo registradas en tu historial. Cuando realices trabajos, aparecerán aquí.</p>
         </div>
 
-        <div v-else class="space-y-4">
+        <div v-else class="space-y-4 md:grid md:grid-cols-2 md:gap-4">
             <cardOT v-for="orden in historial" :key="orden.id" :orden="orden" :estado="handleEstados(orden.estado_actual_id)" />
         </div>
 

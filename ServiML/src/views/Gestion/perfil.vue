@@ -32,10 +32,10 @@ const handleTraerOT = async () => {
 
 const handleFiltrarOTs = () => {
     if (!listOT.value) return
-    otFinalizadas.value = listOT.value.filter(ot => ot.estado === 7).length
-    otPendientes.value = listOT.value.filter(ot => ot.estado === 10).length
-    otEnProceso.value = listOT.value.filter(ot => [11, 2, 3, 4, 5, 6].includes(ot.estado)).length
-    otCanceladas.value = listOT.value.filter(ot => ot.estado === 8).length
+    otFinalizadas.value = listOT.value.filter(ot => ot.estado_actual_id === 7).length
+    otPendientes.value = listOT.value.filter(ot => ot.estado_actual_id === 10).length
+    otEnProceso.value = listOT.value.filter(ot => [11, 2, 3, 4, 5, 6].includes(ot.estado_actual_id)).length
+    otCanceladas.value = listOT.value.filter(ot => ot.estado_actual_id === 8).length
 }
 
 onMounted(async () => {
