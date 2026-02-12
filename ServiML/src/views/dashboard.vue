@@ -48,9 +48,9 @@ const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 
 
 <template>
   <div class="min-h-screen bg-slate-50 flex flex-col font-sans">
-    <navbar :titulo="'Panel de Control'" :subtitulo="'Resumen de operaciones'" class="shadow-sm z-20"/>
+    <navbar class="navbar" :titulo="'Panel de Control'" :subtitulo="'Resumen de operaciones'" />
     
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
       
       <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -227,23 +227,7 @@ const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="bg-gradient-to-br from-servi-blue to-slate-800 rounded-xl shadow-lg p-6 text-white">
-                <h3 class="font-bold text-lg mb-2 text-servi-gold">Acciones Rápidas</h3>
-                <p class="text-sm text-slate-300 mb-6">Gestiona el flujo de trabajo con un clic.</p>
-                
-                <div class="space-y-3">
-                    <button class="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                        Nueva Orden de Trabajo
-                    </button>
-                    <button class="w-full bg-servi-gold hover:bg-yellow-500 text-servi-blue font-bold py-2 px-4 rounded-lg transition-colors shadow-md">
-                        Crear Presupuesto
-                    </button>
-                </div>
-            </div>
-
+              </div>
         </div>
       </div>
 

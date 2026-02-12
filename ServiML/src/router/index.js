@@ -187,6 +187,47 @@ const router = createRouter({
       name: 'perfil-historial',
       component: () => import('../views/Gestion/perfilHistorial.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/vehiculos',
+      name: 'listado-vehiculos',
+      component: () => import('../views/Gestion/vehiculoListado.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+    },
+    {
+      path: '/vehiculo/:id',
+      name: 'ver-vehiculo',
+      component: () => import('../views/Gestion/vehiculoVer.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+    },
+    {
+      path: '/clientes',
+      name: 'listado-clientes',
+      component: () => import('../views/Gestion/clienteListado.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+    },
+    {
+      path: '/cliente/:id',
+      name: 'ver-cliente',
+      component: () => import('../views/Gestion/clienteVer.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+    },
+    {
+      path: '/finanzas',
+      name: 'finanzas',
+      component: () => import('../views/Gestion/finanzas.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+    },
+    {
+      path: '/gastos',
+      name: 'gastos',
+      component: () => import('../views/Gestion/gastos.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('../views/notFound.vue')
     }
   ],
 })
