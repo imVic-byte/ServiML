@@ -9,7 +9,9 @@ import { supabase } from '@/lib/supabaseClient'
 const interfaz = useInterfaz()
 const userStore = useUserStore()
 const router = useRouter()
-const nombreCompleto = computed(() => userStore.trabajador?.nombre + ' ' + userStore.trabajador?.apellido || 'Usuario')
+const nombre = userStore.trabajador?.nombre || ''
+const apellido = userStore.trabajador?.apellido || ''
+const nombreCompleto = computed(() => nombre + ' ' + apellido)
 const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 const diaSemana = new Date().getDay()
 const fechaInicioSemana = computed(() => {
@@ -58,6 +60,10 @@ const ListoParaEntregar = () => {
 
 const verTablero = () => {
   router.push({ name: 'ordenes-de-trabajo' })
+}
+
+const verOT = (id) => {
+  router.push({ name: 'ver-orden-de-trabajo', params: { id } })
 }
 
 const handleVehiculos = async () => {
@@ -159,7 +165,7 @@ onMounted(async () => {
       </div>
 
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
-        <div @click="VehiculosEnTaller" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="VehiculosEnTaller" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -182,7 +188,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="SinAsignar" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="SinAsignar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -206,7 +212,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="PresupuestosSemana" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="PresupuestosSemana" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -228,7 +234,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="ListoParaEntregar" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="ListoParaEntregar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -257,7 +263,7 @@ onMounted(async () => {
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <h2 class="text-lg font-bold text-slate-800">Flujo de Trabajo Reciente</h2>
-            <button @click="verTablero" class="text-sm text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
+            <button @click="verTablero" class="text-sm cursor-pointer text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
@@ -270,10 +276,10 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                <tr v-for="ot in listaOTRecientes" :key="ot.id" class="hover:bg-slate-50 transition-colors">
+                <tr v-for="ot in listaOTRecientes" @click="verOT(ot.id)" :key="ot.id" class="hover:bg-slate-50 transition-colors cursor-pointer">
                   <td class="px-5 py-3.5 font-medium text-slate-800">#{{ ot.id }}</td>
                   <td class="px-5 py-3.5 text-slate-600">{{ ot.vehiculo.patente }}</td>
-                  <td class="px-5 py-3.5 text-slate-600">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
+                  <td class="px-5 py-3.5 text-slate-600 truncate max-w-[100px] sm:max-w-none">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
                   <td class="px-5 py-3.5">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleOrdenarEstado(ot.estado_actual_id).color, color: handleOrdenarEstado(ot.estado_actual_id).texto }">{{ handleOrdenarEstado(ot.estado_actual_id).estado }}</span>
                   </td>
@@ -311,7 +317,7 @@ onMounted(async () => {
               </div>
 
               <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-                <div class="text-center p-3 bg-slate-50 rounded-lg">
+                <div class="text-center p-3 bg-slate-50 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-sm">
                   <div class="text-xs text-slate-500 uppercase tracking-wider">Ticket Prom.</div>
                   <div class="font-bold text-slate-800 mt-1">$185k</div>
                 </div>
@@ -322,8 +328,6 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
 

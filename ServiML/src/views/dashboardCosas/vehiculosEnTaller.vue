@@ -4,124 +4,143 @@ import { useRouter } from 'vue-router'
 import { supabase } from '../../lib/supabaseClient.js'
 import navbar from '../../components/componentes/navbar.vue'
 import { useInterfaz } from '../../stores/interfaz.js'
+import vehiculosEnTallerListado from '../../components/vehiculos/vehiculosEnTallerListado.vue'
 
 const uiStore = useInterfaz()
 const router = useRouter()
 const vehiculos = ref([])
 const estados = ref([])
-let searchTimeout = null;
 
-const redirigir = async (id) => {
+const redirigir = (id) => {
     router.push({ name: 'ver-orden-de-trabajo', params: { id } })    
 }
 
-const handleBusqueda = (texto) => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    handleVehiculos(texto);
-  }, 500);
-};
+const handleVehiculos = async () => {
+    const { data, error } = await supabase.from('vehiculo').select('*').eq('en_taller', true)
+    if (error) throw error
+    vehiculos.value = data
+}
+
+const handleOT = async () => {
+    await Promise.all(vehiculos.value.map(async (vehiculo) => {
+        const { data, error } = await supabase
+            .from('orden_trabajo')
+            .select('*, cliente(*)')
+            .eq('vehiculo_id', vehiculo.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+        if (error) throw error
+        vehiculo.orden_trabajo = data?.[0] || null
+    }))
+}
 
 const handleEstados = async () => {
-    const { data, error } = await supabase
-        .from('tabla_estados')
-        .select('*')
-    if (error) {
-        console.error('Error fetching estados:', error)
-    } else {
-        estados.value = data
-    }
+    const { data, error } = await supabase.from('tabla_estados').select('*')
+    if (error) throw error
+    estados.value = data
 }
 
-const estadoPorId = (id) => {
-    const estado = estados.value.find(e => e.id === id)
-    return estado ? estado.estado : 'Desconocido'
-}
-
-const colorPorId = (id) => {
-    const estado = estados.value.find(e => e.id === id)
-    return estado ? estado.color : '#CCCCCC'
-}
-
-const handleVehiculos = async (busqueda = '') => {
-    let query = supabase.from("orden_trabajo");
-
-    if (busqueda) {
-      query = query
-        .select("*, vehiculo!inner(*), cliente!inner(*)")
-        .not('estado_actual_id', 'in', '(7,8,1,10)')
-        .ilike('vehiculo.patente', `%${busqueda}%`);
-    } else {
-      query = query.select("*, vehiculo(*), cliente(*)")
-        .not('estado_actual_id', 'in', '(7,8,1,10)');
-    }
-
-    query = query.order("id", { ascending: false });
-
-    const { data, error } = await query;
-    if (error) {
-        console.error('Error fetching vehiculos en taller:', error)
-    } else {
-        vehiculos.value = data
-    }
-    uiStore.hideLoading()
+const obtenerEstado = (orden) => {
+    if (!orden) return { estado: 'Sin OT', color: '#9ca3af', texto: '#fff' }
+    return estados.value.find(e => e.id === orden.estado_actual_id) || { estado: 'Desconocido', color: '#9ca3af', texto: '#fff' }
 }
 
 onMounted(async () => {
     uiStore.showLoading()
-    await handleEstados()
     await handleVehiculos()
+    await handleOT()
+    await handleEstados()
+    uiStore.hideLoading()
 })
 </script>
 
 <template>
-    <navbar :titulo="'ServiMl'" subtitulo="Vehículos en taller" search-input="true" class="navbar" @buscar="handleBusqueda"/>
-    <div class="min-h-screen bg-gray-50 pb-20">        
-        <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div 
-                    v-for="orden in vehiculos" 
-                    :key="orden.id"
-                    class="bg-white rounded-lg shadow-md overflow-hidden border-t-10 transition-transform hover:scale-105"
-                    :style="{ borderTopColor: colorPorId(orden.estado_actual_id) }"
-                >
-                    <div class="p-4">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <p class="text-xs uppercase font-bold text-gray-400">Patente</p>
-                                <h3 class="text-xl font-black servi-blue-font">
-                                    {{ orden.vehiculo.patente }}
-                                </h3>
-                            </div>
-                            <span 
-                                class="px-3 py-1 rounded-full text-xs font-bold uppercase shadow-sm"
-                                :style="{ backgroundColor: colorPorId(orden.estado_actual_id), color: '#fff' }"
-                            >
-                                {{ estadoPorId(orden.estado_actual_id) }}
-                            </span>
-                        </div>
+  <div class="bg-gray-50 min-h-screen pb-15">
+    <navbar :titulo="'ServiMl'" subtitulo="Vehículos en taller" search-input="false" class="sticky top-0 z-50"/>
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-                        <div class="mb-4">
-                            <p class="text-xs uppercase font-bold text-gray-400">Motivo de Ingreso</p>
-                            <p class="text-sm text-gray-700 leading-relaxed">
-                                {{ orden.motivo_ingreso }}
-                            </p>
-                        </div>
-
-                        <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                            <button 
-                                @click="redirigir(orden.id)"
-                                class="servi-blue servi-white-font px-4 py-2 rounded text-sm font-bold w-full transition-colors hover:opacity-90"                            >
-                                Ver Detalles
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div v-if="vehiculos.length === 0" class="text-center py-20">
-                <p class="text-gray-500 font-medium">No hay vehículos en taller actualmente.</p>
-            </div>
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold servi-blue-font">Vehículos en Taller</h2>
+          <p class="text-sm text-gray-500">{{ vehiculos.length }} vehículo{{ vehiculos.length !== 1 ? 's' : '' }} actualmente en taller</p>
         </div>
+      </div>
+
+      <!-- Desktop: tabla -->
+      <vehiculosEnTallerListado :vehiculos="vehiculos" :estados="estados" />
+
+      <!-- Mobile: cards -->
+      <div class="md:hidden grid grid-cols-1 gap-4">
+        <div 
+          v-for="vehiculo in vehiculos" 
+          :key="vehiculo.id"
+          class="bg-white rounded-xl shadow-sm overflow-hidden border-l-4 transition-all hover:shadow-md cursor-pointer"
+          :style="{ borderLeftColor: obtenerEstado(vehiculo.orden_trabajo).color }"
+          @click="vehiculo.orden_trabajo && redirigir(vehiculo.orden_trabajo.id)"
+        >
+          <div class="p-4">
+            <!-- Header: Patente + Estado -->
+            <div class="flex justify-between items-center mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-black servi-blue-font tracking-wide">{{ vehiculo.patente }}</span>
+                <span v-if="vehiculo.orden_trabajo" class="text-xs text-gray-400 font-medium">#{{ vehiculo.orden_trabajo.id }}</span>
+              </div>
+              <span 
+                class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase"
+                :style="{ backgroundColor: obtenerEstado(vehiculo.orden_trabajo).color, color: '#fff' }"
+              >
+                {{ obtenerEstado(vehiculo.orden_trabajo).estado }}
+              </span>
+            </div>
+
+            <!-- Info vehículo -->
+            <div v-if="vehiculo.marca || vehiculo.modelo" class="text-xs text-gray-400 mb-3">
+              {{ [vehiculo.marca, vehiculo.modelo, vehiculo.anio].filter(Boolean).join(' · ') }}
+            </div>
+
+            <!-- Motivo de ingreso -->
+            <div v-if="vehiculo.orden_trabajo?.motivo_ingreso" class="mb-3">
+              <p class="text-xs uppercase font-bold text-gray-400 mb-0.5">Motivo de ingreso</p>
+              <p class="text-sm text-gray-700 leading-relaxed line-clamp-2">
+                {{ vehiculo.orden_trabajo.motivo_ingreso }}
+              </p>
+            </div>
+
+            <!-- Cliente -->
+            <div v-if="vehiculo.orden_trabajo?.cliente" class="flex items-center gap-2 pt-3 border-t border-gray-100">
+              <div class="w-7 h-7 rounded-full servi-blue flex items-center justify-center shrink-0">
+                <span class="text-xs font-bold text-white">{{ vehiculo.orden_trabajo.cliente.nombre?.charAt(0)?.toUpperCase() || '?' }}</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-gray-800 truncate">
+                  {{ vehiculo.orden_trabajo.cliente.nombre }} {{ vehiculo.orden_trabajo.cliente.apellido }}
+                </p>
+                <p v-if="vehiculo.orden_trabajo.cliente.telefono" class="text-xs text-gray-400 truncate">
+                  {{ vehiculo.orden_trabajo.cliente.telefono }}
+                </p>
+              </div>
+              <button 
+                @click.stop="redirigir(vehiculo.orden_trabajo.id)"
+                class="servi-blue servi-white-font px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity hover:opacity-90 shrink-0"
+              >
+                Ver OT
+              </button>
+            </div>
+
+            <!-- Sin OT -->
+            <div v-if="!vehiculo.orden_trabajo" class="pt-3 border-t border-gray-100">
+              <p class="text-xs text-gray-400 italic">Sin orden de trabajo asociada</p>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="vehiculos.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
+          <p class="text-gray-500 text-lg">No hay vehículos en taller actualmente</p>
+          <p class="text-sm text-gray-400">Todos los vehículos han sido entregados.</p>
+        </div>
+      </div>
+
     </div>
+  </div>
 </template>

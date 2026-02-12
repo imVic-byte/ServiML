@@ -148,18 +148,6 @@ const eliminarObservacion = (index) => {
   observaciones.value.splice(index, 1);
 };
 
-const handleEnTaller = async () => {
-  await supabase.from('vehiculos').update({
-    en_taller: true
-  }).eq('id', orden.value.vehiculo_id);
-}
-
-const handleNoEnTaller = async () => {
-  await supabase.from('vehiculos').update({
-    en_taller: false
-  }).eq('id', orden.value.vehiculo_id);
-}
-
 const guardarCambios = async () => {
   if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
@@ -170,6 +158,7 @@ const guardarCambios = async () => {
       kilometraje_inicial: orden.value.kilometraje_inicial,
       combustible_inicial: nivelCombustible.value,
       fecha_ingreso: orden.value.fecha_ingreso,
+      fecha_promesa: orden.value.fecha_promesa,
       prioridad: orden.value.prioridad,
       tipo_trabajo: orden.value.tipo_trabajo,
       origen_ingreso: orden.value.origen_ingreso,
@@ -367,12 +356,6 @@ const confirmarCambioEstado = () => {
       showThirdModal.value = true;
       return;
     }
-    if(selectedEstado.value.id === 11) {
-      handleEnTaller();
-    }
-    if (selectedEstado.value.id === 7 || selectedEstado.value.id === 8) {
-      handleNoEnTaller();
-    }
     ejecutarCambioReal();
   }
 };
@@ -524,6 +507,7 @@ onMounted(async () => {
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Motivo de Ingreso</label><p>{{ orden.motivo_ingreso }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Responsable</label><p>{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label><p>{{ fechaIngreso || 'No registrado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Promesa</label><input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
             </div>
           </div>
 
