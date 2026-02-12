@@ -78,7 +78,7 @@ const handleIrAOT = (id) => {
             </div>
             <div class="notification-content">
               <p class="notification-title">{{ notif.titulo }}</p>
-              <p v-if="notif.mensaje" class="notification-body">{{ notif.contenido }}</p>
+              <p v-if="notif.contenido" class="notification-body">{{ notif.contenido }}</p>
               <p class="notification-time">{{ tiempoRelativo(notif.created_at) }}</p>
             </div>
             <button class="servi-blue servi-yellow-font rounded-full px-4 py-2" @click="handleIrAOT(notif.id_resource)">

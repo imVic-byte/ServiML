@@ -471,7 +471,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-gray-50 pb-12">
-    <navbar titulo="ServiML" :subtitulo="'OT No. ' + orden.presupuesto?.numero_folio" class="sticky top-0 z-40" searchInput="false" />
+    <navbar titulo="ServiML" :subtitulo="'OT # ' + orden.id" class="sticky top-0 z-40" searchInput="false" />
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-15">
       
