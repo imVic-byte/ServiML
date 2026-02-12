@@ -36,3 +36,11 @@
 .en-espera {
     background-color: #f6ff4c;
 }
+
+.btn-servi {
+  @apply inline-flex items-center justify-center gap-2 
+  rounded-lg px-6 py-2.5 font-bold shadow-sm 
+  transition-all duration-200 
+  hover:opacity-95 hover:shadow-md hover:-translate-y-[1px] 
+  active:translate-y-0 active:shadow-sm;
+}
