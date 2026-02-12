@@ -19,8 +19,6 @@ const esTrabajador = computed(() => userStore.isTrabajador)
 const Todas = ref(esTrabajador.value ? false : true)
 
 const handleTodas = () => {
-  console.log('Todas', Todas.value)
-  console.log('esTrabajador', esTrabajador.value)
   Todas.value = !Todas.value
   obtenerOrdenes()
 }
@@ -65,17 +63,15 @@ const obtenerOrdenes = async (busqueda = '', esCargaInicial = false) => {
   }
 
   query = query.order("id", { ascending: false });
-
-  if (!Todas.value) {
-    query = query.eq('id_empleado', userStore.user.id)
-  }
-
   const { data, error } = await query;
 
   if (error) {
     console.error(error);
   } else if (data) {
     ordenes.value = data;
+    if (!Todas.value) {
+      ordenes.value = data.filter((orden) => orden.id_empleado?.id === userStore.user.id)
+    }
     if (esCargaInicial) {
       todasLasOrdenes.value = data;
     }
