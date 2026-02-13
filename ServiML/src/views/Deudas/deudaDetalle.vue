@@ -29,11 +29,23 @@ const diasNotificacion = ref(0);
 const procesandoNotificacion = ref(false);
 
 // --- CÁLCULOS ---
-const totalDeuda = computed(() =>
-  otsEnDeuda.value.reduce((acc, item) => acc + (item.orden_trabajo?.presupuesto?.total_final || 0), 0)
-);
-const totalPagado = computed(() => abonos.value.reduce((acc, abono) => acc + (abono.monto || 0), 0));
-const saldoPendiente = computed(() => totalDeuda.value - totalPagado.value);
+const totalDeuda = computed(() => {
+  const total = otsEnDeuda.value.reduce((acc, item) => 
+    acc + (item.orden_trabajo?.presupuesto?.total_final || 0), 0
+  );
+  return Math.round(total);
+});
+
+const totalPagado = computed(() => {
+  const total = abonos.value.reduce((acc, abono) => acc + (abono.monto || 0), 0);
+  return Math.round(total);
+});
+
+const saldoPendiente = computed(() => {
+  const saldo = totalDeuda.value - totalPagado.value;
+  return Math.max(0, Math.round(saldo));
+});
+
 const porcentajePagado = computed(() => {
   if (totalDeuda.value === 0) return 0;
   return Math.min(Math.round((totalPagado.value / totalDeuda.value) * 100), 100);
@@ -118,29 +130,10 @@ const guardarConfigNotificacion = async () => {
       mensaje: `Alerta configurada cada ${diasNotificacion.value} días.`,
       exito: true,
     };
-    cargarDatos();
+    await cargarDatos();
   }
 
   procesandoNotificacion.value = false;
-};
-
-
-// re hacer esta wea
-const marcarGestionado = async () => {
-  const { error } = await supabase
-    .from("deudas")
-    .update({ ultima_notificacion: new Date().toISOString() })
-    .eq("id", deudaId);
-
-  if (!error) {
-    modalState.value = {
-      visible: true,
-      titulo: "Gestionado",
-      mensaje: "Recordatorio pospuesto según configuración.",
-      exito: true,
-    };
-    cargarDatos();
-  }
 };
 
 // --- GESTIÓN DE OTs ---
@@ -189,6 +182,17 @@ const buscarOTsDisponibles = async () => {
   }
 
   otsDisponibles.value = data || [];
+
+  if (otsDisponibles.value.length === 0) {
+    modalState.value = {
+      visible: true,
+      titulo: "Sin OTs disponibles",
+      mensaje: "No hay órdenes de trabajo disponibles para asignar.",
+      exito: false,
+    };
+    return;
+  }
+
   otsSeleccionadas.value = [];
   showModalOT.value = true;
 };
@@ -216,8 +220,19 @@ const agregarOTsMasivas = async () => {
     await cargarDatos();
     showModalOT.value = false;
     otsSeleccionadas.value = [];
+    modalState.value = {
+      visible: true,
+      titulo: "OTs Agregadas",
+      mensaje: `Se agregaron las orden(es) de trabajo exitosamente.`,
+      exito: true,
+    };
   } else {
-    alert("Error al agregar OTs: " + error.message);
+    modalState.value = {
+      visible: true,
+      titulo: "Error",
+      mensaje: "Error al agregar OTs: " + error.message,
+      exito: false,
+    };
   }
 };
 
@@ -243,7 +258,26 @@ const registrarAbono = async () => {
     return;
   }
 
-  if (Number(nuevoAbono.value) <= 0) return;
+  if (!nuevoAbono.value || Number(nuevoAbono.value) <= 0) {
+    modalState.value = {
+      visible: true,
+      titulo: "Monto inválido",
+      mensaje: "Debes ingresar un monto mayor a 0.",
+      exito: false,
+    };
+    return;
+  }
+
+  if (Number(nuevoAbono.value) > saldoPendiente.value) {
+    modalState.value = {
+      visible: true,
+      titulo: "Monto inválido",
+      mensaje: `No puedes abonar más de ${formatearDinero(saldoPendiente.value)}.`,
+      exito: false,
+    };
+    return;
+  }
+
 
   const { error } = await supabase.from("abonos").insert({
     deuda_id: deudaId,
@@ -288,7 +322,7 @@ const abrirModalAbono = () => {
     modalState.value = {
       visible: true,
       titulo: "No se puede abonar",
-      mensaje: "Primero tenés que asignar al menos una OT a esta deuda.",
+      mensaje: "Primero tienes que asignar al menos una OT a esta deuda.",
       exito: false,
     };
     return;
@@ -386,9 +420,20 @@ const completarDeuda = async () => {
     .eq("id", deuda.value.id);
 
   if (!error) {
-    deuda.value.estado = "completada";
-    deuda.value.notificar_cada = 0;
-    deuda.value.ultima_notificacion = null;
+    await cargarDatos();
+    modalState.value = {
+      visible: true,
+      titulo: "Deuda Completada",
+      mensaje: "La deuda ha sido marcada como completada exitosamente.",
+      exito: true,
+    };
+  } else {
+    modalState.value = {
+      visible: true,
+      titulo: "Error",
+      mensaje: error.message,
+      exito: false,
+    };
   }
 };
 
@@ -463,41 +508,30 @@ onMounted(cargarDatos);
         <!-- Acciones -->
         <div v-if="!esCompletada"
           class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 items-center">
-          <button 
-  @click="buscarOTsDisponibles"
-  class="w-full sm:w-auto servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
->
-  <span class="text-xl leading-none mb-1">+ Agregar OT</span>
-  <span class="hidden sm:inline">Agregar OT</span>
-</button>
+          <button @click="buscarOTsDisponibles"
+            class="w-full sm:w-auto servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
+            <span class="text-xl leading-none mb-1">+ Agregar OT</span>
+            <span class="hidden sm:inline"></span>
+          </button>
 
-<button 
-  @click="abrirModalAbono"
-  :disabled="!puedeAbonar"
-  class="w-full sm:w-auto servi-blue servi-yellow-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
->
-  <span class="text-xl leading-none mb-1">$ Abonar</span>
-  <span class="hidden sm:inline">Abonar</span>
-</button>
+          <button @click="abrirModalAbono" :disabled="!puedeAbonar"
+            class="w-full sm:w-auto servi-blue servi-yellow-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+            <span class="text-xl leading-none mb-1">$ Abonar</span>
+            <span class="hidden sm:inline"></span>
+          </button>
 
-<button 
-  v-if="deuda.estado === 'pendiente'"
-  @click="pedirConfirmacionCompletar"
-  :disabled="!puedeCompletar"
-  class="w-full sm:w-auto servi-blue servi-yellow-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
->
-  <span class="text-xl leading-none mb-1">✓ Completar</span>
-  <span class="hidden sm:inline">Completar</span>
-</button>
+          <button v-if="deuda.estado === 'pendiente'" @click="pedirConfirmacionCompletar" :disabled="!puedeCompletar"
+            class="w-full sm:w-auto servi-blue servi-yellow-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+            <span class="text-xl leading-none mb-1">✓ Completar</span>
+            <span class="hidden sm:inline"></span>
+          </button>
 
 
-<button 
-  @click="showConfig = !showConfig"
-  class="w-full sm:w-auto servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
->
-  <span class="text-xl leading-none mb-1">⚙ Configurar</span>
-  <span class="hidden sm:inline">Configurar días</span>
-</button>
+          <button @click="showConfig = !showConfig"
+            class="w-full sm:w-auto servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
+            <span class="text-xl leading-none mb-1">⚙ Configurar</span>
+            <span class="hidden sm:inline"></span>
+          </button>
 
         </div>
 
@@ -541,18 +575,15 @@ onMounted(cargarDatos);
                 <span class="text-xs text-gray-400">Ingreso: {{ formatearFecha(item.orden_trabajo.created_at) }}</span>
               </div>
               <!-- Botón eliminar -->
-  <button
-    type="button"
-    @click.stop="eliminarOTDeuda(item)"
-    class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
-           hover:bg-red-50 hover:border-red-200 transition"
-    title="Eliminar OT"
-    aria-label="Eliminar OT"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M9 2a1 1 0 00-1 1v1H5a1 1 0 000 2h.293l.853 10.243A2 2 0 008.14 18h3.72a2 2 0 001.994-1.757L14.707 6H15a1 1 0 100-2h-3V3a1 1 0 00-1-1H9zm1 4a1 1 0 10-2 0v9a1 1 0 102 0V6zm4 0a1 1 0 10-2 0v9a1 1 0 102 0V6z" clip-rule="evenodd"/>
-    </svg>
-  </button>
+              <button type="button" @click.stop="eliminarOTDeuda(item)" class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
+           hover:bg-red-50 hover:border-red-200 transition" title="Eliminar OT" aria-label="Eliminar OT">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600" viewBox="0 0 20 20"
+                  fill="currentColor">
+                  <path fill-rule="evenodd"
+                    d="M9 2a1 1 0 00-1 1v1H5a1 1 0 000 2h.293l.853 10.243A2 2 0 008.14 18h3.72a2 2 0 001.994-1.757L14.707 6H15a1 1 0 100-2h-3V3a1 1 0 00-1-1H9zm1 4a1 1 0 10-2 0v9a1 1 0 102 0V6zm4 0a1 1 0 10-2 0v9a1 1 0 102 0V6z"
+                    clip-rule="evenodd" />
+                </svg>
+              </button>
 
               <div class="flex items-center gap-3">
                 <span class="font-bold text-gray-900">{{ formatearDinero(item.orden_trabajo.presupuesto?.total_final)
@@ -586,7 +617,7 @@ onMounted(cargarDatos);
                 <span class="text-sm text-gray-700 italic block truncate">{{ abono.observacion || 'Abono' }}</span>
               </div>
 
-              <span class="font-bold text-gray-900">- {{ formatearDinero(abono.monto) }}</span>
+              <span class="font-bold text-gray-900"> {{ formatearDinero(abono.monto) }}</span>
             </div>
           </div>
         </div>
@@ -654,64 +685,48 @@ onMounted(cargarDatos);
     </div>
 
     <!-- Modal Abono -->
-<div
-  v-if="showModalAbono"
-  class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
->
-  <div
-    class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200"
-  >
-    <div class="px-6 py-4 border-b border-white/10">
-      <h2 class="text-lg font-bold servi-yellow-font">Registrar Abono</h2>
-      <p class="text-sm text-white/80">Ingresa el monto y una observación opcional.</p>
-    </div>
+    <div v-if="showModalAbono"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div
+        class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="px-6 py-4 border-b border-white/10">
+          <h2 class="text-lg font-bold servi-yellow-font">Registrar Abono</h2>
+          <p class="text-sm text-white/80">Ingresa el monto y una observación opcional.</p>
+        </div>
 
-    <div class="p-6 space-y-4">
-      <div>
-        <label class="block text-xs font-bold text-white/80 uppercase mb-1">Monto</label>
-        <input
-          v-model="nuevoAbono"
-          type="number"
-          class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
-          placeholder="0"
-        />
-      </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-white/80 uppercase mb-1">Monto</label>
+            <input v-model="nuevoAbono" type="number"
+              class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
+              placeholder="0" />
+          </div>
 
-      <div>
-        <label class="block text-xs font-bold text-white/80 uppercase mb-1">Observación</label>
-        <input
-          v-model="abonoObs"
-          type="text"
-          class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
-          placeholder="Ej: Transferencia, efectivo, etc."
-        />
-      </div>
-    </div>
+          <div>
+            <label class="block text-xs font-bold text-white/80 uppercase mb-1">Observación</label>
+            <input v-model="abonoObs" type="text"
+              class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
+              placeholder="Ej: Transferencia, efectivo, etc." />
+          </div>
+        </div>
 
-    <div class="px-6 py-4 flex justify-end gap-3">
-      <button
-        type="button"
-        @click="showModalAbono = false"
-        class="px-4 py-2.5 rounded-xl font-bold border border-white/20 text-white/90 hover:bg-white/10 transition active:scale-[0.98]"
-      >
-        Cancelar
-      </button>
+        <div class="px-6 py-4 flex justify-end gap-3">
+          <button type="button" @click="showModalAbono = false"
+            class="px-4 py-2.5 rounded-xl font-bold border border-white/20 text-white/90 hover:bg-white/10 transition active:scale-[0.98]">
+            Cancelar
+          </button>
 
-      <button
-        type="button"
-        @click="registrarAbono"
-        :disabled="nuevoAbono <= 0 || otsEnDeuda.length === 0 || saldoPendiente <= 0"
-        class="px-4 py-2.5 rounded-xl font-extrabold servi-yellow servi-blue-font shadow-sm
+          <button type="button" @click="registrarAbono"
+            :disabled="nuevoAbono <= 0 || otsEnDeuda.length === 0 || saldoPendiente <= 0" class="px-4 py-2.5 rounded-xl font-extrabold servi-yellow servi-blue-font shadow-sm
                transition-all duration-200
                hover:opacity-95 hover:shadow-md hover:-translate-y-[1px]
                active:translate-y-0 active:shadow-sm
-               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-      >
-        Confirmar
-      </button>
+               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+            Confirmar
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
 
     <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito"
