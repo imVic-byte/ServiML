@@ -107,7 +107,7 @@ const handleIrAOT = (id) => {
   inset: 0;
   z-index: 9999;
   display: flex;
-  justify-content: center;
+  justify-content: end;
   align-items: flex-start;
   padding-top: 0;
   background-color: rgba(0, 0, 0, 0.5);

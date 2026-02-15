@@ -49,6 +49,7 @@ const observaciones = ref([]);
 const fechaIngreso = ref(null);
 const nivelCombustible = ref(0);
 const fotosRecepcion = ref([]);
+const talleres = ref([]);
 
 const activarInput = (index, tipo) => {
   const id = tipo === 'camara' ? `input-camara-${index}` : `input-galeria-${index}`;
@@ -168,7 +169,8 @@ const guardarCambios = async () => {
       trae_candado_seguridad: orden.value.trae_candado_seguridad,
       trae_panel_radio: orden.value.trae_panel_radio,
       trae_rueda_repuesto: orden.value.trae_rueda_repuesto,
-      trae_encendedor: orden.value.trae_encendedor
+      trae_encendedor: orden.value.trae_encendedor,
+      id_taller: orden.value.id_taller
     })
     .eq("id", route.params.id);
 
@@ -296,6 +298,14 @@ const handleIsCerrado = async (estado_actual_id) => {
   }
 }
 
+const obtenerTalleres = async () => {
+  const { data } = await supabase
+    .from('serviml_taller')
+    .select('*')
+    .order('id', { ascending: true });
+  if (data) talleres.value = data;
+};
+
 const obtenerOrden = async () => {
   manejarBloqueo(true);
   const { data } = await supabase
@@ -307,6 +317,9 @@ const obtenerOrden = async () => {
     orden.value = data;
     fechaIngreso.value = formatearFecha(data.fecha_ingreso);
     nivelCombustible.value = data.combustible_inicial ?? 0;
+    if (!data.id_taller && talleres.value.length > 0) {
+      orden.value.id_taller = talleres.value[0].id;
+    }
   }
   manejarBloqueo(false);
   await handleIsCerrado(orden.value.estado_actual_id);
@@ -445,6 +458,7 @@ const ejecutarCambioReal = async () => {
 
 onMounted(async () => {
   interfaz.showLoading();
+  await obtenerTalleres();
   await obtenerOrden();
   obtenerEstados();
   traerObservaciones();
@@ -508,6 +522,7 @@ onMounted(async () => {
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Responsable</label><p>{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label><p>{{ fechaIngreso || 'No registrado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Promesa</label><input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
+              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Taller</label><select class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
             </div>
           </div>
 

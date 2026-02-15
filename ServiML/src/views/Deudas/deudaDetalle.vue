@@ -51,8 +51,15 @@ const estadoDeudaUI = computed(() => {
   };
 });
 
-const formatearDinero = (valor) =>
-  new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(valor || 0);
+const formatearDinero = (valor) => {
+  const valorLimpio = Math.round(valor || 0) || 0;
+
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(valorLimpio);
+};
 
 const formatearFecha = (fechaString) => {
   if (!fechaString) return "---";

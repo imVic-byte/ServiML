@@ -129,6 +129,40 @@ const handleOrdenarEstado = (estado) => {
   return listaEstados.value.find(e => e.id === estado) || {estado: 'Desconocido', color: 'bg-gray-500'}
 }
 
+const metricas = ref({
+  ocupacion_actual: 0,
+  ticket_promedio: 0,
+  porcentaje_a_tiempo: 0,
+  porcentaje_rechazos: 0
+})
+
+const cargarMetricas = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('vista_dashboard_metricas')
+      .select('*')
+      .single()
+
+    if (error) throw error
+    
+    if (data) {
+      metricas.value = data
+      console.log(metricas.value)
+    }
+
+  } catch (error) {
+    console.error('Error al obtener KPIs:', error)
+  }
+}
+
+const formatoMoneda = (valor) => {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0
+  }).format(valor)
+}
+
 onMounted(async () => {
   interfaz.showLoading()
   await handleVehiculos()
@@ -139,6 +173,7 @@ onMounted(async () => {
   await handlePorEntregar()
   await handleOTRecientes()
   await handleEstados()
+  await cargarMetricas()
   interfaz.hideLoading()
 })
 </script>
@@ -284,6 +319,9 @@ onMounted(async () => {
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleOrdenarEstado(ot.estado_actual_id).color, color: handleOrdenarEstado(ot.estado_actual_id).texto }">{{ handleOrdenarEstado(ot.estado_actual_id).estado }}</span>
                   </td>
                 </tr>
+                <tr v-if="listaOTRecientes.length === 0" class="hover:bg-slate-50 transition-colors cursor-pointer">
+                  <td class="px-5 py-3.5 font-medium text-slate-800">No hay OT recientes</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -291,43 +329,62 @@ onMounted(async () => {
 
         <div class="space-y-6">
           
-          <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 class="font-bold text-slate-800">Métricas de Eficiencia</h3>
-            </div>
-            <div class="p-5 space-y-5">
-              <div>
-                <div class="flex justify-between mb-2">
-                  <span class="text-sm font-medium text-slate-600">Ocupación Taller</span>
-                  <span class="text-sm font-bold text-servi-blue">85%</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                  <div class="bg-servi-blue h-2.5 rounded-full" style="width: 85%"></div>
-                </div>
-              </div>
-              
-              <div>
-                <div class="flex justify-between mb-2">
-                  <span class="text-sm font-medium text-slate-600">Entrega a Tiempo</span>
-                  <span class="text-sm font-bold text-green-600">92%</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                  <div class="bg-green-500 h-2.5 rounded-full" style="width: 92%"></div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-                <div class="text-center p-3 bg-slate-50 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-sm">
-                  <div class="text-xs text-slate-500 uppercase tracking-wider">Ticket Prom.</div>
-                  <div class="font-bold text-slate-800 mt-1">$185k</div>
-                </div>
-                <div class="text-center p-3 bg-slate-50 rounded-lg">
-                  <div class="text-xs text-slate-500 uppercase tracking-wider">Rechazos</div>
-                  <div class="font-bold text-red-500 mt-1">12%</div>
-                </div>
-              </div>
-            </div>
+          <div class="space-y-6">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+      <h3 class="font-bold text-slate-800">Métricas de Eficiencia</h3>
+    </div>
+    <div class="p-5 space-y-5">
+      
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium text-slate-600">
+            Ocupación Taller ({{ metricas.ocupacion_actual }}/{{ capacidadMaxima }})
+          </span>
+          <span class="text-sm font-bold text-servi-blue">
+            {{ Math.min(Math.round((metricas.ocupacion_actual / capacidadMaxima) * 100), 100) }}%
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2.5">
+          <div 
+            class="bg-servi-blue h-2.5 rounded-full transition-all duration-500" 
+            :style="{ width: `${Math.min((metricas.ocupacion_actual / capacidadMaxima) * 100, 100)}%` }">
           </div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium text-slate-600">Entrega a Tiempo</span>
+          <span class="text-sm font-bold text-green-600">
+            {{ metricas.porcentaje_a_tiempo }}%
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2.5">
+          <div 
+            class="bg-green-500 h-2.5 rounded-full transition-all duration-500" 
+            :style="{ width: `${metricas.porcentaje_a_tiempo}%` }">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+        <div class="text-center p-3 bg-slate-50 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-sm">
+          <div class="text-xs text-slate-500 uppercase tracking-wider">Ticket Prom.</div>
+          <div class="font-bold text-slate-800 mt-1">
+            {{ formatoMoneda(metricas.ticket_promedio) }}
+          </div>
+        </div>
+        <div class="text-center p-3 bg-slate-50 rounded-lg">
+          <div class="text-xs text-slate-500 uppercase tracking-wider">Rechazos</div>
+          <div class="font-bold text-red-500 mt-1">
+            {{ metricas.porcentaje_rechazos }}%
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
         </div>
       </div>
 

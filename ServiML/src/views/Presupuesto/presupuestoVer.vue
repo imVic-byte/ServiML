@@ -21,6 +21,9 @@ const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true })
 const id = ref(route.params.id)
 const router = useRouter();
 
+const cuentasBancarias = ref([])
+const cuentaSeleccionada = ref(null)
+
 const camelCase = (texto) => {
     if (!texto) return '';
     return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
@@ -187,6 +190,16 @@ onMounted(async () => {
         console.log(error)
     }
     interfaz.hideLoading();
+
+    // Cargar cuentas bancarias
+    const { data: cuentas } = await supabase
+      .from('serviml_cuenta')
+      .select('*')
+      .eq('id_serviml', 1)
+    if (cuentas && cuentas.length > 0) {
+      cuentasBancarias.value = cuentas
+      cuentaSeleccionada.value = cuentas[0]
+    }
 })
 
 </script>
@@ -291,6 +304,19 @@ onMounted(async () => {
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Acciones</h3>
                     
+                    <!-- Selector de cuenta bancaria -->
+                    <div v-if="cuentasBancarias.length > 0" class="mb-4">
+                      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cuenta para PDF</label>
+                      <select
+                        v-model="cuentaSeleccionada"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option v-for="cuenta in cuentasBancarias" :key="cuenta.id" :value="cuenta">
+                          {{ cuenta.banco }} - {{ cuenta.tipo_cuenta }}
+                        </option>
+                      </select>
+                    </div>
+
                     <div>
                         <acciones
                             :estado="presupuesto.estado"
@@ -304,7 +330,7 @@ onMounted(async () => {
         </div>
 
         <div class="fixed left-[-9999px] top-0">   
-            <pdf :presupuesto="presupuesto" />
+            <pdf :presupuesto="presupuesto" :cuentaSeleccionada="cuentaSeleccionada" />
         </div>
 
         <modal 

@@ -228,7 +228,13 @@ const router = createRouter({
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('../views/notFound.vue')
-    }
+    },
+    {
+      path: '/serviml',
+      name: 'serviml',
+      component: () => import('../views/Gestion/serviml.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+    },
   ],
 })
 
