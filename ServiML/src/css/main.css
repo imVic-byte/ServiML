@@ -1,38 +1,42 @@
 @import "tailwindcss";
 
-.servi-blue {
-    background-color: #1f3d64;
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --color-servi-blue: #1f3d64;
+    --color-servi-dark: #1F2F4A;
+    --color-servi-grey: #293241;
+    --color-servi-white-bg: #ffffff;
+    --color-servi-white: #021029;
+    --color-servi-yellow: #D8B462;
+    --text-servi-grey-font: #0A0A0A;
+    --color-en-espera: #f6ff4c;
+    --color-servi-adapt-bg: #ffffff;
+    --color-gray-100: #DBDBDB;
 }
-.servi-dark {
-    background-color: #1F2F4A;
+
+@layer base {
+    .dark {
+        --color-servi-white: #ffffff;
+        --color-servi-white-bg: #021029;
+        --color-servi-blue: #091f3c;
+        --color-servi-grey: #1e2530;
+        --color-servi-dark: #1F2F4A;
+        --text-servi-grey-font: #ffffff;
+        --color-servi-adapt-bg: #1f3d64;
+        --color-gray-100: #202020;
+    }
 }
-.servi-grey {
-    background-color: #293241;
-}
-.servi-white {
-    background-color: #ffffff;
-}
-.servi-yellow {
-    background-color: #D8B462;
-}
-.servi-blue-font {
-    color: #1f3d64;
-}
-.servi-dark-font {
-    color: #1F2F4A;
-}
-.servi-grey-font {
-    color: #293241;
-}
-.servi-white-font {
-    color: #ffffff;
-}
-.servi-yellow-font {
-    color: #D8B462;
-}
-.servi-yellow-border {
-    border-color: #D8B462;
-}
-.en-espera {
-    background-color: #f6ff4c;
-}
+
+.servi-blue { background-color: var(--color-servi-blue); }
+.servi-dark { background-color: var(--color-servi-dark); }
+.servi-grey { background-color: var(--color-servi-grey); }
+.servi-white { background-color: var(--color-servi-white-bg); }
+.servi-yellow { background-color: var(--color-servi-yellow); }
+.servi-dark-font { color: var(--color-servi-dark); }
+.servi-grey-font { color: var(--text-servi-grey-font); }
+.servi-yellow-font { color: var(--color-servi-yellow); }
+.servi-yellow-border { border-color: var(--color-servi-yellow); }
+.en-espera { background-color: var(--color-en-espera); }
+.servi-adapt-bg { background-color: var(--color-servi-adapt-bg); }
+.border-gray-100 { border-color: var(--color-gray-100); }

@@ -64,15 +64,15 @@ onMounted(() => {
     <navbar titulo="ServiML" subtitulo="Confirmar OT" class="navbar" searchInput="false" />
     <div class="pb-28 mx-auto p-4 max-w-lg">
         <div class="flex flex-col gap-2">
-            <label for="fecha-ingreso" class="text-lg font-bold servi-blue-font">Fecha de Ingreso</label>
+            <label for="fecha-ingreso" class="text-lg font-bold servi-grey-font">Fecha de Ingreso</label>
             <input type="date" id="fecha-ingreso" v-model="fechaIngreso" 
             class="rounded-xl mx-4 px-4 py-2 servi-blue servi-white-font font-bold" />
-            <label for="trabajador" class="text-lg font-bold servi-blue-font">Trabajador</label>
+            <label for="trabajador" class="text-lg font-bold servi-grey-font">Trabajador</label>
             <select id="trabajador" v-model="trabajador" 
             class="rounded-xl mx-4 px-4 py-2 servi-blue servi-white-font font-bold">
                 <option v-for="trabajador in trabajadores" :key="trabajador.id" :value="trabajador.id">{{ trabajador.nombre }} - {{ trabajador.rol }}</option>
             </select>
-            <button class="servi-yellow servi-blue-font font-bold px-4 py-2 rounded-full" @click="confirmarOT">Confirmar OT</button>
+            <button class="servi-yellow servi-grey-font font-bold px-4 py-2 rounded-full" @click="confirmarOT">Confirmar OT</button>
         </div>
     </div>
     </div>

@@ -34,27 +34,15 @@ const obtenerVehiculo = async () => {
 }
 
 const contarOT = async () => {
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from('orden_trabajo')
-    .select('id', { count: 'exact', head: true })
-    .eq('id_vehiculo', route.params.id)
+    .select('id')
+    .eq('vehiculo_id', route.params.id)
   if (error) {
     console.error('Error al contar OT:', error)
     return
   }
-  totalOT.value = count || 0
-}
-
-const contarPresupuestos = async () => {
-  const { count, error } = await supabase
-    .from('presupuesto')
-    .select('id', { count: 'exact', head: true })
-    .eq('id_vehiculo', route.params.id)
-  if (error) {
-    console.error('Error al contar presupuestos:', error)
-    return
-  }
-  totalPresupuestos.value = count || 0
+  totalOT.value = data.length
 }
 
 const iniciarEdicion = () => {
@@ -85,19 +73,19 @@ onMounted(async () => {
   interfaz.showLoading()
   await obtenerVehiculo()
   await contarOT()
-  await contarPresupuestos()
   interfaz.hideLoading()
 })
 </script>
 
 <template>
-  <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Vehículo" />
+  <div class="servi-white min-h-screen">
+    <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Vehículo" />
 
-  <div v-if="vehiculo" class="bg-gray-50 min-h-screen pb-24">
+    <div v-if="vehiculo" class="servi-white min-h-screen pb-24">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
 
       <!-- Botón volver -->
-      <button @click="router.push({ name: 'listado-vehiculos' })" class="mb-4 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition cursor-pointer">
+      <button @click="router.push({ name: 'listado-vehiculos' })" class="mb-4 flex items-center gap-1 text-sm servi-grey-font hover:opacity-80 transition cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -108,10 +96,10 @@ onMounted(async () => {
 
         <!-- Columna izquierda: Info del vehículo -->
         <div class="lg:w-1/3 space-y-6">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue p-6 flex flex-col items-center relative">
               <!-- Icono auto -->
-              <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center servi-yellow-font mb-3">
+              <div class="w-20 h-20 rounded-full servi-white flex items-center justify-center servi-yellow-font mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M3 11l1.5-5A2 2 0 016.4 4h11.2a2 2 0 011.9 1.4L21 11M3 11v6a1 1 0 001 1h1a2 2 0 104 0h6a2 2 0 104 0h1a1 1 0 001-1v-6M3 11h18" />
                 </svg>
@@ -126,7 +114,7 @@ onMounted(async () => {
               <!-- Botón editar / guardar / cancelar -->
               <div class="absolute top-4 right-4 flex gap-2">
                 <template v-if="!editando">
-                  <button @click="iniciarEdicion" class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition cursor-pointer" title="Editar">
+                  <button @click="iniciarEdicion" class="p-2 servi-adapt-bg/20 hover:servi-adapt-bg/30 rounded-lg transition cursor-pointer" title="Editar">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -156,9 +144,9 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Patente</p>
-                  <input v-if="editando" v-model="vehiculo.patente" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase" />
-                  <p v-else class="text-sm text-gray-800 font-bold">{{ vehiculo.patente || '—' }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Patente</p>
+                  <input v-if="editando" v-model="vehiculo.patente" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase" />
+                  <p v-else class="text-sm servi-grey-font font-bold">{{ vehiculo.patente || '—' }}</p>
                 </div>
               </div>
 
@@ -170,9 +158,9 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Marca</p>
-                  <input v-if="editando" v-model="vehiculo.marca" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm text-gray-800">{{ vehiculo.marca || '—' }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Marca</p>
+                  <input v-if="editando" v-model="vehiculo.marca" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ vehiculo.marca || '—' }}</p>
                 </div>
               </div>
 
@@ -184,9 +172,9 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Modelo</p>
-                  <input v-if="editando" v-model="vehiculo.modelo" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm text-gray-800">{{ vehiculo.modelo || '—' }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Modelo</p>
+                  <input v-if="editando" v-model="vehiculo.modelo" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ vehiculo.modelo || '—' }}</p>
                 </div>
               </div>
 
@@ -198,52 +186,48 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Estado</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Estado</p>
                   <span v-if="vehiculo.en_taller" class="inline-block mt-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
-                  <span v-else class="inline-block mt-1 px-2 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">Fuera del taller</span>
+                  <span v-else class="inline-block mt-1 px-2 py-1 servi-adapt-bg servi-grey-font rounded-full text-xs font-semibold">Fuera del taller</span>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Estadísticas -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalOT }}</p>
-              <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
-            </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalPresupuestos }}</p>
-              <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Presupuestos</p>
+          <div class="grid">
+            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+              <p class="text-3xl font-bold servi-grey-font">{{ totalOT }}</p>
+              <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
             </div>
           </div>
         </div>
 
         <!-- Columna derecha: Dueño -->
         <div class="lg:w-2/3">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-              <h2 class="font-bold text-gray-900">Propietario</h2>
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 servi-blue">
+              <h2 class="font-bold text-white">Propietario</h2>
             </div>
 
             <div v-if="vehiculo.cliente" class="p-6">
               <div
-                class="flex items-center gap-4 p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition cursor-pointer"
+                class="flex items-center gap-4 p-4 rounded-xl border border-gray-100 hover:opacity-80 transition cursor-pointer"
                 @click="router.push({ name: 'ver-cliente', params: { id: vehiculo.cliente.id } })"
               >
                 <div class="w-14 h-14 rounded-full servi-blue flex items-center justify-center text-white text-lg font-bold shrink-0">
                   {{ ((vehiculo.cliente.nombre?.[0] || '') + (vehiculo.cliente.apellido?.[0] || '')).toUpperCase() }}
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="font-bold text-gray-900">{{ camelCase(vehiculo.cliente.nombre) }} {{ camelCase(vehiculo.cliente.apellido) }}</p>
+                  <p class="font-bold servi-grey-font">{{ camelCase(vehiculo.cliente.nombre) }} {{ camelCase(vehiculo.cliente.apellido) }}</p>
                   <div class="flex flex-col sm:flex-row sm:gap-4 mt-1">
-                    <p v-if="vehiculo.cliente.email" class="text-sm text-gray-500 truncate">
+                    <p v-if="vehiculo.cliente.email" class="text-sm servi-grey-font truncate">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                       {{ vehiculo.cliente.email }}
                     </p>
-                    <p v-if="vehiculo.cliente.telefono" class="text-sm text-gray-500">
+                    <p v-if="vehiculo.cliente.telefono" class="text-sm servi-grey-font">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                       </svg>
@@ -251,14 +235,14 @@ onMounted(async () => {
                     </p>
                   </div>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 servi-grey-font shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
               </div>
             </div>
 
             <div v-else class="p-10 text-center">
-              <p class="text-gray-500 font-medium">Sin propietario asignado</p>
+              <p class="servi-grey-font font-medium">Sin propietario asignado</p>
             </div>
           </div>
         </div>
@@ -266,6 +250,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>

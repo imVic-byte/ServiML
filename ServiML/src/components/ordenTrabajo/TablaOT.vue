@@ -16,13 +16,13 @@ defineProps({
             v-slot="{ navigate, href }"
         >
             <tr
-                class="bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                class="servi-adapt-bg hover:opacity-80 transition-colors cursor-pointer"
                 :href="href"
                 @click="navigate"
                 tabindex="0"
                 @keydown.enter="navigate"
             >
-                <td class="px-6 py-4 font-medium text-gray-900">{{ item.presupuesto.numero_folio }}</td>
+                <td class="px-6 py-4 font-medium servi-white-font">{{ item.presupuesto.numero_folio }}</td>
                 <td class="px-6 py-4">{{ item.vehiculo.patente }}</td>
                 <td class="px-6 py-4">{{ item.motivo_ingreso }}</td>
                 <td class="px-6 py-4">

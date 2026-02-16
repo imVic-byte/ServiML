@@ -25,7 +25,7 @@ serve(async (req) => {
 
     if (userError || !user) throw new Error('Invalid User')
     
-    const { patente, marca, modelo, nombre, apellido, codigoPais, telefono, email, diagnostico, detalles, ...presupuestoData } = await req.json()
+    const { patente, marca, modelo, nombre, apellido, codigoPais, telefono, email, vencimiento, diagnostico, detalles, ...presupuestoData } = await req.json()
 
     let clienteId = null
 
@@ -80,7 +80,8 @@ serve(async (req) => {
         ...presupuestoData,
         id_cliente: clienteId,
         id_vehiculo: vehiculoData.id,
-        diagnostico: diagnostico
+        diagnostico: diagnostico,
+        vencimiento: vencimiento
       })
       .select()
       .single()

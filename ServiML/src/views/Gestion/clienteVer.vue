@@ -110,13 +110,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Cliente" />
+  <div class="servi-white min-h-screen">
+    <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Cliente" />
 
-  <div v-if="cliente" class="bg-gray-50 min-h-screen pb-24">
+    <div v-if="cliente" class="servi-white min-h-screen pb-24">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
 
       <!-- Botón volver -->
-      <button @click="router.push({ name: 'listado-clientes' })" class="mb-4 flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition cursor-pointer">
+      <button @click="router.push({ name: 'listado-clientes' })" class="mb-4 flex items-center gap-1 text-sm servi-grey-font hover:opacity-80 transition cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -125,9 +126,9 @@ onMounted(async () => {
 
       <div class="flex flex-col lg:flex-row gap-6">
         <div class="lg:w-1/3 space-y-6">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue p-6 flex flex-col items-center relative">
-              <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center servi-yellow-font text-2xl font-bold mb-3">
+              <div class="w-20 h-20 rounded-full servi-white flex items-center justify-center servi-yellow-font text-2xl font-bold mb-3">
                 {{ iniciales(cliente.nombre, cliente.apellido) }}
               </div>
               <h1 class="text-xl font-bold servi-yellow-font text-center">
@@ -136,7 +137,7 @@ onMounted(async () => {
               <!-- Botón editar / guardar / cancelar -->
               <div class="absolute top-4 right-4 flex gap-2">
                 <template v-if="!editando">
-                  <button @click="iniciarEdicion" class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition cursor-pointer" title="Editar">
+                  <button @click="iniciarEdicion" class="p-2 servi-adapt-bg/20 hover:servi-adapt-bg/30 rounded-lg transition cursor-pointer" title="Editar">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -160,29 +161,29 @@ onMounted(async () => {
             <div class="p-6 space-y-4">
               <!-- Nombre -->
               <div class="flex items-start gap-3">
-                <div class="p-2 bg-gray-100 rounded-lg shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="p-2 servi-adapt-bg rounded-lg shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 servi-grey-font" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Nombre</p>
-                  <input v-if="editando" v-model="cliente.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm text-gray-800">{{ camelCase(cliente.nombre) || '—' }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Nombre</p>
+                  <input v-if="editando" v-model="cliente.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ camelCase(cliente.nombre) || '—' }}</p>
                 </div>
               </div>
 
               <!-- Apellido -->
               <div class="flex items-start gap-3">
-                <div class="p-2 bg-gray-100 rounded-lg shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <div class="p-2 servi-adapt-bg rounded-lg shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 servi-grey-font" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Apellido</p>
-                  <input v-if="editando" v-model="cliente.apellido" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm text-gray-800">{{ camelCase(cliente.apellido) || '—' }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Apellido</p>
+                  <input v-if="editando" v-model="cliente.apellido" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ camelCase(cliente.apellido) || '—' }}</p>
                 </div>
               </div>
 
@@ -194,9 +195,9 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Email</p>
-                  <input v-if="editando" v-model="cliente.email" type="email" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm text-gray-800 break-all">{{ cliente.email || '—' }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Email</p>
+                  <input v-if="editando" v-model="cliente.email" type="email" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font break-all">{{ cliente.email || '—' }}</p>
                 </div>
               </div>
 
@@ -208,9 +209,9 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div class="flex-1">
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Teléfono</p>
-                  <input v-if="editando" v-model="cliente.telefono" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm text-gray-800">{{ cliente.telefono ? '+' + (cliente.codigo_pais || '56') + ' ' + cliente.telefono : '—' }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Teléfono</p>
+                  <input v-if="editando" v-model="cliente.telefono" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ cliente.telefono ? '+' + (cliente.codigo_pais || '56') + ' ' + cliente.telefono : '—' }}</p>
                 </div>
               </div>
 
@@ -222,8 +223,8 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-400 uppercase font-semibold">RUT</p>
-                  <p class="text-sm text-gray-800">{{ cliente.rut }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">RUT</p>
+                  <p class="text-sm servi-grey-font">{{ cliente.rut }}</p>
                 </div>
               </div>
 
@@ -236,8 +237,8 @@ onMounted(async () => {
                   </svg>
                 </div>
                 <div>
-                  <p class="text-xs text-gray-400 uppercase font-semibold">Dirección</p>
-                  <p class="text-sm text-gray-800">{{ cliente.direccion }}</p>
+                  <p class="text-xs servi-grey-font uppercase font-semibold">Dirección</p>
+                  <p class="text-sm servi-grey-font">{{ cliente.direccion }}</p>
                 </div>
               </div>
             </div>
@@ -245,55 +246,55 @@ onMounted(async () => {
 
           <!-- Estadísticas -->
           <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalOT }}</p>
-              <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
+            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+              <p class="text-3xl font-bold servi-grey-font">{{ totalOT }}</p>
+              <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalPresupuestos }}</p>
-              <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Presupuestos</p>
+            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+              <p class="text-3xl font-bold servi-grey-font">{{ totalPresupuestos }}</p>
+              <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Presupuestos</p>
             </div>
-            <div class="col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ vehiculos.length }}</p>
-              <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Vehículos Registrados</p>
+            <div class="col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+              <p class="text-3xl font-bold servi-grey-font">{{ vehiculos.length }}</p>
+              <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Vehículos Registrados</p>
             </div>
           </div>
         </div>
 
         <!-- Columna derecha: Vehículos -->
         <div class="lg:w-2/3">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-              <h2 class="font-bold text-gray-900">Vehículos del Cliente</h2>
-              <span class="text-xs text-gray-400 font-semibold">{{ vehiculos.length }} registrado{{ vehiculos.length !== 1 ? 's' : '' }}</span>
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 servi-adapt-bg flex items-center justify-between">
+              <h2 class="font-bold servi-grey-font">Vehículos del Cliente</h2>
+              <span class="text-xs servi-grey-font font-semibold">{{ vehiculos.length }} registrado{{ vehiculos.length !== 1 ? 's' : '' }}</span>
             </div>
 
             <!-- Tabla (desktop) -->
             <div class="hidden md:block overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200 text-sm">
-                <thead class="bg-gray-50">
+              <table class="min-w-full divide-y divide-gray-800 text-sm">
+                <thead class="servi-adapt-bg">
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Patente</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Marca</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Modelo</th>
-                    <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold servi-grey-font uppercase tracking-wider">Patente</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold servi-grey-font uppercase tracking-wider">Marca</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold servi-grey-font uppercase tracking-wider">Modelo</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold servi-grey-font uppercase tracking-wider">Estado</th>
                   </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="servi-adapt-bg divide-y divide-gray-800">
                   <tr
                     v-for="v in vehiculos"
                     :key="v.id"
-                    class="hover:bg-gray-50 transition-colors cursor-pointer"
+                    class="hover:opacity-80 transition-colors cursor-pointer"
                     @click="router.push({ name: 'ver-vehiculo', params: { id: v.id } })"
                   >
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ v.patente || 'S/P' }}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">{{ v.marca || '—' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ v.modelo || '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap servi-grey-font font-medium">{{ v.marca || '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap servi-grey-font">{{ v.modelo || '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span v-if="v.en_taller" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
-                      <span v-else class="px-2 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">Fuera</span>
+                      <span v-else class="px-2 py-1 servi-adapt-bg servi-grey-font rounded-full text-xs font-semibold">Fuera</span>
                     </td>
                   </tr>
                 </tbody>
@@ -301,24 +302,24 @@ onMounted(async () => {
             </div>
 
             <!-- Cards (mobile) -->
-            <div class="md:hidden divide-y divide-gray-100">
+            <div class="md:hidden divide-y divide-gray-800">
               <div
                 v-for="v in vehiculos"
                 :key="v.id"
-                class="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                class="p-4 hover:opacity-80 transition-colors cursor-pointer"
                 @click="router.push({ name: 'ver-vehiculo', params: { id: v.id } })"
               >
                 <div class="flex items-center justify-between mb-2">
                   <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ v.patente || 'S/P' }}</span>
                   <span v-if="v.en_taller" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
-                  <span v-else class="px-2 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">Fuera</span>
+                  <span v-else class="px-2 py-1 servi-adapt-bg servi-grey-font rounded-full text-xs font-semibold">Fuera</span>
                 </div>
-                <p class="font-semibold text-gray-900 text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
+                <p class="font-semibold servi-grey-font text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
               </div>
             </div>
 
             <div v-if="vehiculos.length === 0" class="p-10 text-center">
-              <p class="text-gray-500 font-medium">No hay vehículos registrados para este cliente</p>
+              <p class="servi-grey-font font-medium">No hay vehículos registrados para este cliente</p>
             </div>
           </div>
         </div>
@@ -326,6 +327,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>

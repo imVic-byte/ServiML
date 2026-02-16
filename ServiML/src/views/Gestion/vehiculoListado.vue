@@ -55,36 +55,37 @@ onMounted(async () => {
 </script>
 
 <template>
-  <navbar class="navbar" titulo="ServiML" subtitulo="Vehículos" />
+  <div class="servi-white min-h-screen">
+    <navbar class="navbar" titulo="ServiML" subtitulo="Vehículos" />
 
-  <div class="bg-gray-50 min-h-screen pb-24">
+    <div class="servi-white min-h-screen pb-24">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
 
       <!-- Header -->
       <div class="mb-6 hidden sm:block">
-        <h1 class="text-2xl font-bold text-gray-900">Listado de Vehículos</h1>
-        <p class="text-sm text-gray-500 mt-1">{{ vehiculos.length }} vehículos registrados</p>
+        <h1 class="text-2xl font-bold servi-grey-font">Listado de Vehículos</h1>
+        <p class="text-sm servi-grey-font mt-1">{{ vehiculos.length }} vehículos registrados</p>
       </div>
 
       <!-- Buscador -->
       <div class="mb-5">
         <div class="relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 servi-grey-font" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             v-model="busqueda"
             type="text"
             placeholder="Buscar por patente, marca, modelo o dueño..."
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-800 servi-adapt-bg servi-grey-font text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           />
         </div>
       </div>
 
       <!-- Tabla (pantallas grandes) -->
-      <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <table class="min-w-full text-sm">
             <thead class="servi-blue servi-yellow-font">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Patente</th>
@@ -95,17 +96,17 @@ onMounted(async () => {
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="v in vehiculosFiltrados" :key="v.id" class="hover:bg-gray-50 transition-colors">
+            <tbody class="servi-adapt-bg divide-y divide-gray-100">
+              <tr v-for="v in vehiculosFiltrados" :key="v.id" class="hover:opacity-80 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ v.patente || 'S/P' }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">{{ v.marca || '—' }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ v.modelo || '—' }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-gray-600 max-w-[150px] truncate">{{ camelCase(v.cliente?.nombre) }} {{ camelCase(v.cliente?.apellido) }}</td>
+                <td class="px-6 py-4 whitespace-nowrap servi-grey-font font-medium">{{ v.marca || '—' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap servi-grey-font">{{ v.modelo || '—' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap servi-grey-font max-w-[150px] truncate">{{ camelCase(v.cliente?.nombre) }} {{ camelCase(v.cliente?.apellido) }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span v-if="v.en_taller" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
-                  <span v-else class="px-2 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">Fuera</span>
+                  <span v-else class="px-2 py-1 servi-adapt-bg servi-grey-font rounded-full text-xs font-semibold">Fuera</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <button @click="verVehiculo(v.id)" class="servi-blue servi-yellow-font px-2 py-1 rounded-full hover:opacity-90 transition cursor-pointer">
@@ -119,7 +120,7 @@ onMounted(async () => {
           </table>
         </div>
         <div v-if="vehiculosFiltrados.length === 0" class="p-10 text-center">
-          <p class="text-gray-500 font-medium">{{ busqueda ? 'No se encontraron resultados' : 'No hay vehículos registrados' }}</p>
+          <p class="servi-grey-font font-medium">{{ busqueda ? 'No se encontraron resultados' : 'No hay vehículos registrados' }}</p>
         </div>
       </div>
 
@@ -128,34 +129,35 @@ onMounted(async () => {
         <div
           v-for="v in vehiculosFiltrados"
           :key="v.id"
-          class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer"
+          class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 cursor-pointer"
           @click="verVehiculo(v.id)"
         >
           <div class="flex items-center justify-between mb-2">
             <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ v.patente || 'S/P' }}</span>
             <span v-if="v.en_taller" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
-            <span v-else class="px-2 py-1 bg-gray-100 text-gray-500 rounded-full text-xs font-semibold">Fuera</span>
+            <span v-else class="px-2 py-1 servi-adapt-bg servi-grey-font rounded-full text-xs font-semibold">Fuera</span>
           </div>
-          <p class="font-semibold text-gray-900 text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
-          <div class="space-y-1 text-sm mt-2 border-t border-gray-200 pt-2">
-            <div class="flex items-center gap-2 text-gray-600">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <p class="font-semibold servi-grey-font text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
+          <div class="space-y-1 text-sm mt-2 border-t border-gray-800 pt-2">
+            <div class="flex items-center gap-2 servi-grey-font">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 servi-grey-font shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span class="truncate">{{ camelCase(v.cliente?.nombre) }} {{ camelCase(v.cliente?.apellido) || '—' }}</span>
             </div>
           </div>
-          <button class="servi-blue mt-2 w-full servi-white-font px-2 py-1 rounded-xl hover:opacity-90 transition">
+          <button class="servi-blue mt-2 w-full servi-grey-font px-2 py-1 rounded-xl hover:opacity-90 transition">
             Ver Vehículo
           </button>
         </div>
-        <div v-if="vehiculosFiltrados.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
-          <p class="text-gray-500 font-medium">{{ busqueda ? 'No se encontraron resultados' : 'No hay vehículos registrados' }}</p>
+        <div v-if="vehiculosFiltrados.length === 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-10 text-center">
+          <p class="servi-grey-font font-medium">{{ busqueda ? 'No se encontraron resultados' : 'No hay vehículos registrados' }}</p>
         </div>
       </div>
 
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>

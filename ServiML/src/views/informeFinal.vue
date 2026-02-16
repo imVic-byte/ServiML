@@ -565,14 +565,14 @@ onMounted( async () => {
           
           <div class="col-span-8">
             <div class="grid grid-cols-2 gap-4 mb-3">
-               <div class="bg-white border border-slate-200 p-2 rounded shadow-sm text-center">
+               <div class="servi-adapt-bg border border-slate-200 p-2 rounded shadow-sm text-center">
                   <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kilometraje</span>
-                  <span class="block text-lg font-black text-[#1f3d64] mt-0.5">{{ OrdenTrabajo.kilometraje_inicial || '0' }} km</span>
+                  <span class="block text-lg servi-grey-font mt-0.5">{{ OrdenTrabajo.kilometraje_inicial || '0' }} km</span>
                </div>
-               <div class="bg-white border border-slate-200 p-2 rounded shadow-sm text-center">
+               <div class="servi-adapt-bg border border-slate-200 p-2 rounded shadow-sm text-center">
                   <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Combustible</span>
                   <div class="w-full bg-gray-200 rounded-full h-2 mt-1.5 mb-1">
-                    <div class="bg-[#1f3d64] h-2 rounded-full" :style="{ width: (OrdenTrabajo.combustible_inicial || 0) + '%' }"></div>
+                    <div class="bg-green-500 h-2 rounded-full" :style="{ width: (OrdenTrabajo.combustible_inicial || 0) + '%' }"></div>
                   </div>
                   <span class="block text-[11px] font-bold text-[#1f3d64]">{{ OrdenTrabajo.combustible_inicial || '0' }}%</span>
                </div>
@@ -613,7 +613,7 @@ onMounted( async () => {
                     <div class="w-1.5 h-1.5 rounded-full bg-[#1f3d64] mt-2"></div>
                     <div class="w-px h-full bg-slate-200 my-1" v-if="index !== bitacoraFiltrada.length - 1"></div>
                  </div>
-                 <div class="flex-1 bg-white border border-l-4 border-l-[#1f3d64] border-gray-100 p-2 rounded shadow-sm">
+                 <div class="flex-1 border border-l-4 border-l-[#1f3d64] border-gray-100 p-2 rounded shadow-sm">
                     <div class="flex justify-between items-start mb-1">
                        <p class="text-[11px] font-bold text-gray-800 uppercase">Observación</p>
                        <span class="text-[9px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded">{{ formatoFecha(item.created_at) }}</span>

@@ -37,14 +37,14 @@ watch(() => props.modelValue, (nuevoValor) => {
 </script>
 <template>
   <div>
-    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Rut</label>
+    <label class="block text-xs font-bold servi-grey-font uppercase mb-1">Rut</label>
     <input 
       :value="modelValue" 
       @input="actualizarInput" 
       :class="{ 'border-red-500': !esValidoLocal }" 
       type="text" 
       placeholder="12345678-9" 
-      class="w-full p-2 border border-gray-100 rounded-lg mb-3 bg-gray-200" 
+      class="w-full p-2 border border-gray-100 rounded-lg mb-3 servi-adapt-bg" 
     />
   </div>
 </template>

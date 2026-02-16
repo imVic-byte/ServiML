@@ -60,6 +60,7 @@ onMounted( async () => {
 </script>
 
 <template>
+    <div class="servi-white">
     <navbar titulo="Historial" subtitulo="Registro de actividades" class="navbar"/>
 
     <div class="max-w-4xl mx-auto p-4 pb-20">
@@ -68,19 +69,20 @@ onMounted( async () => {
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
         </div>
 
-        <div v-else-if="historial.length === 0" class="flex flex-col items-center justify-center py-16 px-4 text-center border-2 border-dashed border-gray-300 rounded-xl bg-gray-50">
-            <div class="bg-gray-100 p-4 rounded-full mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div v-else-if="historial.length === 0" class="flex flex-col items-center justify-center py-16 px-4 text-center border-2 border-dashed border-gray-100 rounded-xl servi-adapt-bg">
+            <div class="servi-adapt-bg p-4 rounded-full mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 servi-grey-font" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
             </div>
-            <h3 class="text-lg font-bold text-gray-700 mb-1">No hay historial disponible</h3>
-            <p class="text-gray-500 max-w-sm">Aún no tienes órdenes de trabajo registradas en tu historial. Cuando realices trabajos, aparecerán aquí.</p>
+            <h3 class="text-lg font-bold servi-white-font mb-1">No hay historial disponible</h3>
+            <p class="servi-grey-font max-w-sm">Aún no tienes órdenes de trabajo registradas en tu historial. Cuando realices trabajos, aparecerán aquí.</p>
         </div>
 
         <div v-else class="space-y-4 md:grid md:grid-cols-2 md:gap-4">
             <cardOT v-for="orden in historial" :key="orden.id" :orden="orden" :estado="handleEstados(orden.estado_actual_id)" />
         </div>
 
+    </div>
     </div>
 </template>

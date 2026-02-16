@@ -5,9 +5,10 @@ import GlobalLoader from "@/components/componentes/globalLoader.vue";
 import Footer from "@/components/componentes/footer.vue";
 import { useInterfaz } from "./stores/interfaz";
 import { useUserStore } from "./stores/user";
-
+import {useDark} from '@/stores/useDark'
 const uiStore = useInterfaz();
 const userStore = useUserStore();
+const { isDark } = useDark()
 let safetyTimer = null
 watch(
   () => uiStore.isLoading,
@@ -36,7 +37,7 @@ onMounted(() => {
 
 <template>
   <GlobalLoader />
-  <div class="app-container">
+  <div class="app-container" :class="{ 'dark': isDark }">
     <RouterView />
     <Footer v-if="$route.name !== 'login' && $route.name !== 'crear-contraseña' && $route.name !== 'NotFound'" />
   </div>
