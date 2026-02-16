@@ -24,13 +24,14 @@ const obtenerOrdenes = async () => {
   const { data, error } = await supabase
     .from("orden_trabajo")
     .select("*,vehiculo(*),cliente(*),presupuesto(*)")
-    .eq('estado_actual_id', 6)
+    .in('estado_actual_id', [6,9])
     .order("id", { ascending: false });
   if (error) {
     console.error(error);
     return;
   }
   if (data) {
+    console.log(data)
     ordenes.value = data;
   }
   uiStore.hideLoading()
