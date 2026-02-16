@@ -1,10 +1,15 @@
 <script setup>
-import { computed } from 'vue';
+import { ref, onMounted,computed } from 'vue';
+import { supabase } from '@/lib/supabaseClient';
 
 const props = defineProps({
   presupuesto: {
     type: Object,
     required: true
+  },
+  cuentaSeleccionada: {
+    type: Object,
+    default: null
   }
 });
 
@@ -40,6 +45,46 @@ const montoIVA = computed(() => {
 const totalFinal = computed(() => {
   return baseImponible.value + montoIVA.value;
 });
+
+
+const datosEmpresa = ref({})
+
+const traerDatosEmpresa = async () => {
+  const {data, error} = await supabase.from('serviml').select('*').eq('id', 1).single()
+  if (data) {
+    datosEmpresa.value = data
+  }
+  if (error) {
+    console.error('Error al traer datos de la empresa:', error)
+  }
+}
+
+const traerEmail = async () => {
+  const {data, error} = await supabase.from('serviml_email').select('*').eq('id_serviml', 1).eq('prioritario',true).single()
+  if (data) {
+    datosEmpresa.value.email = data.email
+  }
+  if (error) {
+    console.error('Error al traer datos de la empresa:', error)
+  }
+}
+
+const traerTelefono = async () => {
+  const {data,error} = await supabase.from('serviml_telefono').select('*').eq('id_serviml', 1).eq('prioritario',true).single()
+  if (data) {
+    datosEmpresa.value.telefono = data.telefono
+  }
+  if (error) {
+    console.error('Error al traer datos de la empresa:', error)
+  }
+}
+
+onMounted(async () => {
+  await traerDatosEmpresa()
+  await traerEmail()
+  await traerTelefono()
+})
+
 </script>
 
 <template>
@@ -77,17 +122,17 @@ const totalFinal = computed(() => {
 
     <div class="grid grid-cols-2 gap-10 mb-8">
       <div>
-        <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 text-[11px] uppercase">De: ServiML</h3>
+        <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">De: ServiML</h3>
         <ul class="text-[#374151] space-y-1">
-          <li><span class="font-bold text-[#111827]">Dirección:</span> Calle Las Lomas 108, Sitio 28 (Interior)</li>
-          <li><span class="font-bold text-[#111827]">Ciudad:</span> La Serena / Coquimbo</li>
-          <li><span class="font-bold text-[#111827]">Teléfono:</span> +56 9 5092 8056</li>
-          <li><span class="font-bold text-[#111827]">Email:</span> finanzas@serviml.cl</li>
+          <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa.dirección }}</li>
+          <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa.ciudad }}</li>
+          <li><span class="font-bold text-[#111827]">Teléfono:</span>{{ datosEmpresa.telefono }}</li>
+          <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa.email }}</li>
         </ul>
       </div>
 
       <div>
-        <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 text-[11px] uppercase">Para: Cliente</h3>
+        <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">Para: Cliente</h3>
         <ul class="text-[#374151] space-y-1">
           <li>
             <span class="font-bold text-[#111827]">Cliente:</span> 
@@ -103,9 +148,8 @@ const totalFinal = computed(() => {
           </li>
           <li>
             <span class="font-bold text-[#111827]">Vehículo:</span> 
-            {{ presupuesto.vehiculo?.marca }} {{ presupuesto.vehiculo?.modelo }}
-            <span v-if="presupuesto.vehiculo?.patente" class="ml-2 bg-[#fef08a] px-1 border border-[#fde047] text-[#854d0e] font-bold rounded">
-                {{ presupuesto.vehiculo.patente }}
+            <span v-if="presupuesto.vehiculo?.patente" class="ml-2 px-1 bg-[#fef08a] pb-2 mb-2 text-[#854d0e] font-bold rounded">
+                {{ presupuesto.vehiculo.patente }} - {{ presupuesto.vehiculo.marca }} {{ presupuesto.vehiculo.modelo }}
             </span>
           </li>
         </ul>
@@ -139,17 +183,18 @@ const totalFinal = computed(() => {
 
     <div class="flex justify-between items-start gap-8">
       
-      <div class="w-3/5 bg-[#f8fafc] p-4 rounded-lg border border-[#e2e8f0]">
+      <div v-if="cuentaSeleccionada" class="w-3/5 bg-[#f8fafc] p-4 rounded-lg border border-[#e2e8f0]">
         <h4 class="font-bold text-[#1f3d64] uppercase text-[10px] mb-2 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[#1f3d64]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
           Datos de Transferencia
         </h4>
         <div class="text-[10px] text-[#475569] grid grid-cols-2 gap-x-4 gap-y-1">
-          <p><span class="font-bold">Banco:</span> Banco Estado</p>
-          <p><span class="font-bold">Tipo:</span> Cta. RUT / Vista</p>
-          <p><span class="font-bold">RUT:</span> 78.152.783-1</p>
-          <p><span class="font-bold">Titular:</span> ServiML SpA</p>
-          <p class="col-span-2 mt-1"><span class="font-bold">Correo:</span> finanzas@serviml.cl</p>
+          <p><span class="font-bold">Banco:</span> {{ cuentaSeleccionada.banco }}</p>
+          <p><span class="font-bold">Tipo:</span> {{ cuentaSeleccionada.tipo_cuenta }}</p>
+          <p><span class="font-bold">RUT:</span> {{ cuentaSeleccionada.rut_titular }}</p>
+          <p><span class="font-bold">Titular:</span> {{ cuentaSeleccionada.titular }}</p>
+          <p><span class="font-bold">N° Cuenta:</span> {{ cuentaSeleccionada.numero_cuenta }}</p>
+          <p v-if="datosEmpresa.email"><span class="font-bold">Correo:</span> {{ datosEmpresa.email }}</p>
         </div>
       </div>
 

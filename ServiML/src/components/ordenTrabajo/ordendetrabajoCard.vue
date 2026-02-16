@@ -85,11 +85,11 @@ const formatearFecha = (fechaString) => {
 }
 </script>
 <template>
-  <div :class="estado.estado" class="servi-white mx-2 servi-blue-font card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
+  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-white mx-2 servi-blue-font card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
     
     <div class="flex justify-between items-start border-b border-gray-100 pb-2">
       <div class="flex flex-col">
-        <span class="font-bold text-xl">#{{ orden.presupuesto?.numero_folio || '---' }}</span>
+        <span class="font-bold text-xl">#{{ orden.id || '---' }}</span>
       </div>
       <span :style="{ backgroundColor: estado.color, color: estado.texto }" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
         {{ estado.estado }}
@@ -119,11 +119,9 @@ const formatearFecha = (fechaString) => {
     </div>
 
     <div class="flex mt-2 pt-2 border-t border-gray-100 items-center justify-between">
-      <span class="text-gray-500 text-sm pl-1">Ver Detalles</span>
-      <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: orden.id } }" class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-        </svg>
+      
+      <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: orden.id } }" class="servi-blue servi-white-font p-2 rounded-lg w-full text-center transition-transform hover:scale-110 shadow-sm">
+        <span class="servi-white-font text-sm">Ver Detalles</span>
       </RouterLink>
     </div>
 

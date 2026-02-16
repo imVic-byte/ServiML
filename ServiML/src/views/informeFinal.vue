@@ -16,6 +16,59 @@ const enviandoCorreo = ref(false);
 const iva = ref(0);
 const interfaz = useInterfaz();
 
+const traerDatosCuenta = async () => {
+  const { data, error } = await supabase
+    .from('serviml_cuenta')
+    .select('*')
+    .eq('id', OrdenTrabajo.value.presupuesto.id_cuenta)
+    .single();
+
+  if (error) {
+    console.error('Error al traer datos de la cuenta:', error);
+    return;
+  }
+  informeData.value.cuenta = data;
+}
+
+const traerDatosServiml = async () => {
+  const {data,error} = await supabase
+    .from('serviml')
+    .select('*')
+    .eq('id', 1)
+    .single();
+
+  if (error) {
+    console.error('Error al traer datos de Serviml:', error);
+    return;
+  }
+  informeData.value.serviml = data;
+}
+
+const traerTelefonoEmail = async () => {
+  const {data,error} = await supabase
+    .from('serviml_telefono')
+    .select('*')
+    .eq('prioritario',true)
+    .single();
+
+  if (error) {
+    console.error('Error al traer datos de Serviml:', error);
+    return;
+  }
+  informeData.value.serviml.telefono = data;
+  const {data:email,error:errorEmail} = await supabase
+    .from('serviml_email')
+    .select('*')
+    .eq('prioritario',true)
+    .single();
+
+  if (errorEmail) {
+    console.error('Error al traer datos de Serviml:', errorEmail);
+    return;
+  }
+  informeData.value.serviml.email = email;
+}
+
 // --- NUEVO: Función para convertir URL a Base64 y evitar CORS ---
 const convertirImagenABase64 = async (url) => {
   try {
@@ -28,8 +81,7 @@ const convertirImagenABase64 = async (url) => {
       reader.readAsDataURL(blob);
     });
   } catch (e) {
-    console.warn("No se pudo convertir imagen (CORS bloqueó el fetch):", url);
-    return url; // Retornamos la original si falla, aunque el PDF podría fallar igual
+    return url;
   }
 };
 
@@ -96,12 +148,6 @@ const obtenerOT = async () => {
       .single();
     if (errorDetalles) throw errorDetalles;
     OrdenTrabajo.value = data || [];
-
-    console.log("=== DATOS RECIBIDOS DE SUPABASE ===");
-    console.log("Inicio:", OrdenTrabajo.value.fecha_estacionamiento);
-    console.log("Término:", OrdenTrabajo.value.fecha_termino_estacionamiento);
-    console.log("Objeto completo:", OrdenTrabajo.value);
-
     const { data:detalles, error2 } = await supabase
     .from('detalle_presupuesto')
     .select('*')
@@ -277,13 +323,27 @@ const totalFinalCalculado = computed(() => {
   return totalBase + datosEstacionamiento.value.total;
 });
 
+const formatearFechayHora = (fecha) => {
+  const fechaObj = new Date(fecha);
+  return fechaObj.toLocaleDateString('es-CL', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 onMounted( async () => {
   interfaz.showLoadingOverlay();
   await obtenerDatos();
   await obtenerOT();
   await traerFotosBitacora();
-  console.log("Procesando imágenes para evitar CORS...");
+  await traerDatosCuenta();
+  await traerDatosServiml();
   await procesarImagenesParaPDF();
+  await traerTelefonoEmail();
+  console.log("Informe Data:", informeData.value);
   interfaz.hideLoadingOverlay();
 
   if (route.query.enviar === 'true') {
@@ -345,10 +405,10 @@ onMounted( async () => {
           <div>
             <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 text-[11px] uppercase">De: ServiML</h3>
             <ul class="text-[#374151] space-y-1">
-              <li><span class="font-bold text-[#111827]">Dirección:</span> Calle Las Lomas 108, Sitio 28</li>
-              <li><span class="font-bold text-[#111827]">Ciudad:</span> La Serena / Coquimbo</li>
-              <li><span class="font-bold text-[#111827]">Teléfono:</span> +56 9 5092 8056</li>
-              <li><span class="font-bold text-[#111827]">Email:</span> contacto@serviml.cl</li>
+              <li><span class="font-bold text-[#111827]">Dirección:</span> {{ informeData.serviml?.dirección }}</li>
+              <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ informeData.serviml?.ciudad }}</li>
+              <li><span class="font-bold text-[#111827]">Teléfono:</span>+56 {{ informeData.serviml?.telefono?.telefono }}</li>
+              <li><span class="font-bold text-[#111827]">Email:</span> {{ informeData.serviml?.email?.email }}</li>
             </ul>
           </div>
 
@@ -359,7 +419,7 @@ onMounted( async () => {
                 <span class="font-bold text-[#111827]">Cliente:</span>
                 {{ informeData.cliente_nombre || 'Sin Nombre' }} {{ informeData.cliente_apellido || '' }}
               </li>
-              <li>
+              <li>  
                 <span class="font-bold text-[#111827]">Correo:</span>
                 {{ informeData.cliente_correo || 'Sin Correo' }}
               </li>
@@ -424,7 +484,7 @@ onMounted( async () => {
               </div>
               <div class="border-t border-slate-200 pt-2">
                 <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Ingreso</span>
-                <p class="text-xs text-[#1f3d64]">{{ OrdenTrabajo.fecha_ingreso }}</p>
+                <p class="text-xs text-[#1f3d64]">{{ formatearFechayHora(OrdenTrabajo.fecha_ingreso) }}</p>
               </div>
               <div class="border-t border-slate-200 pt-2">
                 <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Tipo Trabajo</span>
@@ -453,7 +513,7 @@ onMounted( async () => {
 
             <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-2 rounded mt-3 shadow-sm">
               <span class="font-bold text-sm">TOTAL</span>
-              <span class="font-bold text-lg">{{ formatoPesos(informeData.total_final) }}</span>
+              <span class="font-bold text-lg">{{ formatoPesos(totalFinalCalculado) }}</span>
             </div>
           </div>
         </div>

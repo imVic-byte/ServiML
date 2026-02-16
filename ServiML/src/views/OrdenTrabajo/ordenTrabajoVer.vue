@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from "vue";
+import { ref, onMounted, watch, computed } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useRoute, useRouter } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
@@ -7,6 +7,14 @@ import modal from "../../components/componentes/modal.vue";
 import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
 import {subirFotos} from "../../js/subirFotos.js";
 import { useInterfaz } from "@/stores/interfaz.js";
+import { useUserStore } from "../../stores/user.js";
+
+const userStore = useUserStore();
+const soloLectura = computed(() => {
+  const empleadoId = orden.value.id_empleado;
+  if (!empleadoId) return true;
+  return empleadoId !== userStore.user?.id;
+});
 
 const hoy = new Date()
   .toLocaleString('sv-SE')
@@ -20,6 +28,14 @@ const formatearFecha = (fechaStr) => {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit'
   });
+};
+
+const fechaToDatetimeLocal = (fechaStr) => {
+  if (!fechaStr) return '';
+  const fecha = new Date(fechaStr.replace(' ', 'T'));
+  if (isNaN(fecha)) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
 };
 
 const isCerrado = ref(false);
@@ -41,6 +57,7 @@ const observaciones = ref([]);
 const fechaIngreso = ref(null);
 const nivelCombustible = ref(0);
 const fotosRecepcion = ref([]);
+const talleres = ref([]);
 
 const activarInput = (index, tipo) => {
   const id = tipo === 'camara' ? `input-camara-${index}` : `input-galeria-${index}`;
@@ -113,6 +130,15 @@ const verificarEstadoCerrado = () => {
     };
     return true;
   }
+  if (soloLectura.value) {
+    modalState.value = {
+      visible: true,
+      titulo: "Acción no permitida",
+      mensaje: "No eres el técnico asignado a esta orden. Solo lectura.",
+      exito: false,
+    };
+    return true;
+  }
 }
 
 const agregarObservacion = () => {
@@ -140,7 +166,8 @@ const guardarCambios = async () => {
     .update({
       kilometraje_inicial: orden.value.kilometraje_inicial,
       combustible_inicial: nivelCombustible.value,
-      fecha_ingreso: orden.value.fecha_ingreso,
+      fecha_ingreso: fechaIngreso.value || orden.value.fecha_ingreso,
+      fecha_promesa: orden.value.fecha_promesa,
       prioridad: orden.value.prioridad,
       tipo_trabajo: orden.value.tipo_trabajo,
       origen_ingreso: orden.value.origen_ingreso,
@@ -150,7 +177,8 @@ const guardarCambios = async () => {
       trae_candado_seguridad: orden.value.trae_candado_seguridad,
       trae_panel_radio: orden.value.trae_panel_radio,
       trae_rueda_repuesto: orden.value.trae_rueda_repuesto,
-      trae_encendedor: orden.value.trae_encendedor
+      trae_encendedor: orden.value.trae_encendedor,
+      id_taller: orden.value.id_taller
     })
     .eq("id", route.params.id);
 
@@ -278,6 +306,14 @@ const handleIsCerrado = async (estado_actual_id) => {
   }
 }
 
+const obtenerTalleres = async () => {
+  const { data } = await supabase
+    .from('serviml_taller')
+    .select('*')
+    .order('id', { ascending: true });
+  if (data) talleres.value = data;
+};
+
 const obtenerOrden = async () => {
   manejarBloqueo(true);
   const { data } = await supabase
@@ -287,8 +323,11 @@ const obtenerOrden = async () => {
     .single();
   if (data) {
     orden.value = data;
-    fechaIngreso.value = formatearFecha(data.fecha_ingreso);
+    fechaIngreso.value = fechaToDatetimeLocal(data.fecha_ingreso);
     nivelCombustible.value = data.combustible_inicial ?? 0;
+    if (!data.id_taller && talleres.value.length > 0) {
+      orden.value.id_taller = talleres.value[0].id;
+    }
   }
   manejarBloqueo(false);
   await handleIsCerrado(orden.value.estado_actual_id);
@@ -354,13 +393,35 @@ const handleGenerarInformeFinal = async () => {
     created_at: fechaActual
   }).select().single();
   if (error) return;
-
   router.push({
     name: 'ver-informe-final',
     params: { id: orden.value.id },
     query: { enviar: 'true' }
   });
 };
+
+const handleGenerarInformeEstacionamiento = async () => {
+  if (!orden.value.fecha_estacionamiento) {
+    return;
+  }
+  const d = new Date();
+  const fechaActual = new Date(
+    d.getTime() - d.getTimezoneOffset() * 60000
+  )
+    .toISOString()
+    .slice(0, 19);
+  if (!orden.value.fecha_termino_estacionamiento) {
+    const {data,error} = await supabase.from('orden_trabajo').update({
+      fecha_termino_estacionamiento: fechaActual
+    }).eq('id',orden.value.id);
+    if(error) return;
+  }
+  router.push({
+    name: 'ver-informe-final',
+    params: { id: orden.value.id },
+    query: { enviar: 'true' }
+  });
+}
 
 const ejecutarCambioReal = async () => {
   manejarBloqueo(true);
@@ -411,12 +472,16 @@ const ejecutarCambioReal = async () => {
         orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
     }
     await handleIsCerrado(selectedEstado.value.id);
+
+    if (selectedEstado.value.id === 7) {
+      await handleGenerarInformeEstacionamiento();
+    }
     
     if (selectedEstado.value.id === 6) {
       await handleGenerarInformeFinal();
     }
     if (selectedEstado.value.id == 11) {
-      fechaIngreso.value = formatearFecha(hoy);
+      fechaIngreso.value = fechaToDatetimeLocal(hoy);
       await supabase.from('orden_trabajo').update({ 'fecha_ingreso': hoy }).eq('id', route.params.id);
     }
   }
@@ -427,15 +492,8 @@ const ejecutarCambioReal = async () => {
 
 onMounted(async () => {
   interfaz.showLoading();
+  await obtenerTalleres();
   await obtenerOrden();
-  if (!orden.value.id_empleado) {
-    sinEmpleado.value = true;
-    interfaz.hideLoading();
-    setTimeout(() => {
-      router.push({ name: 'ordenes-de-trabajo' });
-    }, 3000);
-    return;
-  }
   obtenerEstados();
   traerObservaciones();
   traerFotosRecepcion();
@@ -444,7 +502,7 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen bg-gray-50 pb-12">
-    <navbar titulo="ServiML" :subtitulo="'OT No. ' + orden.presupuesto?.numero_folio" class="sticky top-0 z-40" searchInput="false" />
+    <navbar titulo="ServiML" :subtitulo="'OT # ' + orden.id" class="sticky top-0 z-40" searchInput="false" />
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-15">
       
@@ -453,6 +511,13 @@ onMounted(async () => {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         <p class="font-bold">La orden de trabajo está cerrada. Modo solo lectura.</p>
+      </div>
+
+      <div v-if="soloLectura && !isCerrado" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded shadow-sm flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <p class="font-bold">No eres el técnico asignado. Modo solo lectura.</p>
       </div>
 
       <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
@@ -489,7 +554,9 @@ onMounted(async () => {
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Email</label><p>{{ orden.cliente?.email || 'No registrado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Motivo de Ingreso</label><p>{{ orden.motivo_ingreso }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Responsable</label><p>{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label><p>{{ fechaIngreso || 'No registrado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label><p>{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Promesa</label><input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
+              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Taller</label><select class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
             </div>
           </div>
 
@@ -503,11 +570,11 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label>
-                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="orden.fecha_ingreso" />
+                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
                   </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Prioridad</label>
-                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad">
+                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad" :disabled="soloLectura || isCerrado">
                       <option value="1">Alta (Urgencia)</option>
                       <option value="2">Media (Normal)</option>
                       <option value="3">Baja (Proyecto)</option>
@@ -517,7 +584,7 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Origen Ingreso</label>
-                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso">
+                    <select class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso" :disabled="soloLectura || isCerrado">
                       <option value="cliente">Conducido por Cliente</option>
                       <option value="grua">Grúa / Remolque</option>
                       <option value="tercero">Chofer / Tercero</option>
@@ -525,19 +592,19 @@ onMounted(async () => {
                   </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo de Trabajo</label>
-                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" />
+                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" :disabled="soloLectura || isCerrado" />
                   </div>
                 </div>
                 <div class="space-y-1">
                   <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Kilometraje Actual</label>
                   <div class="relative">
-                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium pl-4" type="number" v-model="orden.kilometraje_inicial" />
+                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium pl-4" type="number" v-model="orden.kilometraje_inicial" :disabled="soloLectura || isCerrado" />
                     <span class="absolute right-4 top-2.5 text-gray-400 text-sm font-bold">KM</span>
                   </div>
                 </div>
                 <div class="space-y-1 flex-row">
                   <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Diagnóstico Inicial</label>
-                  <textarea class="w-full h-32 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico"></textarea>
+                  <textarea class="w-full h-32 bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico" :disabled="soloLectura || isCerrado"></textarea>
                 </div>
               </div>
 
@@ -552,27 +619,27 @@ onMounted(async () => {
                   <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Inventario Rápido</label>
                   <div class="grid grid-cols-2 gap-3">
                     <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_documentos" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                      <input type="checkbox" v-model="orden.trae_documentos" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Documentos</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_llaves" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                      <input type="checkbox" v-model="orden.trae_llaves" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Llaves</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_candado_seguridad" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                      <input type="checkbox" v-model="orden.trae_candado_seguridad" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-xs font-medium text-gray-700">Tuerca Seguridad</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_panel_radio" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                      <input type="checkbox" v-model="orden.trae_panel_radio" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Panel Radio</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_rueda_repuesto" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                      <input type="checkbox" v-model="orden.trae_rueda_repuesto" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Rueda Repuesto</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_encendedor" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                      <input type="checkbox" v-model="orden.trae_encendedor" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Encendedor</span>
                     </label>
                   </div>
@@ -589,7 +656,7 @@ onMounted(async () => {
 
             <div class="p-6">
               <!-- Upload buttons -->
-              <div class="flex gap-3 mb-5">
+              <div v-if="!soloLectura && !isCerrado" class="flex gap-3 mb-5">
                 <input 
                   type="file" 
                   id="input-camara-recepcion" 
@@ -657,7 +724,7 @@ onMounted(async () => {
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Bitácora de Observaciones</h3>
-              <button @click="agregarObservacion" class="servi-yellow text-blue-900 font-bold p-2 rounded-full shadow-md transition-all transform hover:scale-105" title="Agregar Observación">
+              <button v-if="!soloLectura && !isCerrado" @click="agregarObservacion" class="servi-yellow text-blue-900 font-bold p-2 rounded-full shadow-md transition-all transform hover:scale-105" title="Agregar Observación">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
@@ -760,7 +827,7 @@ onMounted(async () => {
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
             <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
             <div class="flex flex-col gap-3">
-              <button @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
+              <button v-if="!soloLectura && !isCerrado" @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
@@ -773,6 +840,13 @@ onMounted(async () => {
                 </svg>
                 Ver Informe Final
               </button>
+
+              <div v-if="soloLectura" class="text-center py-3 text-sm text-gray-400 font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Solo lectura
+              </div>
             </div>
           </div>
         </div>
@@ -821,19 +895,6 @@ onMounted(async () => {
 
     <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
 
-    <!-- Modal sin empleado asignado -->
-    <div v-if="sinEmpleado" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
-        <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
-          </svg>
-        </div>
-        <h3 class="text-lg font-bold text-gray-800 mb-2">Orden sin empleado asignado</h3>
-        <p class="text-sm text-gray-500 mb-4">Esta orden de trabajo no tiene un empleado asignado. Serás redirigido al listado de órdenes.</p>
-        <div class="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-blue-500 mx-auto mb-2"></div>
-        <p class="text-xs text-gray-400">Redirigiendo...</p>
-      </div>
-    </div>
+
   </div>
 </template>

@@ -6,14 +6,22 @@ import ordenTrabajoCard from "../../components/ordenTrabajo/ordendetrabajoCard.v
 import navbar from "../../components/componentes/navbar.vue";
 import { useInterfaz } from '../../stores/interfaz.js'
 import ordentrabajoListado from '../../components/ordenTrabajo/ordentrabajoListado.vue'
-
+import { useUserStore } from '../../stores/user'
 const router = useRouter();
 const ordenes = ref([]);
 const todasLasOrdenes = ref([]);
 const uiStore = useInterfaz()
+const userStore = useUserStore()
 const estados = ref([]);
 const showStats = ref(false)
 let searchTimeout = null;
+const esTrabajador = computed(() => userStore.isTrabajador)
+const Todas = ref(esTrabajador.value ? false : true)
+
+const handleTodas = () => {
+  Todas.value = !Todas.value
+  obtenerOrdenes()
+}
 
 const esteMes = computed(() => {
   const fecha = new Date();
@@ -46,7 +54,6 @@ const handleEstados = (id) => {
 
 const obtenerOrdenes = async (busqueda = '', esCargaInicial = false) => {
   let query = supabase.from("orden_trabajo");
-
   if (busqueda) {
     query = query
       .select("*,presupuesto(*),vehiculo!inner(*),cliente(*),id_empleado(*)")
@@ -56,13 +63,15 @@ const obtenerOrdenes = async (busqueda = '', esCargaInicial = false) => {
   }
 
   query = query.order("id", { ascending: false });
-
   const { data, error } = await query;
 
   if (error) {
     console.error(error);
   } else if (data) {
     ordenes.value = data;
+    if (!Todas.value) {
+      ordenes.value = data.filter((orden) => orden.id_empleado?.id === userStore.user.id)
+    }
     if (esCargaInicial) {
       todasLasOrdenes.value = data;
     }
@@ -139,14 +148,19 @@ onMounted(async () => {
       </Transition>
 
       <div class="flex justify-between items-center mb-6">
-        <div>
+        <div class="md:block hidden">
             <h2 class="text-xl font-bold servi-blue-font">Listado de Órdenes</h2>
             <p class="text-sm text-gray-500">Gestiona los trabajos activos en el taller</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex justify-end w-full items-center gap-2">
+
+          <button @click="handleTodas()" class="servi-blue cursor-pointer rounded-full servi-white-font font-bold py-2 px-4 shadow-sm border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2">
+            {{ Todas ? 'Ver mis OTs' : 'Ver todas' }}
+          </button>
+          
           <button 
             @click="showStats = !showStats" 
-            class="md:hidden bg-white servi-blue-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2"
+            class="md:hidden bg-white cursor-pointer servi-blue-font font-bold py-2 px-4 rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-all flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -176,8 +190,9 @@ onMounted(async () => {
       </div>
       <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
         <div class="text-gray-400 mb-2">
-          <p class="text-gray-500 text-lg">No se encontraron ordenes de trabajo</p>
-          <p class="text-sm text-gray-400">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>
+          <p v-if="esTrabajador" class="text-gray-500 text-lg">No se encontraron tus ordenes de trabajo</p>
+          <p v-else class="text-gray-500 text-lg">No se encontraron ordenes de trabajo</p>
+          <p class="text-sm text-gray-400">Intenta cambiar el filtro de búsqueda.</p>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>

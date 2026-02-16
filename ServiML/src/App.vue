@@ -38,7 +38,7 @@ onMounted(() => {
   <GlobalLoader />
   <div class="app-container">
     <RouterView />
-    <Footer v-if="$route.name !== 'login' && $route.name !== 'crear-contraseña'" />
+    <Footer v-if="$route.name !== 'login' && $route.name !== 'crear-contraseña' && $route.name !== 'NotFound'" />
   </div>
 </template>
 

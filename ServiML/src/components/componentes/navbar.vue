@@ -2,10 +2,15 @@
 import { ref, computed } from 'vue';
 import newNotification from '../varios/newNotification.vue';
 import emptyNotification from '../varios/emptyNotification.vue';
+import notificacionesModal from './notificacionesModal.vue';
+import { useNotifications } from '@/stores/notificaciones.js'
+import { useUserStore } from '@/stores/user';
 
-const notifications = ref([])
+const userStore = useUserStore()
+const { notifications, markAsRead, markAllAsRead } = useNotifications(userStore.user.id)
 
-const hasNotifications = computed(() => notifications.value.length > 0)
+const hasNotifications = computed(() => notifications.value.filter(n => !n.leido).length > 0)
+const mostrarModal = ref(false)
 
 defineProps({
     titulo: String,
@@ -13,6 +18,10 @@ defineProps({
     searchInput: String,
     notificaciones: String
 })
+
+const handleMostrarNotificaciones = () => {
+  mostrarModal.value = !mostrarModal.value
+}
 
 const emit = defineEmits(['buscar'])
 
@@ -29,7 +38,7 @@ const onInput = (event) => {
       <h2 class="welcome">{{ titulo }}</h2>
       <h1 class="user-name">{{ subtitulo }}</h1>
     </div>
-    <div v-if="notificaciones === 'true'">
+    <div v-if="notificaciones === 'true'" @click="handleMostrarNotificaciones" class="flex items-center justify-center">
       <div v-if="hasNotifications">
         <newNotification />
       </div>
@@ -42,6 +51,15 @@ const onInput = (event) => {
       <input type="text" placeholder="Buscar patente (Ej: ABCD-12)..." class="search-input" @input="onInput">
     </div>
   </header>
+
+  <!-- Modal de Notificaciones -->
+  <notificacionesModal
+    v-if="mostrarModal"
+    :notifications="notifications"
+    @cerrar="mostrarModal = false"
+    @marcarLeida="markAsRead"
+    @marcarTodasLeidas="markAllAsRead"
+  />
 </nav>
 </template>
 
@@ -77,4 +95,5 @@ const onInput = (event) => {
   color: #666;
 }
 </style>
+
 

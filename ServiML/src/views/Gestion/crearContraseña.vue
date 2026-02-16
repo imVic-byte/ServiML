@@ -14,6 +14,8 @@ const isError = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
 const interfaz = useInterfaz();
+const showPassword = ref(false)
+const showConfirm = ref(false)
 
 // --- Password validation rules ---
 const reglas = computed(() => [
@@ -100,7 +102,7 @@ const updatePassword = async () => {
     <navbar 
       titulo="Bienvenido al Equipo" 
       subtitulo="Activa tu cuenta profesional" 
-      class="fixed-nav"
+      class="navbar"
     />
     
     <div class="content-container">
@@ -113,12 +115,18 @@ const updatePassword = async () => {
         <div class="form-section">
           <div class="input-group">
             <label>Nueva Contraseña</label>
-            <input 
-              v-model="password" 
-              type="password" 
-              placeholder="••••••••" 
-              class="servi-input"
-            />
+            <div class="input-wrapper">
+              <input 
+                v-model="password" 
+                :type="showPassword ? 'text' : 'password'" 
+                placeholder="••••••••" 
+                class="servi-input"
+              />
+              <button type="button" class="eye-btn" @click="showPassword = !showPassword" tabindex="-1">
+                <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" /></svg>
+              </button>
+            </div>
           </div>
 
           <!-- Strength bar -->
@@ -141,13 +149,19 @@ const updatePassword = async () => {
 
           <div class="input-group">
             <label>Confirmar Contraseña</label>
-            <input 
-              v-model="confirmPassword" 
-              type="password" 
-              placeholder="••••••••" 
-              class="servi-input"
-              :class="{ 'input-error': passwordsCoinciden === false, 'input-ok': passwordsCoinciden === true }"
-            />
+            <div class="input-wrapper">
+              <input 
+                v-model="confirmPassword" 
+                :type="showConfirm ? 'text' : 'password'" 
+                placeholder="••••••••" 
+                class="servi-input"
+                :class="{ 'input-error': passwordsCoinciden === false, 'input-ok': passwordsCoinciden === true }"
+              />
+              <button type="button" class="eye-btn" @click="showConfirm = !showConfirm" tabindex="-1">
+                <svg v-if="!showConfirm" xmlns="http://www.w3.org/2000/svg" class="eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" /></svg>
+              </button>
+            </div>
             <p v-if="passwordsCoinciden === false" class="match-msg error-text">Las contraseñas no coinciden</p>
             <p v-else-if="passwordsCoinciden === true" class="match-msg ok-text">Las contraseñas coinciden ✓</p>
           </div>
@@ -240,6 +254,36 @@ const updatePassword = async () => {
   transition: all 0.2s ease;
   outline: none;
   box-sizing: border-box;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper .servi-input {
+  padding-right: 3rem;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+
+.eye-btn:hover {
+  color: var(--servi-gold);
+}
+
+.eye-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .servi-input:focus {

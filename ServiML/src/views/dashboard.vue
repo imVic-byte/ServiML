@@ -1,228 +1,439 @@
 <script setup>
 import navbar from '../components/componentes/navbar.vue'
-import { useUserStore } from '../stores/user.js'
-import { useInterfaz } from '../stores/interfaz.js'
-import { storeToRefs } from 'pinia'
-import { computed, ref, onMounted } from 'vue'
-import { supabase } from '../lib/supabaseClient'
-import tablero from '../components/dashboard/tablero.vue'
+import { ref, onMounted, computed } from 'vue'
+import { useUserStore } from '../stores/user'
+import { useRouter } from 'vue-router'
+import { useInterfaz } from '@/stores/interfaz'
+import { supabase } from '@/lib/supabaseClient'
 
-const capacidad = ref(15)
-const otSinAsignar = ref([])
-const otLista = ref([])
-const otPorEntregar = ref([])
-const PresupuestosSemana= ref([])
-const aprobadosHoy = ref(0)
-const vehiculosLista = ref([])
-const uiStore = useInterfaz()
+const interfaz = useInterfaz()
 const userStore = useUserStore()
-const {trabajador, loading: authLoading} = storeToRefs(userStore)
-
-const nombreCompleto = computed(() => {
-  if (authLoading.value) return 'Verificando Sesión...'
-  if (trabajador.value) {
-    if (!trabajador.value.apellido) {
-      return trabajador.value.nombre
-    }
-    return `${trabajador.value.nombre} ${trabajador.value.apellido}`
-  }
-  return 'Usuario'
+const router = useRouter()
+const nombre = userStore.trabajador?.nombre || ''
+const apellido = userStore.trabajador?.apellido || ''
+const nombreCompleto = computed(() => nombre + ' ' + apellido)
+const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+const diaSemana = new Date().getDay()
+const formatoLocal = (fecha) => {
+  const y = fecha.getFullYear()
+  const m = String(fecha.getMonth() + 1).padStart(2, '0')
+  const d = String(fecha.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+const fechaInicioSemana = computed(() => {
+  const fecha = new Date()
+  const dia = fecha.getDay()
+  const diferencia = dia === 0 ? -6 : 1 - dia
+  fecha.setDate(fecha.getDate() + diferencia)
+  return formatoLocal(fecha)
 })
+const fechaFinSemana = computed(() => {
+  const fecha = new Date()
+  const dia = fecha.getDay()
+  const diferencia = dia === 0 ? 0 : 7 - dia
+  fecha.setDate(fecha.getDate() + diferencia)
+  return formatoLocal(fecha)
+})
+const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
+const vehiculosEnTaller = ref(0)
+const listaOT = ref([])
+const listaOTRecientes = ref([])
+const otSinAsignar = ref(0)
+const listaPresupuestos = ref([])
+const presupuestosSemana = ref(0)
+const aprobadosHoy = ref(0)
+const otPorEntregar = ref(0)
+const capacidadMaxima = ref(15)
+const listaEstados = ref([])
+const talleres = ref([])
+const tallerSeleccionado = ref(null)
+const porcentajeCapacidad = computed(() => (vehiculosEnTaller.value / capacidadMaxima.value) * 100)
+const TruncarPorcentaje = computed(() => Math.trunc(porcentajeCapacidad.value))
 
-const handleOT = async () => {
-  const { data, error } = await supabase
-    .from('orden_trabajo')
-    .select('*')
-  if (error) {
-    console.error('Error al obtener OT:', error)
-    return
-  }
-  otLista.value = data || []
-  handleOTSinAsignar()
+const VehiculosEnTaller = () => {
+  router.push({ name: 'vehiculos-en-taller' })
 }
 
-const handleOTSinAsignar = () => {
-  otSinAsignar.value = otLista.value.filter(ot => ot.estado_actual_id === 1)
+const SinAsignar = () => {
+  router.push({ name: 'ot-sin-asignar' })
+}
+
+const PresupuestosSemana = () => {
+  router.push({ name: 'presupuestos-semana' })
+}
+
+const ListoParaEntregar = () => {
+  router.push({ name: 'ot-por-entregar' })
+}
+
+const verTablero = () => {
+  router.push({ name: 'ordenes-de-trabajo' })
+}
+
+const verOT = (id) => {
+  router.push({ name: 'ver-orden-de-trabajo', params: { id } })
+}
+
+const obtenerTalleres = async () => {
+  try {
+    const { data, error } = await supabase.from('serviml_taller').select('*').order('id', { ascending: true })
+    if (error) throw error
+    talleres.value = data || []
+    if (talleres.value.length > 0) tallerSeleccionado.value = talleres.value[0].id
+  } catch (error) {
+    console.error('Error al obtener talleres:', error)
+  }
+}
+
+const handleVehiculos = async () => {
+  try {
+    let query = supabase.from('orden_trabajo').select('id, id_taller, vehiculo!inner(en_taller)').eq('vehiculo.en_taller', true)
+    if (tallerSeleccionado.value) {
+      query = query.eq('id_taller', tallerSeleccionado.value)
+    }
+    const { data, error } = await query
+    if (error) throw error
+    vehiculosEnTaller.value = data.length
+  } catch (error) {
+    console.error('Error al obtener vehiculos:', error)
+  }
+}
+
+const cambiarTaller = async () => {
+  await handleVehiculos()
+  await handleOT()
+  handleOTSinAsignar()
   handlePorEntregar()
+  handleOTRecientes()
+}
+
+const handleOT = async () => {
+  try {
+    let query = supabase.from('orden_trabajo').select('*, vehiculo(*), cliente(*), presupuesto(*)')
+    if (tallerSeleccionado.value) {
+      query = query.eq('id_taller', tallerSeleccionado.value)
+    }
+    const {data, error} = await query
+    if (error) throw error
+    listaOT.value = data
+  } catch (error) {
+    console.error('Error al obtener OT:', error)
+  }
+}
+
+const handleOTSinAsignar = async () => {
+  otSinAsignar.value = listaOT.value.filter(ot => ot.id_empleado === null).length
+}
+
+
+const handlePresupuestosSemana = async () => {
+  try {
+    const { data, error } = await supabase.from('presupuesto').select('*').gte('created_at', fechaInicioSemana.value).lte('created_at', fechaFinSemana.value).eq('estado', 2)
+    if (error) throw error
+    listaPresupuestos.value = data
+    presupuestosSemana.value = data.length
+  } catch (error) {
+    console.error('Error al obtener presupuestos:', error)
+  }
+}
+
+const handleAprobadosHoy = () => {
+  const hoy = new Date().toISOString().split('T')[0]
+  aprobadosHoy.value = listaPresupuestos.value.filter(presupuesto => presupuesto.created_at.split('T')[0] === hoy).length
 }
 
 const handlePorEntregar = () => {
-  otPorEntregar.value = otLista.value.filter(ot => ot.estado_actual_id === 6)
-  handleOTNoTerminada()
+  otPorEntregar.value = listaOT.value.filter(ot => ot.estado_actual_id === 6 || ot.estado_actual_id === 9).length
 }
 
-const handleOTNoTerminada = () => {
-  otLista.value = otLista.value.filter(ot => ot.estado_actual_id !== 7 && ot.estado_actual_id !== 8 && ot.estado_actual_id !== 1 && ot.estado_actual_id !== 10)
-  vehiculosLista.value = otLista.value
+const handleOTRecientes = () => {
+  listaOTRecientes.value = listaOT.value.filter(ot => ot.created_at >= fechaInicioSemana.value && ot.created_at <= fechaFinSemana.value).slice(0, 5)
 }
 
-const handleSemana = () => {
-  const hoy = new Date()
-  const dia = hoy.getDay()
-  const diff = hoy.getDate() - dia + (dia === 0 ? -6 : 1)
-  const lunes = new Date(hoy.setDate(diff))
-  lunes.setHours(0, 0, 0, 0)
-  return lunes.toISOString()
+const handleEstados = async () => {
+  try {
+    const {data,error} = await supabase.from('tabla_estados').select('*')
+    if (error) throw error
+    listaEstados.value = data
+  } catch (error) {
+    console.error('Error al obtener estados:', error)
+  }
 }
 
-const handlePresupuestosSemana = async () => {
-  const lunesISO = handleSemana()
-  const { data, error } = await supabase
-    .from('presupuesto')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .gte('created_at', lunesISO)
-  if (error) {
-    console.error('Error al obtener presupuestos de la semana:', error)
-    return
-  } 
-  PresupuestosSemana.value = data || []
+const handleOrdenarEstado = (estado) => {
+  return listaEstados.value.find(e => e.id === estado) || {estado: 'Desconocido', color: 'bg-gray-500'}
 }
 
-const handleAprobadosHoy = async () => {
-    const hoy = new Date()
-    const inicioDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0)
-    const {data, error} = await supabase
-    .from('presupuesto')
-    .select('*')
-    .eq('estado', 2)
-    .gte('updated_at', inicioDia.toISOString())
+const metricas = ref({
+  ocupacion_actual: 0,
+  ticket_promedio: 0,
+  porcentaje_a_tiempo: 0,
+  porcentaje_rechazos: 0
+})
+
+const cargarMetricas = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('vista_dashboard_metricas')
+      .select('*')
+      .single()
+
+    if (error) throw error
     
-    if (error) {
-        console.error('Error fetching aprobados:', error)
-        return 0
+    if (data) {
+      metricas.value = data
+      console.log(metricas.value)
     }
-    // NOTA: Eliminé uiStore.hideLoading() de aquí para centralizarlo en onMounted
-    return aprobadosHoy.value = data ? data.length : 0
+
+  } catch (error) {
+    console.error('Error al obtener KPIs:', error)
+  }
+}
+
+const formatoMoneda = (valor) => {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0
+  }).format(valor)
 }
 
 onMounted(async () => {
-  uiStore.showLoading()
-  
-  // Aseguramos auth primero
-  if (!userStore.initialized) {
-    await userStore.initializeAuth()
-  }
-
-  try {
-     // Promise.all permite que las peticiones se hagan en paralelo
-     await Promise.all([
-        handleOT(),
-        handlePresupuestosSemana(),
-        handleAprobadosHoy()
-     ])
-  } catch (error) {
-    console.error('Error crítico al obtener datos del dashboard:', error)
-  } finally {
-    // ESTO ES CRÍTICO: Se ejecuta SIEMPRE, haya error o no.
-    // Esto previene que la pantalla se quede congelada con el loading.
-    uiStore.hideLoading()
-  }
-});
+  interfaz.showLoading()
+  await obtenerTalleres()
+  await handleVehiculos()
+  await handleOT()
+  await handleOTSinAsignar()
+  await handlePresupuestosSemana()
+  await handleAprobadosHoy()
+  await handlePorEntregar()
+  await handleOTRecientes()
+  await handleEstados()
+  await cargarMetricas()
+  interfaz.hideLoading()
+})
 </script>
 <template>
-<navbar :titulo="nombreCompleto + ' - ' + trabajador?.rol" subtitulo="Dashboard" class="navbar"/>
-  <div class="min-h-screen flex flex-col">
-    <div class="flex bg-gray-50 text-gray-800 font-sans sm:pb-10">
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <main class="flex-1 overflow-x-hidden overflow-y-auto p-3">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-2">
-                    <RouterLink to="/vehiculos-en-taller" class="no-underline">
-                    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Vehículos en Taller</p>
-                                <div class="flex align-center items-center ">
-                                <span class="text-2xl font-bold text-gray-800 pb-1 pr-2">{{otLista.length}}</span>
-                                <span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-car-icon lucide-car"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg></span>
-                                </div>
-                            </div>
-                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">En Reparación</span>
-                        </div>
-                        <div class="mt-4 w-full bg-gray-200 rounded-full h-1.5">
-                            <div class="bg-blue-600 h-1.5 rounded-full" :style="{ width: `${(otLista.length / 10 * 100)}%` }"></div>
-                        </div>
-                    </div>
-                    </RouterLink>
-                    <RouterLink to="/ot-sin-asignar" class="no-underline">
-                    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">OT Sin Asignar</p>
-                                <h3 class="text-2xl font-bold text-gray-800 mt-1">{{otSinAsignar.length}}</h3>
-                            </div>
-                            <span v-if="otSinAsignar.length > 5" class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">Crítico</span>
-                            <span v-else class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">Alerta</span>
-                        </div>
-                        <p v-if="otSinAsignar.length > 5" class="text-sm text-gray-500 mt-4 font-medium">Requiere acción inmediata</p>
-                        <p v-else class="text-sm text-gray-500 mt-4 font-medium">Se sugiere asignar OTs</p>
-                    </div>
-                    </RouterLink>
-                    <RouterLink to="/presupuestos-semana" class="no-underline">
-                    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Presupuestos esta semana</p>
-                                <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ PresupuestosSemana.length}}</h3>
-                            </div>
-                            <span v-if="PresupuestosSemana.length > 10" class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">Alta demanda</span>
-                            <span v-else class="bg-gray-100 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded">Demanda Normal</span>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-4 font-medium">{{ aprobadosHoy}} Aprobados hoy</p>
-                    </div>
-                    </RouterLink>
-                    <RouterLink to="/ot-por-entregar" class="no-underline">
-                    <div class="bg-white rounded-lg p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">OT Completadas esta semana</p>
-                                <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ otPorEntregar.length }}</h3>
-                            </div>
-                            <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">Listos</span>
-                        </div>
-                        <p class="text-sm text-gray-500 mt-4 font-medium">Se sugiere contactar clientes</p>
-                    </div>
-                    </RouterLink>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-20">
-                    <tablero />
-
-                    <div class="bg-white rounded-lg shadow-sm border border-gray-100">
-                        <div class="p-6 border-b border-gray-100">
-                            <h3 class="font-bold text-gray-800 text-lg">Métricas Rápidas</h3>
-                        </div>
-                        <div class="p-6 space-y-6">
-                            <div>
-                                <div class="flex justify-between mb-2">
-                                    <span class="text-sm font-medium text-gray-700">Capacidad Diaria</span>
-                                    <span class="text-sm font-medium text-gray-900">85%</span>
-                                </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="bg-indigo-600 h-2 rounded-full" style="width: 85%"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="border-t border-gray-100 pt-4">
-                                <div class="flex items-center justify-between py-2">
-                                    <span class="text-sm text-gray-600">Monto Promedio</span>
-                                    <span class="font-bold text-gray-900">$185.000</span>
-                                </div>
-                                <div class="flex items-center justify-between py-2">
-                                    <span class="text-sm text-gray-600">Tasa de Rechazo</span>
-                                    <span class="font-bold text-red-600">12%</span>
-                                </div>
-                                <div class="flex items-center justify-between py-2">
-                                    <span class="text-sm text-gray-600">Clientes Nuevos</span>
-                                    <span class="font-bold text-green-600">+8</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+  <div class="bg-slate-50 flex flex-col font-sans">
+    <navbar class="navbar" :titulo="'Dashboard'" notificaciones="true" :subtitulo="'Resumen de operaciones'" />
+    
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-20">
+      <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800">Hola, {{ nombreCompleto }}</h1>
+          <p class="text-slate-500 capitalize">{{ fechaHoy }}</p>
         </div>
-    </div>
+        <div class="mt-2 sm:mt-0 flex items-center gap-3">
+          <select v-model="tallerSeleccionado" @change="cambiarTaller" class="text-sm font-medium bg-white text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none cursor-pointer">
+            <option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }}</option>
+          </select>
+          <span v-if="!esFinDeSemana" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-servi-blue border border-blue-100">
+            <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+            Operativo
+          </span>
+          <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-600 border border-red-100">
+            <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+            Cerrado
+          </span>
+        </div>
+      </div>
 
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
+        <div @click="VehiculosEnTaller" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+          <div class="p-4 sm:p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="p-2.5 sm:p-3 rounded-lg bg-blue-50 text-servi-blue">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                    <circle cx="7" cy="17" r="2" />
+                    <circle cx="17" cy="17" r="2" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4 w-0 flex-1">
+                <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Vehículos en Taller</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ vehiculosEnTaller }}</dd>
+              </div>
+            </div>
+          </div>
+          <div class="bg-slate-50 px-4 sm:px-5 py-2.5">
+            <div class="text-xs font-medium text-servi-blue" :class="{ 'text-red-600': TruncarPorcentaje > 80 }">{{ TruncarPorcentaje }}% capacidad</div>
+          </div>
+        </div>
+
+        <div @click="SinAsignar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+          <div class="p-4 sm:p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="p-2.5 sm:p-3 rounded-lg bg-red-50 text-red-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4 w-0 flex-1">
+                <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Sin Asignar</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ otSinAsignar }}</dd>
+              </div>
+            </div>
+          </div>
+          <div v-if="otSinAsignar>5" class="bg-slate-50 px-4 sm:px-5 py-2.5">
+            <span class="text-xs font-bold text-red-600">Requiere acción</span>
+          </div>
+          <div v-else class="bg-slate-50 px-4 sm:px-5 py-2.5">
+            <span class="text-xs font-bold text-green-600">Todo en orden</span>
+          </div>
+        </div>
+
+        <div @click="PresupuestosSemana" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+          <div class="p-4 sm:p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="p-2.5 sm:p-3 rounded-lg bg-green-50 text-green-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4 w-0 flex-1">
+                <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Presupuestos Semana</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ presupuestosSemana }}</dd>
+              </div>
+            </div>
+          </div>
+          <div class="bg-slate-50 px-4 sm:px-5 py-2.5 flex justify-between items-center">
+            <div class="text-xs text-slate-500">Aprobados hoy</div>
+            <div class="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">+{{ aprobadosHoy }}</div>
+          </div>
+        </div>
+
+        <div @click="ListoParaEntregar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+          <div class="p-4 sm:p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <div class="p-2.5 sm:p-3 rounded-lg bg-yellow-50 text-yellow-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4 w-0 flex-1">
+                <dt class="text-xs sm:text-sm font-medium text-slate-500 truncate">Listos para Entrega</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-slate-900">{{ otPorEntregar }}</dd>
+              </div>
+            </div>
+          </div>
+          <div class="bg-slate-50 px-4 sm:px-5 py-2.5">
+            <div class="text-xs font-medium text-yellow-700">Contactar clientes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenido principal -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Flujo de trabajo reciente (2/3) -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-slate-800">Flujo de Trabajo Reciente</h2>
+            <button @click="verTablero" class="text-sm cursor-pointer text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                <tr>
+                  <th class="px-5 py-3">Orden</th>
+                  <th class="px-5 py-3">Vehículo</th>
+                  <th class="px-5 py-3">Servicio</th>
+                  <th class="px-5 py-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr v-for="ot in listaOTRecientes" @click="verOT(ot.id)" :key="ot.id" class="hover:bg-slate-50 transition-colors cursor-pointer">
+                  <td class="px-5 py-3.5 font-medium text-slate-800">#{{ ot.id }}</td>
+                  <td class="px-5 py-3.5 text-slate-600">{{ ot.vehiculo.patente }}</td>
+                  <td class="px-5 py-3.5 text-slate-600 truncate max-w-[100px] sm:max-w-none">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
+                  <td class="px-5 py-3.5">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleOrdenarEstado(ot.estado_actual_id).color, color: handleOrdenarEstado(ot.estado_actual_id).texto }">{{ handleOrdenarEstado(ot.estado_actual_id).estado }}</span>
+                  </td>
+                </tr>
+                <tr v-if="listaOTRecientes.length === 0" class="hover:bg-slate-50 transition-colors cursor-pointer">
+                  <td class="px-5 py-3.5 font-medium text-slate-800">No hay OT recientes</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          
+          <div class="space-y-6">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+      <h3 class="font-bold text-slate-800">Métricas de Eficiencia</h3>
+    </div>
+    <div class="p-5 space-y-5">
+      
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium text-slate-600">
+            Ocupación Taller ({{ vehiculosEnTaller }}/{{ capacidadMaxima }})
+          </span>
+          <span class="text-sm font-bold text-servi-blue">
+            {{ Math.min(Math.round((vehiculosEnTaller / capacidadMaxima) * 100), 100) }}%
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2.5">
+          <div 
+            class="bg-servi-blue h-2.5 rounded-full transition-all duration-500" 
+            :style="{ width: `${Math.min((vehiculosEnTaller / capacidadMaxima) * 100, 100)}%` }">
+          </div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium text-slate-600">Entrega a Tiempo</span>
+          <span class="text-sm font-bold text-green-600">
+            {{ metricas.porcentaje_a_tiempo }}%
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2.5">
+          <div 
+            class="bg-green-500 h-2.5 rounded-full transition-all duration-500" 
+            :style="{ width: `${metricas.porcentaje_a_tiempo}%` }">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+        <div class="text-center p-3 bg-slate-50 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-sm">
+          <div class="text-xs text-slate-500 uppercase tracking-wider">Ticket Prom.</div>
+          <div class="font-bold text-slate-800 mt-1">
+            {{ formatoMoneda(metricas.ticket_promedio) }}
+          </div>
+        </div>
+        <div class="text-center p-3 bg-slate-50 rounded-lg">
+          <div class="text-xs text-slate-500 uppercase tracking-wider">Rechazos</div>
+          <div class="font-bold text-red-500 mt-1">
+            {{ metricas.porcentaje_rechazos }}%
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-  </template>
+</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.text-servi-blue { color: #1f3d64; }
+.bg-servi-blue { background-color: #1f3d64; }
+.text-servi-gold { color: #D8B462; }
+.bg-servi-gold { background-color: #D8B462; }
+</style>

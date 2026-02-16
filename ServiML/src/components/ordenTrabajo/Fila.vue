@@ -92,7 +92,7 @@ const formatearFecha = (fechaString) => {
 
 <template>
     <tr class="hover:bg-gray-50 transition-colors cursor-pointer" @click="irADetalle(orden.id)">
-        <td class="p-4 font-medium text-gray-900">#{{ orden.presupuesto?.numero_folio }}</td>
+        <td class="p-4 font-medium text-gray-900">#{{ orden.id }}</td>
         <td class="p-4 text-gray-700">
             <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">
                 {{ orden.vehiculo?.patente }}
