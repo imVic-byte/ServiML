@@ -214,8 +214,8 @@ onMounted(async () => {
             <div class="lg:w-2/3 space-y-6">
                 <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="servi-blue px-6 py-3 border-b border-gray-100 flex justify-between items-center">
-                        <h2 class="servi-white-font font-bold text-lg">Información General</h2>
-                        <span :class="handleEstados(presupuesto.estado).clase" class="px-3 py-1 rounded-full text-xs servi-white-font">
+                        <h2 class="text-white font-bold text-lg">Información General</h2>
+                        <span :class="handleEstados(presupuesto.estado).clase" class="px-3 py-1 rounded-full text-xs servi-grey-font">
                             {{ handleEstados(presupuesto.estado).texto }}
                         </span>
                     </div>
@@ -223,9 +223,9 @@ onMounted(async () => {
                     <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-3">Datos del Cliente</h3>
-                            <div class="space-y-2 text-sm servi-white-font">
+                            <div class="space-y-2 text-sm servi-grey-font">
                                 <p class="flex flex-col">
-                                    <span class="font-bold servi-white-font">{{ camelCase(presupuesto.cliente?.nombre) + ' ' + camelCase(presupuesto.cliente?.apellido) || 'No registrado' }}</span>
+                                    <span class="font-bold servi-grey-font">{{ camelCase(presupuesto.cliente?.nombre) + ' ' + camelCase(presupuesto.cliente?.apellido) || 'No registrado' }}</span>
                                     <span class="servi-grey-font text-xs">Cliente</span>
                                 </p>
                                 <p>
@@ -241,9 +241,9 @@ onMounted(async () => {
 
                         <div>
                             <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-3">Datos del Vehículo</h3>
-                            <div class="space-y-2 text-sm servi-white-font">
+                            <div class="space-y-2 text-sm servi-grey-font">
                                 <p class="flex flex-col">
-                                    <span class="font-bold servi-white-font">{{ presupuesto.vehiculo?.patente || 'S/P' }}</span>
+                                    <span class="font-bold servi-grey-font">{{ presupuesto.vehiculo?.patente || 'S/P' }}</span>
                                     <span class="servi-grey-font text-xs">Patente</span>
                                 </p>
                                 <p>
@@ -265,7 +265,7 @@ onMounted(async () => {
                     </div>
                     <div class="divide-y divide-gray-800">
                         <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:opacity-80 transition-colors">
-                            <span class="text-sm servi-white-font font-medium">{{ camelCase(detalle.descripcion) }}</span>
+                            <span class="text-sm servi-grey-font font-medium">{{ camelCase(detalle.descripcion) }}</span>
                             <span class="text-sm font-bold servi-grey-font">{{ formatearNumero(detalle.monto) }}</span>
                         </div>
                     </div>
@@ -274,7 +274,7 @@ onMounted(async () => {
 
             <div class="lg:w-1/3 space-y-6">
                 <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h3 class="text-sm font-bold servi-white-font mb-4 pb-2 border-b border-gray-100">Resumen Financiero</h3>
+                    <h3 class="text-sm font-bold servi-grey-font mb-4 pb-2 border-b border-gray-100">Resumen Financiero</h3>
                     
                     <div class="space-y-3">
                         <div class="flex justify-between items-center text-sm servi-grey-font">
@@ -295,7 +295,7 @@ onMounted(async () => {
                         </div>
                         
                         <div class="pt-4 mt-2 border-t border-gray-100 flex justify-between items-center">
-                            <span class="font-bold servi-white-font text-lg">TOTAL</span>
+                            <span class="font-bold servi-grey-font text-lg">TOTAL</span>
                             <span class="font-extrabold text-2xl servi-grey-font">{{ formatearNumero(presupuesto.total_final || 0) }}</span>
                         </div>
                     </div>
@@ -309,7 +309,7 @@ onMounted(async () => {
                       <label class="block text-xs font-semibold servi-grey-font uppercase tracking-wider mb-2">Cuenta para PDF</label>
                       <select
                         v-model="cuentaSeleccionada"
-                        class="w-full rounded-lg servi-blue servi-grey-font border border-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full rounded-lg servi-blue text-white border border-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option v-for="cuenta in cuentasBancarias" :key="cuenta.id" :value="cuenta">
                           {{ cuenta.banco }} - {{ cuenta.tipo_cuenta }}

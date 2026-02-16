@@ -555,8 +555,8 @@ onMounted(async () => {
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p class="servi-grey-font">{{ orden.motivo_ingreso }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><p class="servi-grey-font">{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p class="servi-grey-font">{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
             </div>
           </div>
 
@@ -570,11 +570,11 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label>
-                    <input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
+                    <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
                   </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Prioridad</label>
-                    <select class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad" :disabled="soloLectura || isCerrado">
+                    <select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad" :disabled="soloLectura || isCerrado">
                       <option value="1">Alta (Urgencia)</option>
                       <option value="2">Media (Normal)</option>
                       <option value="3">Baja (Proyecto)</option>
@@ -584,7 +584,7 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Origen Ingreso</label>
-                    <select class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso" :disabled="soloLectura || isCerrado">
+                    <select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso" :disabled="soloLectura || isCerrado">
                       <option value="cliente">Conducido por Cliente</option>
                       <option value="grua">Grúa / Remolque</option>
                       <option value="tercero">Chofer / Tercero</option>
@@ -592,19 +592,19 @@ onMounted(async () => {
                   </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Tipo de Trabajo</label>
-                    <input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" :disabled="soloLectura || isCerrado" />
+                    <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" :disabled="soloLectura || isCerrado" />
                   </div>
                 </div>
                 <div class="space-y-1">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Kilometraje Actual</label>
                   <div class="relative">
-                    <input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium pl-4" type="number" v-model="orden.kilometraje_inicial" :disabled="soloLectura || isCerrado" />
+                    <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium pl-4" type="number" v-model="orden.kilometraje_inicial" :disabled="soloLectura || isCerrado" />
                     <span class="absolute right-4 top-2.5 servi-grey-font text-sm font-bold">KM</span>
                   </div>
                 </div>
                 <div class="space-y-1 flex-row">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Diagnóstico Inicial</label>
-                  <textarea class="w-full h-32 servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico" :disabled="soloLectura || isCerrado"></textarea>
+                  <textarea class="w-full h-32 servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico" :disabled="soloLectura || isCerrado"></textarea>
                 </div>
               </div>
 
@@ -620,27 +620,27 @@ onMounted(async () => {
                   <div class="grid grid-cols-2 gap-3">
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_documentos" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-white-font">Documentos</span>
+                      <span class="text-sm font-medium servi-grey-font">Documentos</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_llaves" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-white-font">Llaves</span>
+                      <span class="text-sm font-medium servi-grey-font">Llaves</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_candado_seguridad" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-xs font-medium servi-white-font">Tuerca Seguridad</span>
+                      <span class="text-xs font-medium servi-grey-font">Tuerca Seguridad</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_panel_radio" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-white-font">Panel Radio</span>
+                      <span class="text-sm font-medium servi-grey-font">Panel Radio</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_rueda_repuesto" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-white-font">Rueda Repuesto</span>
+                      <span class="text-sm font-medium servi-grey-font">Rueda Repuesto</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_encendedor" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-white-font">Encendedor</span>
+                      <span class="text-sm font-medium servi-grey-font">Encendedor</span>
                     </label>
                   </div>
                 </div>
@@ -756,7 +756,7 @@ onMounted(async () => {
                           </svg>
                         </button>
                       </div>
-                      <textarea v-model="observacion.texto" placeholder="Escriba los detalles aquí..." class="w-full servi-white-font bg-transparent border-0 p-0 focus:ring-0 resize-none text-sm leading-relaxed mb-3" rows="2"></textarea>
+                      <textarea v-model="observacion.texto" placeholder="Escriba los detalles aquí..." class="w-full servi-grey-font bg-transparent border-0 p-0 focus:ring-0 resize-none text-sm leading-relaxed mb-3" rows="2"></textarea>
                       
                       <div class="flex flex-col gap-3 mt-2 border-t pt-2 border-gray-100">
                         <div v-if="observacion.fotos && observacion.fotos.length > 0" class="flex flex-wrap gap-2">
@@ -869,7 +869,7 @@ onMounted(async () => {
       <div class="servi-adapt-bg rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
         <div class="flex items-center gap-2 mb-4">
           <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-          <h3 class="text-xl font-bold servi-white-font">Finalizar Orden</h3>
+          <h3 class="text-xl font-bold servi-grey-font">Finalizar Orden</h3>
         </div>
         <p class="servi-grey-font text-sm mb-6">Estás a punto de cerrar esta orden permanentemente.</p>
         <div class="flex justify-end gap-3">
@@ -883,7 +883,7 @@ onMounted(async () => {
       <div class="servi-adapt-bg servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
         <div class="flex items-center gap-2 mb-4">
            <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-          <h3 class="text-xl font-bold servi-white-font">Generar Informe</h3>
+          <h3 class="text-xl font-bold servi-grey-font">Generar Informe</h3>
         </div>
         <p class="servi-grey-font text-sm mb-6">Esto cambiará el estado a "{{ selectedEstado?.estado }}", generará el PDF y lo enviará al cliente.</p>
         <div class="flex justify-end gap-3">
