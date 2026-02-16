@@ -142,7 +142,7 @@ const formatearFecha = (fechaString) => {
 
       <div class="p-6">
         <label class="block text-sm font-medium mb-2">Seleccione un técnico</label>
-        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-blue servi-white-font font-bold">
+        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-dark-font font-bold">
           <option value="" disabled>-- Seleccionar --</option>
           <option v-for="emple in empleados" :key="emple.id" :value="emple.id">
             {{ emple.nombre }} {{ emple.apellido }}
@@ -157,7 +157,7 @@ const formatearFecha = (fechaString) => {
         <button 
           @click="asignarOrden" 
           :disabled="!empleadoSeleccionado || cargando"
-          class="px-4 py-2 text-s servi-blue servi-white-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+          class="px-4 py-2 text-s servi-yellow servi-white-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
         >
           <span v-if="cargando">Guardando...</span>
           <span v-else>Confirmar</span>

@@ -547,14 +547,14 @@ onMounted(async () => {
               <h1 class="servi-yellow-font font-bold text-lg tracking-wide">INFORMACIÓN GENERAL</h1>
             </div>
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Patente</label><p>{{ orden.vehiculo?.patente }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Modelo</label><p>{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Cliente</label><p>{{ orden.cliente?.nombre + ' ' + orden.cliente?.apellido }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Teléfono</label><p>+{{ orden.cliente?.codigo_pais }} {{ orden.cliente?.telefono }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Email</label><p>{{ orden.cliente?.email || 'No registrado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p>{{ orden.motivo_ingreso }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><p>{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p>{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Patente</label><p class="servi-grey-font">{{ orden.vehiculo?.patente }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Modelo</label><p class="servi-grey-font">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Cliente</label><p class="servi-grey-font">{{ orden.cliente?.nombre + ' ' + orden.cliente?.apellido }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Teléfono</label><p class="servi-grey-font">+{{ orden.cliente?.codigo_pais }} {{ orden.cliente?.telefono }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Email</label><p class="servi-grey-font">{{ orden.cliente?.email || 'No registrado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p class="servi-grey-font">{{ orden.motivo_ingreso }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><p class="servi-grey-font">{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p class="servi-grey-font">{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
             </div>
@@ -627,15 +627,15 @@ onMounted(async () => {
                       <span class="text-sm font-medium servi-white-font">Llaves</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_candado_seguridad" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
+                      <input type="checkbox" v-model="orden.trae_candado_seguridad" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-xs font-medium servi-white-font">Tuerca Seguridad</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_panel_radio" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
+                      <input type="checkbox" v-model="orden.trae_panel_radio" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium servi-white-font">Panel Radio</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_rueda_repuesto" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
+                      <input type="checkbox" v-model="orden.trae_rueda_repuesto" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium servi-white-font">Rueda Repuesto</span>
                     </label>
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">

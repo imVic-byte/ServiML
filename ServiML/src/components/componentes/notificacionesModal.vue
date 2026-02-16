@@ -38,10 +38,10 @@ const handleIrAOT = (id) => {
 <template>
   <Transition name="modal">
     <div class="modal-overlay" @click.self="emit('cerrar')">
-      <div class="modal-panel">
+      <div class="modal-panel servi-white servi-grey-font">
         <!-- Header -->
-        <div class="modal-header">
-          <div class="modal-header-left">
+        <div class="modal-header servi-blue">
+          <div class="modal-header-left ">
             <h2 class="modal-title">Notificaciones</h2>
             <span v-if="notificacionesNoLeidas > 0" class="badge-count">
               {{ notificacionesNoLeidas }}
@@ -55,12 +55,12 @@ const handleIrAOT = (id) => {
         </div>
 
         <!-- Marcar todas como leídas -->
-        <div v-if="notificacionesNoLeidas > 0" class="mark-all-bar">
-          <button @click="emit('marcarTodasLeidas')" class="btn-mark-all">
+        <div v-if="notificacionesNoLeidas > 0" class="mark-all-bar servi-adapt-bg">
+          <button @click="emit('marcarTodasLeidas')" class="btn-mark-all servi-yellow servi-grey-font">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-check-all">
               <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
             </svg>
-            Marcar todas como leídas
+            <p class="servi-grey-font">Marcar todas como leídas</p>
           </button>
         </div>
 
@@ -69,15 +69,15 @@ const handleIrAOT = (id) => {
           <div
             v-for="notif in notifications"
             :key="notif.id"
-            class="notification-item"
+            class="notification-item servi-adapt-bg servi-grey-font"
             :class="{ 'notification-unread': !notif.leido }"
             @click="!notif.leido && emit('marcarLeida', notif.id)"
           >
             <div class="notification-dot-col">
               <span v-if="!notif.leido" class="notification-dot"></span>
             </div>
-            <div class="notification-content">
-              <p class="notification-title">{{ notif.titulo }}</p>
+            <div class="notification-content servi-grey-font">
+              <p class="notification-title servi-grey-font">{{ notif.titulo }}</p>
               <p v-if="notif.contenido" class="notification-body">{{ notif.contenido }}</p>
               <p class="notification-time">{{ tiempoRelativo(notif.created_at) }}</p>
             </div>
@@ -121,7 +121,6 @@ const handleIrAOT = (id) => {
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
   border-radius: 0 0 1.25rem 1.25rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
@@ -133,7 +132,6 @@ const handleIrAOT = (id) => {
   align-items: center;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  background-color: #1f3d64;
   color: #ffffff;
 }
 
@@ -187,7 +185,6 @@ const handleIrAOT = (id) => {
 .mark-all-bar {
   padding: 0.625rem 1.5rem;
   border-bottom: 1px solid #e2e8f0;
-  background-color: #f8fafc;
 }
 
 .btn-mark-all {
@@ -231,19 +228,12 @@ const handleIrAOT = (id) => {
 }
 
 .notification-item:hover {
-  background-color: #f8fafc;
+  background-color: #0e2c53;
+  color: #1f3d64;
 }
 
 .notification-item:last-child {
   border-bottom: none;
-}
-
-.notification-unread {
-  background-color: #eff6ff;
-}
-
-.notification-unread:hover {
-  background-color: #dbeafe;
 }
 
 .notification-dot-col {
@@ -268,13 +258,11 @@ const handleIrAOT = (id) => {
 .notification-title {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1e293b;
   margin: 0 0 0.25rem 0;
 }
 
 .notification-body {
   font-size: 0.8125rem;
-  color: #64748b;
   margin: 0 0 0.375rem 0;
   line-height: 1.4;
   display: -webkit-box;

@@ -373,7 +373,7 @@ onMounted( async () => {
     </div>
 
     <div id="elemento-a-imprimir"
-      class="servi-adapt-bg text-black p-0 max-w-[21cm] mx-auto text-xs font-sans leading-normal shadow-2xl">
+      class="bg-white text-black p-0 max-w-[21cm] mx-auto text-xs font-sans leading-normal shadow-2xl">
       
       <div class="p-10 pb-4 h-[27cm] relative"> <div class="flex justify-between border-b-4 border-[#1f3d64] pb-4 mb-2">
           <div class="flex items-center gap-2">
@@ -521,7 +521,7 @@ onMounted( async () => {
 
       <div class="html2pdf__page-break"></div>
 
-      <div class="p-10 pt-8 min-h-[26cm] servi-adapt-bg relative">
+      <div class="p-10 pt-8 min-h-[26cm] bg-white relative">
         <div class="absolute top-0 left-0 w-full h-2 bg-[#1f3d64]"></div>
         
         <div class="flex justify-between items-end border-b border-gray-200 pb-2 mb-4">
@@ -567,12 +567,12 @@ onMounted( async () => {
             <div class="grid grid-cols-2 gap-4 mb-3">
                <div class="servi-adapt-bg border border-slate-200 p-2 rounded shadow-sm text-center">
                   <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kilometraje</span>
-                  <span class="block text-lg font-black text-[#1f3d64] mt-0.5">{{ OrdenTrabajo.kilometraje_inicial || '0' }} km</span>
+                  <span class="block text-lg servi-grey-font mt-0.5">{{ OrdenTrabajo.kilometraje_inicial || '0' }} km</span>
                </div>
                <div class="servi-adapt-bg border border-slate-200 p-2 rounded shadow-sm text-center">
                   <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Combustible</span>
                   <div class="w-full bg-gray-200 rounded-full h-2 mt-1.5 mb-1">
-                    <div class="bg-[#1f3d64] h-2 rounded-full" :style="{ width: (OrdenTrabajo.combustible_inicial || 0) + '%' }"></div>
+                    <div class="bg-green-500 h-2 rounded-full" :style="{ width: (OrdenTrabajo.combustible_inicial || 0) + '%' }"></div>
                   </div>
                   <span class="block text-[11px] font-bold text-[#1f3d64]">{{ OrdenTrabajo.combustible_inicial || '0' }}%</span>
                </div>
@@ -613,7 +613,7 @@ onMounted( async () => {
                     <div class="w-1.5 h-1.5 rounded-full bg-[#1f3d64] mt-2"></div>
                     <div class="w-px h-full bg-slate-200 my-1" v-if="index !== bitacoraFiltrada.length - 1"></div>
                  </div>
-                 <div class="flex-1 servi-adapt-bg border border-l-4 border-l-[#1f3d64] border-gray-100 p-2 rounded shadow-sm">
+                 <div class="flex-1 border border-l-4 border-l-[#1f3d64] border-gray-100 p-2 rounded shadow-sm">
                     <div class="flex justify-between items-start mb-1">
                        <p class="text-[11px] font-bold text-gray-800 uppercase">Observación</p>
                        <span class="text-[9px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded">{{ formatoFecha(item.created_at) }}</span>

@@ -309,7 +309,7 @@ onMounted(async () => {
                       <label class="block text-xs font-semibold servi-grey-font uppercase tracking-wider mb-2">Cuenta para PDF</label>
                       <select
                         v-model="cuentaSeleccionada"
-                        class="w-full rounded-lg border border-gray-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option v-for="cuenta in cuentasBancarias" :key="cuenta.id" :value="cuenta">
                           {{ cuenta.banco }} - {{ cuenta.tipo_cuenta }}
