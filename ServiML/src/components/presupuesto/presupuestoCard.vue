@@ -46,15 +46,15 @@ const handleEstados = (estado) => {
 <template>
   <RouterLink 
     :to="{ name: 'ver-presupuesto', params: { id: data.id } }" 
-    class="card-container"
+    class="card-container servi-adapt-bg servi-grey-font"
     :class="handleEstados(data.estado).contenedor"
   >
-    <div class="card-header">
+    <div class="card-header servi-grey-font">
       <span class="folio">#{{ data.numero_folio }}</span>
       <span :class="handleEstados(data.estado).clase">{{ handleEstados(data.estado).texto }}</span>  
     </div>
 
-    <div class="card-body">
+    <div class="card-body servi-grey-font">
       <div class="info-row">
         <span class="label">Emisión:</span>
         <span class="valor">{{ formatearFecha(data.created_at) }}</span>
@@ -101,7 +101,6 @@ const handleEstados = (estado) => {
 <style scoped>
 .card-container {
   display: block;
-  background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 10px;
@@ -146,14 +145,13 @@ const handleEstados = (estado) => {
 
 .folio {
   font-weight: bold;
-  color: #2c3e50;
 }
 
 .badge-confirmado {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
   background: #36f04c5c;
-  color: #1b5e20;
+  color: #ffffff;
   border-radius: 4px;
   text-transform: uppercase;
 }
@@ -189,7 +187,6 @@ const handleEstados = (estado) => {
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
-  color: #666;
 }
 
 .divider {
@@ -201,18 +198,15 @@ const handleEstados = (estado) => {
 .total-row {
   display: flex;
   justify-content: space-between;
-  color: #555;
 }
 
 .total-row.final {
   font-weight: bold;
-  color: #2c3e50;
   font-size: 1rem;
 }
 
 .card-footer {
   text-align: right;
   font-size: 0.8rem;
-  color: #999;
 }
 </style>

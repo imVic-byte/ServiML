@@ -55,15 +55,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-gray-50 min-h-screen pb-15">
+  <div class="servi-white min-h-screen pb-15">
     <navbar :titulo="'ServiMl'" subtitulo="Vehículos en taller" search-input="false" class="sticky top-0 z-50"/>
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h2 class="text-xl font-bold servi-blue-font">Vehículos en Taller</h2>
-          <p class="text-sm text-gray-500">{{ vehiculos.length }} vehículo{{ vehiculos.length !== 1 ? 's' : '' }} actualmente en taller</p>
+          <h2 class="text-xl font-bold servi-grey-font">Vehículos en Taller</h2>
+          <p class="text-sm servi-grey-font">{{ vehiculos.length }} vehículo{{ vehiculos.length !== 1 ? 's' : '' }} actualmente en taller</p>
         </div>
       </div>
 
@@ -83,8 +83,8 @@ onMounted(async () => {
             <!-- Header: Patente + Estado -->
             <div class="flex justify-between items-center mb-3">
               <div class="flex items-center gap-2">
-                <span class="text-lg font-black servi-blue-font tracking-wide">{{ vehiculo.patente }}</span>
-                <span v-if="vehiculo.orden_trabajo" class="text-xs text-gray-400 font-medium">#{{ vehiculo.orden_trabajo.id }}</span>
+                <span class="text-lg font-black servi-grey-font tracking-wide">{{ vehiculo.patente }}</span>
+                <span v-if="vehiculo.orden_trabajo" class="text-xs servi-grey-font font-medium">#{{ vehiculo.orden_trabajo.id }}</span>
               </div>
               <span 
                 class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase"
@@ -95,28 +95,28 @@ onMounted(async () => {
             </div>
 
             <!-- Info vehículo -->
-            <div v-if="vehiculo.marca || vehiculo.modelo" class="text-xs text-gray-400 mb-3">
+            <div v-if="vehiculo.marca || vehiculo.modelo" class="text-xs servi-grey-font mb-3">
               {{ [vehiculo.marca, vehiculo.modelo, vehiculo.anio].filter(Boolean).join(' · ') }}
             </div>
 
             <!-- Motivo de ingreso -->
             <div v-if="vehiculo.orden_trabajo?.motivo_ingreso" class="mb-3">
-              <p class="text-xs uppercase font-bold text-gray-400 mb-0.5">Motivo de ingreso</p>
-              <p class="text-sm text-gray-700 leading-relaxed line-clamp-2">
+              <p class="text-xs uppercase font-bold servi-grey-font mb-0.5">Motivo de ingreso</p>
+              <p class="text-sm servi-white-font leading-relaxed line-clamp-2">
                 {{ vehiculo.orden_trabajo.motivo_ingreso }}
               </p>
             </div>
 
             <!-- Cliente -->
-            <div v-if="vehiculo.orden_trabajo?.cliente" class="flex items-center gap-2 pt-3 border-t border-gray-100">
+            <div v-if="vehiculo.orden_trabajo?.cliente" class="flex items-center gap-2 pt-3 border-t border-gray-800">
               <div class="w-7 h-7 rounded-full servi-blue flex items-center justify-center shrink-0">
                 <span class="text-xs font-bold text-white">{{ vehiculo.orden_trabajo.cliente.nombre?.charAt(0)?.toUpperCase() || '?' }}</span>
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold text-gray-800 truncate">
+                <p class="text-sm font-semibold servi-white-font truncate">
                   {{ vehiculo.orden_trabajo.cliente.nombre }} {{ vehiculo.orden_trabajo.cliente.apellido }}
                 </p>
-                <p v-if="vehiculo.orden_trabajo.cliente.telefono" class="text-xs text-gray-400 truncate">
+                <p v-if="vehiculo.orden_trabajo.cliente.telefono" class="text-xs servi-grey-font truncate">
                   {{ vehiculo.orden_trabajo.cliente.telefono }}
                 </p>
               </div>
@@ -129,15 +129,15 @@ onMounted(async () => {
             </div>
 
             <!-- Sin OT -->
-            <div v-if="!vehiculo.orden_trabajo" class="pt-3 border-t border-gray-100">
-              <p class="text-xs text-gray-400 italic">Sin orden de trabajo asociada</p>
+            <div v-if="!vehiculo.orden_trabajo" class="pt-3 border-t border-gray-800">
+              <p class="text-xs servi-grey-font italic">Sin orden de trabajo asociada</p>
             </div>
           </div>
         </div>
 
-        <div v-if="vehiculos.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
-          <p class="text-gray-500 text-lg">No hay vehículos en taller actualmente</p>
-          <p class="text-sm text-gray-400">Todos los vehículos han sido entregados.</p>
+        <div v-if="vehiculos.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800">
+          <p class="servi-grey-font text-lg">No hay vehículos en taller actualmente</p>
+          <p class="text-sm servi-grey-font">Todos los vehículos han sido entregados.</p>
         </div>
       </div>
 

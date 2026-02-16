@@ -204,7 +204,7 @@ onMounted(async () => {
 
 </script>
 <template>
-<div v-if="presupuesto" class="bg-gray-50 min-h-screen">
+<div v-if="presupuesto" class="servi-white min-h-screen">
     <navbar :titulo="'Presupuesto #' + n_presupuesto" subtitulo="Detalle de servicio" />
     
     <div class="mx-auto p-4 max-w-5xl pb-28">
@@ -212,8 +212,8 @@ onMounted(async () => {
         <div class="flex flex-col lg:flex-row gap-6 mt-6">
             
             <div class="lg:w-2/3 space-y-6">
-                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="servi-blue px-6 py-3 border-b border-gray-200 flex justify-between items-center">
+                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+                    <div class="servi-blue px-6 py-3 border-b border-gray-800 flex justify-between items-center">
                         <h2 class="servi-white-font font-bold text-lg">Información General</h2>
                         <span :class="handleEstados(presupuesto.estado).clase" class="px-3 py-1 rounded-full text-xs servi-white-font">
                             {{ handleEstados(presupuesto.estado).texto }}
@@ -222,50 +222,50 @@ onMounted(async () => {
                     
                     <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Datos del Cliente</h3>
-                            <div class="space-y-2 text-sm text-gray-700">
+                            <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-3">Datos del Cliente</h3>
+                            <div class="space-y-2 text-sm servi-white-font">
                                 <p class="flex flex-col">
-                                    <span class="font-bold text-gray-900">{{ camelCase(presupuesto.cliente?.nombre) + ' ' + camelCase(presupuesto.cliente?.apellido) || 'No registrado' }}</span>
-                                    <span class="text-gray-500 text-xs">Cliente</span>
+                                    <span class="font-bold servi-white-font">{{ camelCase(presupuesto.cliente?.nombre) + ' ' + camelCase(presupuesto.cliente?.apellido) || 'No registrado' }}</span>
+                                    <span class="servi-grey-font text-xs">Cliente</span>
                                 </p>
                                 <p>
-                                    <span class="block text-xs text-gray-400">Email</span>
+                                    <span class="block text-xs servi-grey-font">Email</span>
                                     {{ presupuesto.cliente?.email || 'No registrado' }}
                                 </p>
                                 <p>
-                                    <span class="block text-xs text-gray-400">Teléfono</span>
+                                    <span class="block text-xs servi-grey-font">Teléfono</span>
                                     +{{ presupuesto.cliente?.codigo_pais + ' ' + presupuesto.cliente?.telefono || 'No registrado' }}
                                 </p>
                             </div>
                         </div>
 
                         <div>
-                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Datos del Vehículo</h3>
-                            <div class="space-y-2 text-sm text-gray-700">
+                            <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-3">Datos del Vehículo</h3>
+                            <div class="space-y-2 text-sm servi-white-font">
                                 <p class="flex flex-col">
-                                    <span class="font-bold text-gray-900">{{ presupuesto.vehiculo?.patente || 'S/P' }}</span>
-                                    <span class="text-gray-500 text-xs">Patente</span>
+                                    <span class="font-bold servi-white-font">{{ presupuesto.vehiculo?.patente || 'S/P' }}</span>
+                                    <span class="servi-grey-font text-xs">Patente</span>
                                 </p>
                                 <p>
-                                    <span class="block text-xs text-gray-400">Vehículo</span>
+                                    <span class="block text-xs servi-grey-font">Vehículo</span>
                                     {{presupuesto.vehiculo?.marca}} {{presupuesto.vehiculo?.modelo}} {{presupuesto.vehiculo?.anio}}
                                 </p>
                                 <p>
-                                    <span class="block text-xs text-gray-400">Diagnóstico Inicial</span>
-                                    <span class="italic text-gray-600">{{ camelCase(presupuesto.diagnostico) || 'No registrado' }}</span>
+                                    <span class="block text-xs servi-grey-font">Diagnóstico Inicial</span>
+                                    <span class="italic servi-grey-font">{{ camelCase(presupuesto.diagnostico) || 'No registrado' }}</span>
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-800 servi-adapt-bg">
                         <h3 class="servi-blue-font font-bold">Servicios Solicitados</h3>
                     </div>
-                    <div class="divide-y divide-gray-100">
-                        <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                            <span class="text-sm text-gray-700 font-medium">{{ camelCase(detalle.descripcion) }}</span>
+                    <div class="divide-y divide-gray-800">
+                        <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:opacity-80 transition-colors">
+                            <span class="text-sm servi-white-font font-medium">{{ camelCase(detalle.descripcion) }}</span>
                             <span class="text-sm font-bold servi-blue-font">{{ formatearNumero(detalle.monto) }}</span>
                         </div>
                     </div>
@@ -273,43 +273,43 @@ onMounted(async () => {
             </div>
 
             <div class="lg:w-1/3 space-y-6">
-                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-sm font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">Resumen Financiero</h3>
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-6">
+                    <h3 class="text-sm font-bold servi-white-font mb-4 pb-2 border-b border-gray-800">Resumen Financiero</h3>
                     
                     <div class="space-y-3">
-                        <div class="flex justify-between items-center text-sm text-gray-600">
+                        <div class="flex justify-between items-center text-sm servi-grey-font">
                             <span>Subtotal</span>
                             <span class="font-medium">{{ formatearNumero(presupuesto.subtotal || 0) }}</span>
                         </div>
-                        <div class="flex justify-between items-center text-sm text-gray-600">
+                        <div class="flex justify-between items-center text-sm servi-grey-font">
                             <span>Descuento</span>
                             <span class="text-green-600 font-medium">- {{ presupuesto.descuento || '0' }}%</span>
                         </div>
-                        <div class="flex justify-between items-center text-sm text-gray-600">
+                        <div class="flex justify-between items-center text-sm servi-grey-font">
                             <span>Neto</span>
                             <span class="font-medium">{{ formatearNumero(presupuesto.total_neto || 0) }}</span>
                         </div>
-                        <div class="flex justify-between items-center text-sm text-gray-600">
+                        <div class="flex justify-between items-center text-sm servi-grey-font">
                             <span>IVA (19%)</span>
                             <span class="font-medium">{{ formatearNumero(presupuesto.iva || 0) }}</span>
                         </div>
                         
-                        <div class="pt-4 mt-2 border-t border-gray-100 flex justify-between items-center">
-                            <span class="font-bold text-gray-900 text-lg">TOTAL</span>
+                        <div class="pt-4 mt-2 border-t border-gray-800 flex justify-between items-center">
+                            <span class="font-bold servi-white-font text-lg">TOTAL</span>
                             <span class="font-extrabold text-2xl servi-blue-font">{{ formatearNumero(presupuesto.total_final || 0) }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Acciones</h3>
+                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-6">
+                    <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-4">Acciones</h3>
                     
                     <!-- Selector de cuenta bancaria -->
                     <div v-if="cuentasBancarias.length > 0" class="mb-4">
-                      <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Cuenta para PDF</label>
+                      <label class="block text-xs font-semibold servi-grey-font uppercase tracking-wider mb-2">Cuenta para PDF</label>
                       <select
                         v-model="cuentaSeleccionada"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full rounded-lg border border-gray-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option v-for="cuenta in cuentasBancarias" :key="cuenta.id" :value="cuenta">
                           {{ cuenta.banco }} - {{ cuenta.tipo_cuenta }}

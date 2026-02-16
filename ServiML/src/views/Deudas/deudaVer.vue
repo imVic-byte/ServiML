@@ -136,7 +136,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 pb-12 font-sans servi-blue-font">
+  <div class="min-h-screen servi-white pb-12 font-sans servi-blue-font">
     <navbar titulo="ServiML" subtitulo="Deudas y Abonos" class="navbar" />
 
     <div class="max-w-7xl mx-auto px-4 py-8">
@@ -144,22 +144,22 @@ onMounted(() => {
       <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
         <div>
           <h2 class="text-2xl font-bold">Deudas</h2>
-          <p class="text-gray-500">Gestiona las deudas agrupadas por cliente</p>
+          <p class="servi-grey-font">Gestiona las deudas agrupadas por cliente</p>
         </div>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <!-- Filtros Estado -->
-          <div class="inline-flex self-start w-fit rounded-xl border border-gray-200 servi-adapt-bg shadow-sm overflow-hidden">
+          <div class="inline-flex self-start w-fit rounded-xl border border-gray-800 servi-adapt-bg shadow-sm overflow-hidden">
             <button
               type="button"
               @click="filtroEstado = 'todas'"
               class="px-4 py-2 text-sm font-bold transition-colors"
-              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:bg-gray-50'"
+              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:opacity-80'"
             >
               Todas
               <span
                 class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
-                :class="filtroEstado === 'todas' ? 'servi-adapt-bg/20 text-white' : 'bg-gray-100 text-gray-600'"
+                :class="filtroEstado === 'todas' ? 'servi-adapt-bg/20 text-white' : 'servi-adapt-bg servi-grey-font'"
               >
                 {{ deudas.length }}
               </span>
@@ -168,8 +168,8 @@ onMounted(() => {
             <button
               type="button"
               @click="filtroEstado = 'pendiente'"
-              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-200"
-              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:bg-gray-50'"
+              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-800"
+              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:opacity-80'"
             >
               Pendientes
               <span
@@ -183,8 +183,8 @@ onMounted(() => {
             <button
               type="button"
               @click="filtroEstado = 'pagada'"
-              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-200"
-              :class="filtroEstado === 'pagada' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:bg-gray-50'"
+              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-800"
+              :class="filtroEstado === 'pagada' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:opacity-80'"
             >
               Pagadas
               <span
@@ -200,7 +200,7 @@ onMounted(() => {
           <div class="flex items-center gap-2">
             <select
               v-model="ordenCampo"
-              class="servi-yellow servi-blue-font font-bold border border-gray-200 rounded-lg px-3 py-2 shadow-sm outline-none"
+              class="servi-yellow servi-blue-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm outline-none"
               title="Ordenar por"
             >
               <option value="created_at">Fecha</option>
@@ -210,7 +210,7 @@ onMounted(() => {
             <button
               type="button"
               @click="ordenAsc = !ordenAsc"
-              class="servi-yellow servi-blue-font font-bold border border-gray-200 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2 hover:opacity-90 transition"
+              class="servi-yellow servi-blue-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2 hover:opacity-90 transition"
               :title="ordenAsc ? 'Ascendente' : 'Descendente'"
             >
               <svg
@@ -247,10 +247,10 @@ onMounted(() => {
 
       <template v-else>
         <!-- Sin cuentas -->
-        <div v-if="deudas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
-          <div class="text-gray-400 mb-2">
-            <p class="text-gray-500 text-lg">No hay deudas creadas</p>
-            <p class="text-sm text-gray-400">Crea una deuda para agrupar OTs y registrar abonos.</p>
+        <div v-if="deudas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800">
+          <div class="servi-grey-font mb-2">
+            <p class="servi-grey-font text-lg">No hay deudas creadas</p>
+            <p class="text-sm servi-grey-font">Crea una deuda para agrupar OTs y registrar abonos.</p>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-12 w-12 mx-auto mt-6"
@@ -279,10 +279,10 @@ onMounted(() => {
         <!-- Con cuentas, pero filtros sin resultados -->
         <div
           v-else-if="deudasFiltradas.length === 0"
-          class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-200"
+          class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800"
         >
-          <p class="text-gray-700 text-lg font-bold">No hay resultados con esos filtros.</p>
-          <p class="text-gray-400">Prueba cambiando el estado o el orden.</p>
+          <p class="servi-white-font text-lg font-bold">No hay resultados con esos filtros.</p>
+          <p class="servi-grey-font">Prueba cambiando el estado o el orden.</p>
           <button
             @click="limpiarFiltros"
             class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg servi-yellow servi-blue-font font-bold shadow-sm hover:opacity-90"
@@ -300,10 +300,10 @@ onMounted(() => {
 
         <!-- Listado -->
         <div v-else>
-          <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
+                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-800">
                   <th class="p-4 font-semibold">Deuda</th>
                   <th class="p-4 font-semibold">Estado</th>
                   <th class="p-4 font-semibold text-center">Notificación</th>
@@ -312,16 +312,16 @@ onMounted(() => {
                 </tr>
               </thead>
 
-              <tbody class="divide-y divide-gray-100">
+              <tbody class="divide-y divide-gray-800">
                 <tr
                   v-for="item in deudasFiltradas"
                   :key="item.id"
-                  class="hover:bg-gray-50 cursor-pointer"
+                  class="hover:opacity-80 cursor-pointer"
                   @click="verDetalle(item.id)"
                 >
                   <td class="p-4">
                     <div class="font-bold">{{ item.nombre }}</div>
-                    <div class="text-xs text-gray-500">#{{ item.id }}</div>
+                    <div class="text-xs servi-grey-font">#{{ item.id }}</div>
                   </td>
 
                   <td class="p-4">
@@ -340,10 +340,10 @@ onMounted(() => {
                     >
                       🔔 Cada {{ item.notificar_cada }} días
                     </span>
-                    <span v-else class="text-gray-400">—</span>
+                    <span v-else class="servi-grey-font">—</span>
                   </td>
 
-                  <td class="p-4 text-center text-sm text-gray-600">
+                  <td class="p-4 text-center text-sm servi-grey-font">
                     {{ formatearFecha(item.created_at) }}
                   </td>
 
@@ -380,10 +380,10 @@ onMounted(() => {
               tabindex="0"
               @click="verDetalle(item.id)"
             >
-              <div class="flex justify-between items-start border-b border-gray-100 pb-2">
+              <div class="flex justify-between items-start border-b border-gray-800 pb-2">
                 <div class="flex flex-col min-w-0">
                   <span class="font-bold text-lg truncate">{{ item.nombre }}</span>
-                  <span class="text-xs text-gray-500">Creada: {{ formatearFecha(item.created_at) }}</span>
+                  <span class="text-xs servi-grey-font">Creada: {{ formatearFecha(item.created_at) }}</span>
                 </div>
 
                 <span
@@ -395,18 +395,18 @@ onMounted(() => {
               </div>
 
               <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-500">Notificación:</span>
+                <span class="servi-grey-font">Notificación:</span>
                 <span
                   v-if="(item.estado || '').toLowerCase() === 'pendiente' && item.notificar_cada > 0"
                   class="font-semibold"
                 >
                   🔔 Cada {{ item.notificar_cada }} días
                 </span>
-                <span v-else class="text-gray-400">—</span>
+                <span v-else class="servi-grey-font">—</span>
               </div>
 
-              <div class="flex mt-2 pt-2 border-t border-gray-100 items-center justify-between">
-                <span class="text-gray-500 text-sm pl-1">Ver Detalles</span>
+              <div class="flex mt-2 pt-2 border-t border-gray-800 items-center justify-between">
+                <span class="servi-grey-font text-sm pl-1">Ver Detalles</span>
                 <RouterLink
                   :to="{ name: 'ver-deuda', params: { id: item.id } }"
                   @click.stop

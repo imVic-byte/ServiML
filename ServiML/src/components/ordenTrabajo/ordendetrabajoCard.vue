@@ -85,11 +85,11 @@ const formatearFecha = (fechaString) => {
 }
 </script>
 <template>
-  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-white mx-2 servi-blue-font card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
+  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-adapt-bg servi-blue-font mx-2 card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
     
-    <div class="flex justify-between items-start border-b border-gray-100 pb-2">
+    <div class="flex justify-between items-start border-b border-gray-800 pb-2">
       <div class="flex flex-col">
-        <span class="font-bold text-xl">#{{ orden.id || '---' }}</span>
+        <span class="font-bold servi-grey-font text-xl">#{{ orden.id || '---' }}</span>
       </div>
       <span :style="{ backgroundColor: estado.color, color: estado.texto }" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
         {{ estado.estado }}
@@ -98,27 +98,27 @@ const formatearFecha = (fechaString) => {
 
     <div class="flex flex-col gap-1 text-sm">
       <div class="flex justify-between items-center">
-        <span class="text-gray-500">Cliente:</span>
-        <span class="font-semibold text-right truncate w-40">{{ orden.cliente?.nombre || 'Sin Cliente' }}</span>
+        <span class="servi-grey-font">Cliente:</span>
+        <span class="font-semibold servi-grey-font text-right truncate w-40">{{ orden.cliente?.nombre || 'Sin Cliente' }}</span>
       </div>
       
       <div class="flex justify-between items-center">
-        <span class="text-gray-500">Vehículo:</span>
+        <span class="servi-grey-font">Vehículo:</span>
         <div class="text-right">
-          <span class="font-bold block text-base">{{ orden.vehiculo?.patente || 'S/P' }}</span>
+          <span class="font-bold block servi-grey-font text-base">{{ orden.vehiculo?.patente || 'S/P' }}</span>
         </div>
       </div>
       
-      <div class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600 italic line-clamp-2">
+      <div class="mt-2 servi-adapt-bg p-2 rounded text-xs servi-grey-font italic line-clamp-2">
         "{{ orden.motivo_ingreso }}"
       </div>
       <div class="info-row" v-if="orden.fecha_ingreso">
-        <span class="label text-gray-500">Fecha Ingreso: </span>
-        <span class="valor text-gray-500"> {{ formatearFecha(orden.fecha_ingreso) }}</span>
+        <span class="label servi-grey-font">Fecha Ingreso: </span>
+        <span class="valor servi-grey-font"> {{ formatearFecha(orden.fecha_ingreso) }}</span>
       </div>
     </div>
 
-    <div class="flex mt-2 pt-2 border-t border-gray-100 items-center justify-between">
+    <div class="flex mt-2 pt-2 border-t border-gray-800 items-center justify-between">
       
       <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: orden.id } }" class="servi-blue servi-white-font p-2 rounded-lg w-full text-center transition-transform hover:scale-110 shadow-sm">
         <span class="servi-white-font text-sm">Ver Detalles</span>
@@ -172,6 +172,5 @@ const formatearFecha = (fechaString) => {
 .card-shadow {
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  background-color: white;
 }
 </style>

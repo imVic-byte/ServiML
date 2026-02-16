@@ -91,21 +91,21 @@ const formatearFecha = (fechaString) => {
 </script>
 
 <template>
-    <tr class="hover:bg-gray-50 transition-colors cursor-pointer" @click="irADetalle(orden.id)">
-        <td class="p-4 font-medium text-gray-900">#{{ orden.id }}</td>
-        <td class="p-4 text-gray-700">
-            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold uppercase">
+    <tr class="hover:opacity-80 transition-colors cursor-pointer" @click="irADetalle(orden.id)">
+        <td class="p-4 font-medium servi-white-font">#{{ orden.id }}</td>
+        <td class="p-4 servi-white-font">
+            <span class="servi-adapt-bg servi-white-font px-2 py-1 rounded text-xs font-bold uppercase">
                 {{ orden.vehiculo?.patente }}
             </span>
-            <div class="text-xs text-gray-500 mt-1">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</div>
+            <div class="text-xs servi-grey-font mt-1">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</div>
         </td>
-        <td class="p-4 text-gray-700">
-            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold block max-w-[200px] truncate">
+        <td class="p-4 servi-white-font">
+            <span class="servi-adapt-bg servi-white-font px-2 py-1 rounded text-xs font-bold block max-w-[200px] truncate">
                 {{ orden.presupuesto?.diagnostico }}
             </span>
         </td>
         <td class="p-4 text-center whitespace-nowrap">
-            <span class="text-gray-400">{{ formatearFecha(orden.fecha_ingreso) }}</span>
+            <span class="servi-grey-font">{{ formatearFecha(orden.fecha_ingreso) }}</span>
         </td>
         <td class="p-4 text-center">
             <span class="px-3 py-1 rounded-full text-xs font-medium"
@@ -115,7 +115,7 @@ const formatearFecha = (fechaString) => {
             </span>
         </td>
         <td class="p-4 text-center" @click.stop>
-            <span v-if="orden.id_empleado" class="text-gray-600">{{ orden.id_empleado.nombre }}</span>
+            <span v-if="orden.id_empleado" class="servi-grey-font">{{ orden.id_empleado.nombre }}</span>
             <button v-if="!empleadoAsignado" @click="abrirModalAsignar" class="mt-2 flex rounded-lg servi-yellow servi-blue-font justify-center items-center px-3 py-2 w-full mx-auto transition-colors hover:bg-yellow-400 cursor-pointer">
                 <span class="font-bold text-sm mr-2">Asignar Técnico</span>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
@@ -124,7 +124,7 @@ const formatearFecha = (fechaString) => {
             </button>
         </td>
         <td class="p-4 text-center">
-            <button class="text-gray-400 hover:text-blue-600 transition-colors">
+            <button class="servi-grey-font hover:text-blue-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
