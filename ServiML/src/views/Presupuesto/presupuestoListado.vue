@@ -83,7 +83,7 @@ const stats = computed(() => {
     const pendientes = serviciosMes.filter(s => s.estado === 1).length;
     const confirmados = serviciosMes.filter(s => s.estado === 2).length;
     const dineroPendiente = serviciosMes
-        .filter(s => s.estado === 1)
+        .filter(s => s.estado === 2)
         .reduce((acc, curr) => acc + (curr.total_final || 0), 0);
 
     return { total, pendientes, confirmados, dineroPendiente };

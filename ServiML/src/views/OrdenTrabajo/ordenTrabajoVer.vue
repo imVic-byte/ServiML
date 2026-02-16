@@ -30,6 +30,14 @@ const formatearFecha = (fechaStr) => {
   });
 };
 
+const fechaToDatetimeLocal = (fechaStr) => {
+  if (!fechaStr) return '';
+  const fecha = new Date(fechaStr.replace(' ', 'T'));
+  if (isNaN(fecha)) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
+};
+
 const isCerrado = ref(false);
 const sinEmpleado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
@@ -158,7 +166,7 @@ const guardarCambios = async () => {
     .update({
       kilometraje_inicial: orden.value.kilometraje_inicial,
       combustible_inicial: nivelCombustible.value,
-      fecha_ingreso: orden.value.fecha_ingreso,
+      fecha_ingreso: fechaIngreso.value || orden.value.fecha_ingreso,
       fecha_promesa: orden.value.fecha_promesa,
       prioridad: orden.value.prioridad,
       tipo_trabajo: orden.value.tipo_trabajo,
@@ -315,7 +323,7 @@ const obtenerOrden = async () => {
     .single();
   if (data) {
     orden.value = data;
-    fechaIngreso.value = formatearFecha(data.fecha_ingreso);
+    fechaIngreso.value = fechaToDatetimeLocal(data.fecha_ingreso);
     nivelCombustible.value = data.combustible_inicial ?? 0;
     if (!data.id_taller && talleres.value.length > 0) {
       orden.value.id_taller = talleres.value[0].id;
@@ -385,13 +393,35 @@ const handleGenerarInformeFinal = async () => {
     created_at: fechaActual
   }).select().single();
   if (error) return;
-
   router.push({
     name: 'ver-informe-final',
     params: { id: orden.value.id },
     query: { enviar: 'true' }
   });
 };
+
+const handleGenerarInformeEstacionamiento = async () => {
+  if (!orden.value.fecha_estacionamiento) {
+    return;
+  }
+  const d = new Date();
+  const fechaActual = new Date(
+    d.getTime() - d.getTimezoneOffset() * 60000
+  )
+    .toISOString()
+    .slice(0, 19);
+  if (!orden.value.fecha_termino_estacionamiento) {
+    const {data,error} = await supabase.from('orden_trabajo').update({
+      fecha_termino_estacionamiento: fechaActual
+    }).eq('id',orden.value.id);
+    if(error) return;
+  }
+  router.push({
+    name: 'ver-informe-final',
+    params: { id: orden.value.id },
+    query: { enviar: 'true' }
+  });
+}
 
 const ejecutarCambioReal = async () => {
   manejarBloqueo(true);
@@ -442,12 +472,16 @@ const ejecutarCambioReal = async () => {
         orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
     }
     await handleIsCerrado(selectedEstado.value.id);
+
+    if (selectedEstado.value.id === 7) {
+      await handleGenerarInformeEstacionamiento();
+    }
     
     if (selectedEstado.value.id === 6) {
       await handleGenerarInformeFinal();
     }
     if (selectedEstado.value.id == 11) {
-      fechaIngreso.value = formatearFecha(hoy);
+      fechaIngreso.value = fechaToDatetimeLocal(hoy);
       await supabase.from('orden_trabajo').update({ 'fecha_ingreso': hoy }).eq('id', route.params.id);
     }
   }
@@ -520,7 +554,7 @@ onMounted(async () => {
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Email</label><p>{{ orden.cliente?.email || 'No registrado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Motivo de Ingreso</label><p>{{ orden.motivo_ingreso }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Responsable</label><p>{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label><p>{{ fechaIngreso || 'No registrado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label><p>{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Promesa</label><input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
               <div class="space-y-1"><label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Taller</label><select class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
             </div>
@@ -536,7 +570,7 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha de Ingreso</label>
-                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="orden.fecha_ingreso" :disabled="soloLectura || isCerrado" />
+                    <input class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
                   </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Prioridad</label>

@@ -14,19 +14,25 @@ const apellido = userStore.trabajador?.apellido || ''
 const nombreCompleto = computed(() => nombre + ' ' + apellido)
 const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 const diaSemana = new Date().getDay()
+const formatoLocal = (fecha) => {
+  const y = fecha.getFullYear()
+  const m = String(fecha.getMonth() + 1).padStart(2, '0')
+  const d = String(fecha.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 const fechaInicioSemana = computed(() => {
   const fecha = new Date()
   const dia = fecha.getDay()
   const diferencia = dia === 0 ? -6 : 1 - dia
   fecha.setDate(fecha.getDate() + diferencia)
-  return fecha.toISOString().split('T')[0]
+  return formatoLocal(fecha)
 })
 const fechaFinSemana = computed(() => {
   const fecha = new Date()
   const dia = fecha.getDay()
   const diferencia = dia === 0 ? 0 : 7 - dia
   fecha.setDate(fecha.getDate() + diferencia)
-  return fecha.toISOString().split('T')[0]
+  return formatoLocal(fecha)
 })
 const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
 const vehiculosEnTaller = ref(0)

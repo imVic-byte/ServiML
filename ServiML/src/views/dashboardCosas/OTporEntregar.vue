@@ -70,9 +70,7 @@ onMounted(async () => {
           :estado="handleEstados(item.estado_actual_id)"
           @asignacion-exitosa="obtenerOrdenes"
         />
-      </div>
-
-      <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
+        <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
         <div class="text-gray-400 mb-2">
           <p class="text-gray-500 text-lg">No hay órdenes por entregar</p>
           <p class="text-sm text-gray-400">Todas las órdenes han sido entregadas.</p>
@@ -81,6 +79,9 @@ onMounted(async () => {
           </svg>
         </div>
       </div>
+      </div>
+
+      
 
     </div>
   </div>

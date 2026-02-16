@@ -39,7 +39,7 @@ const manejarConfirmacion = async () => {
     try {
     const { error } = await supabase
         .from('presupuesto')
-        .update({ estado: 2 , updated_at: new Date()})
+        .update({ estado: 2 , updated_at: new Date(), id_cuenta: cuentaSeleccionada.value.id})
         .eq('id', route.params.id)
 
     if (error) {
