@@ -45,6 +45,8 @@ const aprobadosHoy = ref(0)
 const otPorEntregar = ref(0)
 const capacidadMaxima = ref(15)
 const listaEstados = ref([])
+const talleres = ref([])
+const tallerSeleccionado = ref(null)
 const porcentajeCapacidad = computed(() => (vehiculosEnTaller.value / capacidadMaxima.value) * 100)
 const TruncarPorcentaje = computed(() => Math.trunc(porcentajeCapacidad.value))
 
@@ -72,9 +74,24 @@ const verOT = (id) => {
   router.push({ name: 'ver-orden-de-trabajo', params: { id } })
 }
 
+const obtenerTalleres = async () => {
+  try {
+    const { data, error } = await supabase.from('serviml_taller').select('*').order('id', { ascending: true })
+    if (error) throw error
+    talleres.value = data || []
+    if (talleres.value.length > 0) tallerSeleccionado.value = talleres.value[0].id
+  } catch (error) {
+    console.error('Error al obtener talleres:', error)
+  }
+}
+
 const handleVehiculos = async () => {
   try {
-    const {data, error} = await supabase.from('vehiculo').select('*').eq('en_taller', true)
+    let query = supabase.from('orden_trabajo').select('id, id_taller, vehiculo!inner(en_taller)').eq('vehiculo.en_taller', true)
+    if (tallerSeleccionado.value) {
+      query = query.eq('id_taller', tallerSeleccionado.value)
+    }
+    const { data, error } = await query
     if (error) throw error
     vehiculosEnTaller.value = data.length
   } catch (error) {
@@ -82,13 +99,25 @@ const handleVehiculos = async () => {
   }
 }
 
+const cambiarTaller = async () => {
+  await handleVehiculos()
+  await handleOT()
+  handleOTSinAsignar()
+  handlePorEntregar()
+  handleOTRecientes()
+}
+
 const handleOT = async () => {
   try {
-    const {data, error} = await supabase.from('orden_trabajo').select('*, vehiculo(*), cliente(*), presupuesto(*)')
+    let query = supabase.from('orden_trabajo').select('*, vehiculo(*), cliente(*), presupuesto(*)')
+    if (tallerSeleccionado.value) {
+      query = query.eq('id_taller', tallerSeleccionado.value)
+    }
+    const {data, error} = await query
     if (error) throw error
     listaOT.value = data
   } catch (error) {
-    console.error('Error al obtener OT sin asignar:', error)
+    console.error('Error al obtener OT:', error)
   }
 }
 
@@ -171,6 +200,7 @@ const formatoMoneda = (valor) => {
 
 onMounted(async () => {
   interfaz.showLoading()
+  await obtenerTalleres()
   await handleVehiculos()
   await handleOT()
   await handleOTSinAsignar()
@@ -193,14 +223,17 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-800">Hola, {{ nombreCompleto }}</h1>
           <p class="text-slate-500 capitalize">{{ fechaHoy }}</p>
         </div>
-        <div class="mt-2 sm:mt-0">
+        <div class="mt-2 sm:mt-0 flex items-center gap-3">
+          <select v-model="tallerSeleccionado" @change="cambiarTaller" class="text-sm font-medium bg-white text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none cursor-pointer">
+            <option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }}</option>
+          </select>
           <span v-if="!esFinDeSemana" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-servi-blue border border-blue-100">
             <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-            Taller Operativo
+            Operativo
           </span>
           <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-600 border border-red-100">
             <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-            Taller Cerrado
+            Cerrado
           </span>
         </div>
       </div>
@@ -345,16 +378,16 @@ onMounted(async () => {
       <div>
         <div class="flex justify-between mb-2">
           <span class="text-sm font-medium text-slate-600">
-            Ocupación Taller ({{ metricas.ocupacion_actual }}/{{ capacidadMaxima }})
+            Ocupación Taller ({{ vehiculosEnTaller }}/{{ capacidadMaxima }})
           </span>
           <span class="text-sm font-bold text-servi-blue">
-            {{ Math.min(Math.round((metricas.ocupacion_actual / capacidadMaxima) * 100), 100) }}%
+            {{ Math.min(Math.round((vehiculosEnTaller / capacidadMaxima) * 100), 100) }}%
           </span>
         </div>
         <div class="w-full bg-slate-100 rounded-full h-2.5">
           <div 
             class="bg-servi-blue h-2.5 rounded-full transition-all duration-500" 
-            :style="{ width: `${Math.min((metricas.ocupacion_actual / capacidadMaxima) * 100, 100)}%` }">
+            :style="{ width: `${Math.min((vehiculosEnTaller / capacidadMaxima) * 100, 100)}%` }">
           </div>
         </div>
       </div>
