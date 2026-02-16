@@ -29,11 +29,36 @@ const diasNotificacion = ref(0);
 const procesandoNotificacion = ref(false);
 
 // --- CÁLCULOS ---
+const totalEstacionamiento = computed(() => {
+  return otsEnDeuda.value.reduce((acc, item) => {
+    return acc + calcularEstacionamientoOT(item.orden_trabajo);
+  }, 0);
+});
+
+
+const calcularEstacionamientoOT = (ot) => {
+  if (!ot?.fecha_estacionamiento) return 0;
+
+  const fechaInicio = new Date(ot.fecha_estacionamiento);
+  const fechaFin = ot.fecha_termino_estacionamiento
+    ? new Date(ot.fecha_termino_estacionamiento)
+    : new Date();
+
+  const diasTotales = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24));
+  let diasACobrar = diasTotales - 3;
+
+  if (diasACobrar < 0) diasACobrar = 0;
+
+  return diasACobrar * 5000;
+};
+
+
 const totalDeuda = computed(() => {
-  const total = otsEnDeuda.value.reduce((acc, item) => 
+  const totalOTs = otsEnDeuda.value.reduce((acc, item) =>
     acc + (item.orden_trabajo?.presupuesto?.total_final || 0), 0
   );
-  return Math.round(total);
+
+  return totalOTs + totalEstacionamiento.value;
 });
 
 const totalPagado = computed(() => {
@@ -103,7 +128,17 @@ const cargarDatos = async () => {
 
   const { data: dataItems } = await supabase
     .from("deuda_items")
-    .select(`id, orden_trabajo (id, created_at, vehiculo(modelo, patente), presupuesto(total_final))`)
+    .select(`
+    id, 
+    orden_trabajo (
+      id, 
+      created_at, 
+      fecha_estacionamiento,
+      fecha_termino_estacionamiento,
+      vehiculo(modelo, patente), 
+      presupuesto(total_final)
+    )
+  `)
     .eq("deuda_id", deudaId);
   otsEnDeuda.value = dataItems || [];
 
@@ -361,7 +396,7 @@ const eliminarOTDeuda = async (deudaItem) => {
   const nuevoTotal = totalDeuda.value - montoOT;
   const nuevoSaldo = nuevoTotal - totalPagado.value;
 
-  if (nuevoSaldo < 0) {
+  if (nuevoSaldo <= 0) {
     modalState.value = {
       visible: true,
       titulo: "No se puede eliminar",
@@ -581,29 +616,48 @@ onMounted(cargarDatos);
                 </span>
                 <span class="text-xs text-gray-400">Ingreso: {{ formatearFecha(item.orden_trabajo.created_at) }}</span>
               </div>
-              <!-- Botón eliminar -->
-              <button type="button" @click.stop="eliminarOTDeuda(item)" class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
-           hover:bg-red-50 hover:border-red-200 transition" title="Eliminar OT" aria-label="Eliminar OT">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600" viewBox="0 0 20 20"
-                  fill="currentColor">
-                  <path fill-rule="evenodd"
-                    d="M9 2a1 1 0 00-1 1v1H5a1 1 0 000 2h.293l.853 10.243A2 2 0 008.14 18h3.72a2 2 0 001.994-1.757L14.707 6H15a1 1 0 100-2h-3V3a1 1 0 00-1-1H9zm1 4a1 1 0 10-2 0v9a1 1 0 102 0V6zm4 0a1 1 0 10-2 0v9a1 1 0 102 0V6z"
-                    clip-rule="evenodd" />
-                </svg>
-              </button>
-
               <div class="flex items-center gap-3">
-                <span class="font-bold text-gray-900">{{ formatearDinero(item.orden_trabajo.presupuesto?.total_final)
-                }}</span>
-                <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: item.orden_trabajo.id } }"
-                  class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
-                  aria-label="Ver OT">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
-                    stroke="currentColor" class="size-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                  </svg>
-                </RouterLink>
-              </div>
+  <span class="font-bold text-gray-900">
+    {{
+      formatearDinero(
+        (item.orden_trabajo.presupuesto?.total_final || 0) +
+        calcularEstacionamientoOT(item.orden_trabajo)
+      )
+    }}
+  </span>
+
+  <RouterLink
+    :to="{ name: 'ver-orden-de-trabajo', params: { id: item.orden_trabajo.id } }"
+    class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
+    aria-label="Ver OT"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+      stroke-width="2" stroke="currentColor" class="size-5">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+    </svg>
+  </RouterLink>
+
+  <!-- Botón eliminar ahora a la derecha -->
+  <button
+    type="button"
+    @click.stop="eliminarOTDeuda(item)"
+    class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
+           hover:bg-red-50 hover:border-red-200 transition"
+    title="Eliminar OT"
+    aria-label="Eliminar OT"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg"
+      class="h-4 w-4 text-red-600"
+      viewBox="0 0 20 20"
+      fill="currentColor">
+      <path fill-rule="evenodd"
+        d="M9 2a1 1 0 00-1 1v1H5a1 1 0 000 2h.293l.853 10.243A2 2 0 008.14 18h3.72a2 2 0 001.994-1.757L14.707 6H15a1 1 0 100-2h-3V3a1 1 0 00-1-1H9zm1 4a1 1 0 10-2 0v9a1 1 0 102 0V6zm4 0a1 1 0 10-2 0v9a1 1 0 102 0V6z"
+        clip-rule="evenodd" />
+    </svg>
+  </button>
+</div>
+
             </div>
           </div>
         </div>
