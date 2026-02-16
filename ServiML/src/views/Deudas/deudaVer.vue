@@ -281,7 +281,7 @@ onMounted(() => {
           v-else-if="deudasFiltradas.length === 0"
           class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100"
         >
-          <p class="servi-white-font text-lg font-bold">No hay resultados con esos filtros.</p>
+          <p class="servi-grey-font text-lg font-bold">No hay resultados con esos filtros.</p>
           <p class="servi-grey-font">Prueba cambiando el estado o el orden.</p>
           <button
             @click="limpiarFiltros"
@@ -351,7 +351,7 @@ onMounted(() => {
                     <RouterLink
                       :to="{ name: 'ver-deuda', params: { id: item.id } }"
                       @click.stop
-                      class="inline-flex servi-adapt-bg servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
+                      class="inline-flex servi-adapt-bg servi-grey-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
                       aria-label="Ver detalle"
                     >
                       <svg
@@ -410,7 +410,7 @@ onMounted(() => {
                 <RouterLink
                   :to="{ name: 'ver-deuda', params: { id: item.id } }"
                   @click.stop
-                  class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
+                  class="servi-blue servi-grey-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
                   aria-label="Ver detalle"
                 >
                   <svg
