@@ -37,16 +37,16 @@ const claseEstado = (estado) => {
     case 2: return {clase: 'bg-green-100 text-green-800 border-green-200', texto: 'Confirmado'}
     case 3: return {clase: 'bg-red-100 text-red-800 border-red-200', texto: 'Descartado'}
     case 1: return {clase: 'bg-yellow-100 text-yellow-800 border-yellow-200', texto: 'En espera'}
-    default: return {clase: 'servi-adapt-bg servi-white-font border-gray-800', texto: 'Cerrado'}
+    default: return {clase: 'servi-adapt-bg servi-white-font border-gray-100', texto: 'Cerrado'}
   }
 }
 </script>
 
 <template>
-  <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+  <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm  overflow-hidden">
     <table class="w-full text-left border-collapse">
       <thead>
-        <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-800">
+        <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
           <th class="p-4 font-semibold">Folio</th>
           <th class="p-4 font-semibold">Cliente</th>
           <th class="p-4 font-semibold">Vehículo</th>
@@ -58,20 +58,20 @@ const claseEstado = (estado) => {
           <th class="p-4 font-semibold text-center">Acción</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-800">
+      <tbody>
         <tr v-for="item in servicios" :key="item.id" class="hover:opacity-80 transition-colors cursor-pointer"
           @click="irADetalle(item.id)">
-          <td class="p-4 font-medium servi-white-font">#{{ item.numero_folio }}</td>
-          <td class="p-4 servi-white-font">
+          <td class="p-4 font-medium servi-grey-font">#{{ item.numero_folio }}</td>
+          <td class="p-4 servi-grey-font">
             <div class="font-medium">{{ camelCase(item.cliente?.nombre) }} {{ camelCase(item.cliente?.apellido) }}</div>
             <div class="text-xs servi-grey-font">{{ item.cliente?.email }}</div>
           </td>
-          <td class="p-4 servi-white-font">
+          <td class="p-4 servi-grey-font">
             <span class="servi-adapt-bg servi-white-font px-2 py-1 rounded text-xs font-bold">{{ item.vehiculo?.patente
               }}</span>
             <div class="text-xs servi-grey-font mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
           </td>
-          <td class="p-4 servi-white-font">
+          <td class="p-4 servi-grey-font">
             <span class="block max-w-[200px] truncate" :title="item.diagnostico">{{ camelCase(item.diagnostico)
               }}</span>
           </td>
@@ -105,7 +105,7 @@ const claseEstado = (estado) => {
         </tr>
       </tbody>
     </table>
-    <div v-if="servicios.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800">
+    <div v-if="servicios.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
         <div class="servi-grey-font mb-2">
           <p class="servi-grey-font text-lg">No se encontraron presupuestos</p>
           <p class="text-sm servi-grey-font">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>

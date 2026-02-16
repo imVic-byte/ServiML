@@ -32,10 +32,10 @@ const redirigir = (id) => {
 </script>
 
 <template>
-    <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
-        <table class="w-full text-left border-collapse">
+    <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm overflow-hidden">
+        <table class="w-full text-left">
             <thead>
-                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-800">
+                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
                     <th class="p-4 font-semibold">Patente</th>
                     <th class="p-4 font-semibold">Vehículo</th>
                     <th class="p-4 font-semibold">Cliente</th>
@@ -44,7 +44,7 @@ const redirigir = (id) => {
                     <th class="p-4 font-semibold text-center">OT</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-800">
+            <tbody>
                 <tr 
                     v-for="vehiculo in lista" 
                     :key="vehiculo.id"

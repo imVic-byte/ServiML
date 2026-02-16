@@ -212,8 +212,8 @@ onMounted(async () => {
         <div class="flex flex-col lg:flex-row gap-6 mt-6">
             
             <div class="lg:w-2/3 space-y-6">
-                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
-                    <div class="servi-blue px-6 py-3 border-b border-gray-800 flex justify-between items-center">
+                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="servi-blue px-6 py-3 border-b border-gray-100 flex justify-between items-center">
                         <h2 class="servi-white-font font-bold text-lg">Información General</h2>
                         <span :class="handleEstados(presupuesto.estado).clase" class="px-3 py-1 rounded-full text-xs servi-white-font">
                             {{ handleEstados(presupuesto.estado).texto }}
@@ -259,8 +259,8 @@ onMounted(async () => {
                     </div>
                 </div>
 
-                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-800 servi-adapt-bg">
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 servi-adapt-bg">
                         <h3 class="servi-grey-font font-bold">Servicios Solicitados</h3>
                     </div>
                     <div class="divide-y divide-gray-800">
@@ -273,8 +273,8 @@ onMounted(async () => {
             </div>
 
             <div class="lg:w-1/3 space-y-6">
-                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-6">
-                    <h3 class="text-sm font-bold servi-white-font mb-4 pb-2 border-b border-gray-800">Resumen Financiero</h3>
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-sm font-bold servi-white-font mb-4 pb-2 border-b border-gray-100">Resumen Financiero</h3>
                     
                     <div class="space-y-3">
                         <div class="flex justify-between items-center text-sm servi-grey-font">
@@ -294,14 +294,14 @@ onMounted(async () => {
                             <span class="font-medium">{{ formatearNumero(presupuesto.iva || 0) }}</span>
                         </div>
                         
-                        <div class="pt-4 mt-2 border-t border-gray-800 flex justify-between items-center">
+                        <div class="pt-4 mt-2 border-t border-gray-100 flex justify-between items-center">
                             <span class="font-bold servi-white-font text-lg">TOTAL</span>
                             <span class="font-extrabold text-2xl servi-grey-font">{{ formatearNumero(presupuesto.total_final || 0) }}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-6">
+                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-6">
                     <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-4">Acciones</h3>
                     
                     <!-- Selector de cuenta bancaria -->
@@ -309,7 +309,7 @@ onMounted(async () => {
                       <label class="block text-xs font-semibold servi-grey-font uppercase tracking-wider mb-2">Cuenta para PDF</label>
                       <select
                         v-model="cuentaSeleccionada"
-                        class="w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full rounded-lg servi-blue servi-grey-font border border-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option v-for="cuenta in cuentasBancarias" :key="cuenta.id" :value="cuenta">
                           {{ cuenta.banco }} - {{ cuenta.tipo_cuenta }}

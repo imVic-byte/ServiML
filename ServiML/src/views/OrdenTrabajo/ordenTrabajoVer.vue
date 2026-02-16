@@ -520,7 +520,7 @@ onMounted(async () => {
         <p class="font-bold">No eres el técnico asignado. Modo solo lectura.</p>
       </div>
 
-      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 mb-6 overflow-x-auto">
+      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
         <div class="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 min-w-max md:min-w-0">
           <div v-for="estado in estados" :key="estado.id" class="flex flex-col items-center group">
             <div v-if="estado.id !== 1" @click="verificarCambioEstado(estado.id) ? openModal(estado) : null"
@@ -542,7 +542,7 @@ onMounted(async () => {
 
         <div class="lg:col-span-2 space-y-6">
           
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h1 class="servi-yellow-font font-bold text-lg tracking-wide">INFORMACIÓN GENERAL</h1>
             </div>
@@ -555,12 +555,12 @@ onMounted(async () => {
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p class="servi-grey-font">{{ orden.motivo_ingreso }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><p class="servi-grey-font">{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p class="servi-grey-font">{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
             </div>
           </div>
 
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h1 class="servi-yellow-font font-bold text-lg tracking-wide">DATOS DE RECEPCIÓN</h1>
             </div>
@@ -570,11 +570,11 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label>
-                    <input class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
+                    <input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
                   </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Prioridad</label>
-                    <select class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad" :disabled="soloLectura || isCerrado">
+                    <select class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad" :disabled="soloLectura || isCerrado">
                       <option value="1">Alta (Urgencia)</option>
                       <option value="2">Media (Normal)</option>
                       <option value="3">Baja (Proyecto)</option>
@@ -584,7 +584,7 @@ onMounted(async () => {
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Origen Ingreso</label>
-                    <select class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso" :disabled="soloLectura || isCerrado">
+                    <select class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso" :disabled="soloLectura || isCerrado">
                       <option value="cliente">Conducido por Cliente</option>
                       <option value="grua">Grúa / Remolque</option>
                       <option value="tercero">Chofer / Tercero</option>
@@ -592,30 +592,30 @@ onMounted(async () => {
                   </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Tipo de Trabajo</label>
-                    <input class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" :disabled="soloLectura || isCerrado" />
+                    <input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" :disabled="soloLectura || isCerrado" />
                   </div>
                 </div>
                 <div class="space-y-1">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Kilometraje Actual</label>
                   <div class="relative">
-                    <input class="w-full servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium pl-4" type="number" v-model="orden.kilometraje_inicial" :disabled="soloLectura || isCerrado" />
+                    <input class="w-full servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium pl-4" type="number" v-model="orden.kilometraje_inicial" :disabled="soloLectura || isCerrado" />
                     <span class="absolute right-4 top-2.5 servi-grey-font text-sm font-bold">KM</span>
                   </div>
                 </div>
                 <div class="space-y-1 flex-row">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Diagnóstico Inicial</label>
-                  <textarea class="w-full h-32 servi-adapt-bg border border-gray-800 servi-white-font rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico" :disabled="soloLectura || isCerrado"></textarea>
+                  <textarea class="w-full h-32 servi-adapt-bg border border-gray-100 servi-white-font rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico" :disabled="soloLectura || isCerrado"></textarea>
                 </div>
               </div>
 
               <div class="flex flex-col gap-6">
-                <div class="space-y-2 servi-adapt-bg p-4 rounded-xl border border-gray-800">
+                <div class="space-y-2 servi-adapt-bg p-4 rounded-xl border border-gray-100">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider flex justify-between">
                     <span>Nivel de Combustible</span>
                   </label>
                   <medidorCombustible v-model="nivelCombustible" />
                 </div>
-                <div class="servi-adapt-bg p-4 rounded-xl border border-gray-800">
+                <div class="servi-adapt-bg p-4 rounded-xl border border-gray-100">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-3 block">Inventario Rápido</label>
                   <div class="grid grid-cols-2 gap-3">
                     <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
@@ -649,7 +649,7 @@ onMounted(async () => {
           </div>
 
           <!-- FOTOS DE RECEPCIÓN -->
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Fotos de Recepción</h3>
             </div>
@@ -688,7 +688,7 @@ onMounted(async () => {
 
                 <button 
                   @click="activarInputRecepcion('galeria')"
-                  class="flex items-center gap-2 text-sm font-bold servi-grey-font servi-adapt-bg hover:opacity-80 px-4 py-2.5 rounded-lg transition-colors border border-gray-800 cursor-pointer"
+                  class="flex items-center gap-2 text-sm font-bold servi-grey-font servi-adapt-bg hover:opacity-80 px-4 py-2.5 rounded-lg transition-colors border border-gray-100 cursor-pointer"
                   title="Seleccionar de galería"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -700,7 +700,7 @@ onMounted(async () => {
 
               <!-- Photo grid -->
               <div v-if="fotosRecepcion && fotosRecepcion.length > 0" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                <div v-for="(foto, fIndex) in fotosRecepcion" :key="fIndex" class="relative aspect-square rounded-xl overflow-hidden border border-gray-800 group shadow-sm hover:shadow-md transition-shadow">
+                <div v-for="(foto, fIndex) in fotosRecepcion" :key="fIndex" class="relative aspect-square rounded-xl overflow-hidden border border-gray-100 group shadow-sm hover:shadow-md transition-shadow">
                   <img :src="foto.url" class="w-full h-full object-cover" />
                   <button @click="removerFotoRecepcion(fIndex)" class="absolute top-1.5 right-1.5 bg-red-500 hover:bg-red-600 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -711,7 +711,7 @@ onMounted(async () => {
               </div>
 
               <!-- Empty state -->
-              <div v-else class="flex flex-col items-center justify-center py-10 servi-grey-font servi-adapt-bg rounded-xl border border-dashed border-gray-800">
+              <div v-else class="flex flex-col items-center justify-center py-10 servi-grey-font servi-adapt-bg rounded-xl border border-dashed border-gray-100">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -721,7 +721,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Bitácora de Observaciones</h3>
               <button v-if="!soloLectura && !isCerrado" @click="agregarObservacion" class="servi-yellow text-blue-900 font-bold p-2 rounded-full shadow-md transition-all transform hover:scale-105" title="Agregar Observación">
@@ -747,7 +747,7 @@ onMounted(async () => {
                     </div>
                   </div>
                   <div class="flex-grow">
-                    <div class="relative servi-adapt-bg border border-gray-800 p-4 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="relative servi-adapt-bg border border-gray-100 p-4 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm hover:shadow-md transition-shadow">
                       <div class="flex justify-between items-start mb-2">
                         <span class="text-xs servi-grey-font font-semibold">{{ new Date(observacion.fecha).toLocaleDateString() }}</span>
                         <button v-if="observacion.isNew" @click="eliminarObservacion(index)" class="text-red-400 hover:text-red-600">
@@ -758,9 +758,9 @@ onMounted(async () => {
                       </div>
                       <textarea v-model="observacion.texto" placeholder="Escriba los detalles aquí..." class="w-full servi-white-font bg-transparent border-0 p-0 focus:ring-0 resize-none text-sm leading-relaxed mb-3" rows="2"></textarea>
                       
-                      <div class="flex flex-col gap-3 mt-2 border-t pt-2 border-gray-800">
+                      <div class="flex flex-col gap-3 mt-2 border-t pt-2 border-gray-100">
                         <div v-if="observacion.fotos && observacion.fotos.length > 0" class="flex flex-wrap gap-2">
-                          <div v-for="(foto, fIndex) in observacion.fotos" :key="fIndex" class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-800 group/foto">
+                          <div v-for="(foto, fIndex) in observacion.fotos" :key="fIndex" class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-100 group/foto">
                             <img :src="foto.url" class="w-full h-full object-cover" />
                             <button @click="removerFotoObservacion(index, fIndex)" class="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-lg opacity-0 group-hover/foto:opacity-100 transition-opacity">
                               <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
@@ -804,7 +804,7 @@ onMounted(async () => {
 
   <button 
     @click="activarInput(index, 'galeria')"
-    class="flex items-center gap-2 text-xs font-bold servi-grey-font servi-adapt-bg hover:opacity-80 px-3 py-2 rounded-lg transition-colors border border-gray-800"
+    class="flex items-center gap-2 text-xs font-bold servi-grey-font servi-adapt-bg hover:opacity-80 px-3 py-2 rounded-lg transition-colors border border-gray-100"
     title="Seleccionar de galería"
   >
     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -824,7 +824,7 @@ onMounted(async () => {
         </div>
 
         <div class="space-y-6">
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4">
             <h3 class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
             <div class="flex flex-col gap-3">
               <button v-if="!soloLectura && !isCerrado" @click="guardarCambios()" class="w-full servi-yellow servi-grey-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">

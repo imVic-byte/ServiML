@@ -69,7 +69,7 @@ onMounted( async () => {
             <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
         </div>
 
-        <div v-else-if="historial.length === 0" class="flex flex-col items-center justify-center py-16 px-4 text-center border-2 border-dashed border-gray-800 rounded-xl servi-adapt-bg">
+        <div v-else-if="historial.length === 0" class="flex flex-col items-center justify-center py-16 px-4 text-center border-2 border-dashed border-gray-100 rounded-xl servi-adapt-bg">
             <div class="servi-adapt-bg p-4 rounded-full mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 servi-grey-font" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />

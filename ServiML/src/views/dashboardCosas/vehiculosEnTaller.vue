@@ -102,18 +102,18 @@ onMounted(async () => {
             <!-- Motivo de ingreso -->
             <div v-if="vehiculo.orden_trabajo?.motivo_ingreso" class="mb-3">
               <p class="text-xs uppercase font-bold servi-grey-font mb-0.5">Motivo de ingreso</p>
-              <p class="text-sm servi-white-font leading-relaxed line-clamp-2">
+              <p class="text-sm servi-grey-font leading-relaxed line-clamp-2">
                 {{ vehiculo.orden_trabajo.motivo_ingreso }}
               </p>
             </div>
 
             <!-- Cliente -->
-            <div v-if="vehiculo.orden_trabajo?.cliente" class="flex items-center gap-2 pt-3 border-t border-gray-800">
+            <div v-if="vehiculo.orden_trabajo?.cliente" class="flex items-center gap-2 pt-3 border-t border-gray-100">
               <div class="w-7 h-7 rounded-full servi-blue flex items-center justify-center shrink-0">
                 <span class="text-xs font-bold text-white">{{ vehiculo.orden_trabajo.cliente.nombre?.charAt(0)?.toUpperCase() || '?' }}</span>
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-sm font-semibold servi-white-font truncate">
+                <p class="text-sm font-semibold servi-grey-font truncate">
                   {{ vehiculo.orden_trabajo.cliente.nombre }} {{ vehiculo.orden_trabajo.cliente.apellido }}
                 </p>
                 <p v-if="vehiculo.orden_trabajo.cliente.telefono" class="text-xs servi-grey-font truncate">
@@ -122,20 +122,20 @@ onMounted(async () => {
               </div>
               <button 
                 @click.stop="redirigir(vehiculo.orden_trabajo.id)"
-                class="servi-blue servi-white-font px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity hover:opacity-90 shrink-0"
+                class="servi-blue text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-opacity hover:opacity-90 shrink-0"
               >
                 Ver OT
               </button>
             </div>
 
             <!-- Sin OT -->
-            <div v-if="!vehiculo.orden_trabajo" class="pt-3 border-t border-gray-800">
+            <div v-if="!vehiculo.orden_trabajo" class="pt-3 border-t border-gray-100">
               <p class="text-xs servi-grey-font italic">Sin orden de trabajo asociada</p>
             </div>
           </div>
         </div>
 
-        <div v-if="vehiculos.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800">
+        <div v-if="vehiculos.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
           <p class="servi-grey-font text-lg">No hay vehículos en taller actualmente</p>
           <p class="text-sm servi-grey-font">Todos los vehículos han sido entregados.</p>
         </div>

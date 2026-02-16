@@ -220,11 +220,11 @@ onMounted(async () => {
     <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-20">
       <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-2xl font-bold servi-white-font">Hola, {{ nombreCompleto }}</h1>
+          <h1 class="text-2xl font-bold servi-grey-font">Hola, {{ nombreCompleto }}</h1>
           <p class="servi-grey-font capitalize">{{ fechaHoy }}</p>
         </div>
         <div class="mt-2 sm:mt-0 flex items-center gap-3">
-          <select v-model="tallerSeleccionado" @change="cambiarTaller" class="text-sm font-medium servi-adapt-bg servi-grey-font border border-gray-800 rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none cursor-pointer">
+          <select v-model="tallerSeleccionado" @change="cambiarTaller" class="text-sm font-medium servi-adapt-bg servi-grey-font border border-gray-100 rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none cursor-pointer">
             <option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }}</option>
           </select>
           <span v-if="!esFinDeSemana" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-servi-blue border border-blue-100">
@@ -239,7 +239,7 @@ onMounted(async () => {
       </div>
 
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
-        <div @click="VehiculosEnTaller" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-800 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="VehiculosEnTaller" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -253,7 +253,7 @@ onMounted(async () => {
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Vehículos en Taller</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-white-font">{{ vehiculosEnTaller }}</dd>
+                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ vehiculosEnTaller }}</dd>
               </div>
             </div>
           </div>
@@ -262,7 +262,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="SinAsignar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-800 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="SinAsignar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -274,7 +274,7 @@ onMounted(async () => {
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Sin Asignar</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-white-font">{{ otSinAsignar }}</dd>
+                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ otSinAsignar }}</dd>
               </div>
             </div>
           </div>
@@ -286,7 +286,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="PresupuestosSemana" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-800 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="PresupuestosSemana" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -298,7 +298,7 @@ onMounted(async () => {
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Presupuestos Semana</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-white-font">{{ presupuestosSemana }}</dd>
+                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ presupuestosSemana }}</dd>
               </div>
             </div>
           </div>
@@ -308,7 +308,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="ListoParaEntregar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-800 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="ListoParaEntregar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -320,7 +320,7 @@ onMounted(async () => {
               </div>
               <div class="ml-4 w-0 flex-1">
                 <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Listos para Entrega</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-white-font">{{ otPorEntregar }}</dd>
+                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ otPorEntregar }}</dd>
               </div>
             </div>
           </div>
@@ -334,9 +334,9 @@ onMounted(async () => {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- Flujo de trabajo reciente (2/3) -->
-        <div class="lg:col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
-          <div class="p-5 border-b border-gray-800 flex justify-between items-center">
-            <h2 class="text-lg font-bold servi-white-font">Flujo de Trabajo Reciente</h2>
+        <div class="lg:col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+            <h2 class="text-lg font-bold servi-grey-font">Flujo de Trabajo Reciente</h2>
             <button @click="verTablero" class="text-sm cursor-pointer servi-grey-font hover:text-blue-800 font-medium">Ver tablero</button>
           </div>
           <div class="overflow-x-auto">
@@ -349,9 +349,9 @@ onMounted(async () => {
                   <th class="px-5 py-3">Estado</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-800">
+              <tbody class="divide-y divide-gray-200">
                 <tr v-for="ot in listaOTRecientes" @click="verOT(ot.id)" :key="ot.id" class="hover:opacity-80 transition-colors cursor-pointer">
-                  <td class="px-5 py-3.5 font-medium servi-white-font">#{{ ot.id }}</td>
+                  <td class="px-5 py-3.5 font-medium servi-grey-font">#{{ ot.id }}</td>
                   <td class="px-5 py-3.5 servi-grey-font">{{ ot.vehiculo.patente }}</td>
                   <td class="px-5 py-3.5 servi-grey-font truncate max-w-[100px] sm:max-w-none">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
                   <td class="px-5 py-3.5">
@@ -369,9 +369,9 @@ onMounted(async () => {
         <div class="space-y-6">
           
           <div class="space-y-6">
-  <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
-    <div class="p-5 border-b border-gray-800">
-      <h3 class="font-bold servi-white-font">Métricas de Eficiencia</h3>
+  <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-5 border-b border-gray-100">
+      <h3 class="font-bold servi-grey-font">Métricas de Eficiencia</h3>
     </div>
     <div class="p-5 space-y-5">
       
@@ -407,10 +407,10 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 pt-4 border-t border-gray-800">
+      <div class="grid grid-cols-2 gap-3 pt-4 border-t border-gray-100">
         <div class="text-center p-3 servi-adapt-bg rounded-lg transition-all duration-200 hover:shadow-sm">
           <div class="text-xs servi-grey-font uppercase tracking-wider">Ticket Prom.</div>
-          <div class="font-bold servi-white-font mt-1">
+          <div class="font-bold servi-grey-font mt-1">
             {{ formatoMoneda(metricas.ticket_promedio) }}
           </div>
         </div>

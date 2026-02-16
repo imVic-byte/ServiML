@@ -71,7 +71,7 @@ onMounted(async () => {
           :estado="handleEstados(item.estado_actual_id)"
           @asignacion-exitosa="obtenerOrdenes"
         />
-        <div v-if="ordenes.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800">
+        <div v-if="ordenes.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
         <div class="servi-grey-font mb-2">
           <p class="servi-grey-font text-lg">No hay órdenes por entregar</p>
           <p class="text-sm servi-grey-font">Todas las órdenes han sido entregadas.</p>

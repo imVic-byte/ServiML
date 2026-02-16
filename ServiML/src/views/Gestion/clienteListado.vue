@@ -61,7 +61,7 @@ onMounted(async () => {
 
       <!-- Header -->
       <div class="mb-6 hidden sm:block">
-        <h1 class="text-2xl font-bold servi-white-font">Listado de Clientes</h1>
+        <h1 class="text-2xl font-bold servi-grey-font">Listado de Clientes</h1>
         <p class="text-sm servi-grey-font mt-1">{{ clientes.length }} clientes registrados</p>
       </div>
 
@@ -75,15 +75,15 @@ onMounted(async () => {
             v-model="busqueda"
             type="text"
             placeholder="Buscar por nombre, email o teléfono..."
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-800 servi-adapt-bg servi-white-font text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 servi-adapt-bg servi-grey-font text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           />
         </div>
       </div>
 
       <!-- Tabla (pantallas grandes) -->
-      <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+      <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-800 text-sm">
+          <table class="min-w-full divide-y divide-gray-100 text-sm">
             <thead class="servi-blue servi-yellow-font">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibol uppercase tracking-wider">Cliente</th>
@@ -92,7 +92,7 @@ onMounted(async () => {
                 <th class="px-6 py-3 text-left text-xs font-semibol uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody class="servi-adapt-bg divide-y divide-gray-800">
+            <tbody class="servi-adapt-bg divide-y divide-gray-100">
               <tr v-for="cliente in clientesFiltrados" :key="cliente.id" class="hover:opacity-80 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center gap-3">
@@ -100,7 +100,7 @@ onMounted(async () => {
                       {{ iniciales(cliente.nombre, cliente.apellido) }}
                     </div>
                     <div>
-                      <p class="font-semibold servi-white-font">{{ camelCase(cliente.nombre) }} {{ camelCase(cliente.apellido) }}</p>
+                      <p class="font-semibold servi-grey-font">{{ camelCase(cliente.nombre) }} {{ camelCase(cliente.apellido) }}</p>
                     </div>
                   </div>
                 </td>
@@ -130,7 +130,7 @@ onMounted(async () => {
         <div
           v-for="cliente in clientesFiltrados"
           :key="cliente.id"
-          class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4"
+          class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4"
           @click="verCliente(cliente.id)"
         >
           <div class="flex items-center gap-3 mb-3">
@@ -138,10 +138,10 @@ onMounted(async () => {
               {{ iniciales(cliente.nombre, cliente.apellido) }}
             </div>
             <div class="min-w-0">
-              <p class="font-bold servi-white-font text-sm truncate">{{ camelCase(cliente.nombre) }} {{ camelCase(cliente.apellido) }}</p>
+              <p class="font-bold servi-grey-font text-sm truncate">{{ camelCase(cliente.nombre) }} {{ camelCase(cliente.apellido) }}</p>
             </div>
           </div>
-          <div class="space-y-1.5 text-sm border-b border-gray-800 pb-2">
+          <div class="space-y-1.5 text-sm border-b border-gray-100 pb-2">
             <div class="flex items-center gap-2 servi-grey-font">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 servi-grey-font shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -156,11 +156,11 @@ onMounted(async () => {
               <span v-else>—</span>
             </div>
           </div>
-          <button @click="verCliente(cliente.id)" class="servi-blue mt-2 w-full servi-white-font px-2 py-1 rounded-xl hover:opacity-80 transition-colors">
+          <button @click="verCliente(cliente.id)" class="servi-blue mt-2 w-full servi-grey-font px-2 py-1 rounded-xl hover:opacity-80 transition-colors">
             Ver Cliente
           </button>
         </div>
-        <div v-if="clientesFiltrados.length === 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-10 text-center">
+        <div v-if="clientesFiltrados.length === 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-10 text-center">
           <p class="servi-grey-font font-medium">{{ busqueda ? 'No se encontraron resultados' : 'No hay clientes registrados' }}</p>
         </div>
       </div>

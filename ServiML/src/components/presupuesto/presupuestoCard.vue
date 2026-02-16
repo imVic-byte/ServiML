@@ -51,7 +51,7 @@ const handleEstados = (estado) => {
   >
     <div class="card-header servi-grey-font">
       <span class="folio">#{{ data.numero_folio }}</span>
-      <span :class="handleEstados(data.estado).clase">{{ handleEstados(data.estado).texto }}</span>  
+      <span class="font-bold text-black" :class="handleEstados(data.estado).clase">{{ handleEstados(data.estado).texto }}</span>  
     </div>
 
     <div class="card-body servi-grey-font">
@@ -151,8 +151,8 @@ const handleEstados = (estado) => {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
   background: #36f04c5c;
-  color: #ffffff;
   border-radius: 4px;
+  color: #0f0f0f;
   text-transform: uppercase;
 }
 

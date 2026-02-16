@@ -34,7 +34,7 @@ onMounted(() => {
     <div class="container mx-auto px-6 mt-2 pb-15">
 
       <div class="mb-8">
-        <h2 class="text-2xl font-bold servi-white-font">Hola, {{ userStore.trabajador?.nombre?.split(' ')[0] || 'Usuario'
+        <h2 class="text-2xl font-bold servi-grey-font">Hola, {{ userStore.trabajador?.nombre?.split(' ')[0] || 'Usuario'
           }}</h2>
         <p class="servi-grey-font">¿Qué deseas administrar hoy?</p>
         <cambiarTema />

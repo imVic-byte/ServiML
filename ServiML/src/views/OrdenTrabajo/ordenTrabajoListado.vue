@@ -116,33 +116,33 @@ onMounted(async () => {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       <div class="hidden md:grid md:grid-cols-3 gap-4 mb-8">
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
+        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Órdenes / mes</p>
             <p class="text-2xl font-bold servi-grey-font">{{ stats.total }}</p>
         </div>
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
+        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Recientes</p>
             <p class="text-2xl font-bold text-green-600">{{ stats.recientes }}</p>
         </div>
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
+        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Sin asignar</p>
-            <p class="text-lg font-bold servi-white-font">{{ stats.sinAsignar }}</p>
+            <p class="text-lg font-bold servi-grey-font">{{ stats.sinAsignar }}</p>
         </div>
       </div>
 
       <Transition name="slide-stats">
         <div v-show="showStats" class="md:hidden grid grid-cols-2 gap-3 mb-6">
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
+          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
               <p class="text-xs servi-grey-font uppercase font-bold">Órdenes / mes</p>
               <p class="text-xl font-bold servi-grey-font">{{ stats.total }}</p>
           </div>
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
+          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
               <p class="text-xs servi-grey-font uppercase font-bold">Recientes</p>
               <p class="text-xl font-bold text-green-600">{{ stats.recientes }}</p>
           </div>
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
+          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
               <p class="text-xs servi-grey-font uppercase font-bold">Sin asignar</p>
-              <p class="text-lg font-bold servi-white-font">{{ stats.sinAsignar }}</p>
+              <p class="text-lg font-bold servi-grey-font">{{ stats.sinAsignar }}</p>
           </div>
         </div>
       </Transition>
@@ -154,13 +154,13 @@ onMounted(async () => {
         </div>
         <div class="flex justify-end w-full items-center gap-2">
 
-          <button @click="handleTodas()" class="servi-blue cursor-pointer rounded-full servi-white-font font-bold py-2 px-4 shadow-sm border border-gray-800 hover:opacity-80 transition-all flex items-center gap-2">
+          <button @click="handleTodas()" class="servi-blue cursor-pointer rounded-full text-white font-bold py-2 px-4 shadow-sm border border-gray-100 hover:opacity-80 transition-all flex items-center gap-2">
             {{ Todas ? 'Ver mis OTs' : 'Ver todas' }}
           </button>
           
           <button 
             @click="showStats = !showStats" 
-            class="md:hidden servi-adapt-bg cursor-pointer servi-grey-font font-bold py-2 px-4 rounded-full shadow-sm border border-gray-800 hover:opacity-80 transition-all flex items-center gap-2"
+            class="md:hidden servi-adapt-bg cursor-pointer servi-grey-font font-bold py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:opacity-80 transition-all flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -188,7 +188,7 @@ onMounted(async () => {
           @asignacion-exitosa="() => obtenerOrdenes()"
         />
       </div>
-      <div v-if="ordenes.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800 md:hidden">
+      <div v-if="ordenes.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
         <div class="servi-grey-font mb-2">
           <p v-if="esTrabajador" class="servi-grey-font text-lg">No se encontraron tus ordenes de trabajo</p>
           <p v-else class="servi-grey-font text-lg">No se encontraron ordenes de trabajo</p>

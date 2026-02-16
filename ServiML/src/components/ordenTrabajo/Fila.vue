@@ -92,15 +92,15 @@ const formatearFecha = (fechaString) => {
 
 <template>
     <tr class="hover:opacity-80 transition-colors cursor-pointer" @click="irADetalle(orden.id)">
-        <td class="p-4 font-medium servi-white-font">#{{ orden.id }}</td>
+        <td class="p-4 font-medium servi-grey-font">#{{ orden.id }}</td>
         <td class="p-4 servi-white-font">
-            <span class="servi-adapt-bg servi-white-font px-2 py-1 rounded text-xs font-bold uppercase">
+            <span class="servi-adapt-bg servi-grey-font px-2 py-1 rounded text-xs font-bold uppercase">
                 {{ orden.vehiculo?.patente }}
             </span>
             <div class="text-xs servi-grey-font mt-1">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</div>
         </td>
         <td class="p-4 servi-white-font">
-            <span class="servi-adapt-bg servi-white-font px-2 py-1 rounded text-xs font-bold block max-w-[200px] truncate">
+            <span class="servi-adapt-bg servi-grey-font px-2 py-1 rounded text-xs font-bold block max-w-[200px] truncate">
                 {{ orden.presupuesto?.diagnostico }}
             </span>
         </td>
@@ -117,14 +117,14 @@ const formatearFecha = (fechaString) => {
         <td class="p-4 text-center" @click.stop>
             <span v-if="orden.id_empleado" class="servi-grey-font">{{ orden.trabajadores?.nombre }}</span>
             <button v-if="!empleadoAsignado" @click="abrirModalAsignar" class="mt-2 flex rounded-lg servi-yellow servi-grey-font justify-center items-center px-3 py-2 w-full mx-auto transition-colors hover:bg-yellow-400 cursor-pointer">
-                <span class="font-bold text-sm mr-2">Asignar Técnico</span>
+                <span class="font-bold text-black text-sm mr-2">Asignar Técnico</span>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
       </svg>
             </button>
         </td>
-        <td class="p-4 text-center">
-            <button class="servi-grey-font hover:text-blue-600 transition-colors">
+        <td class="p-4 text-center servi-grey-font">
+            <button class="font-white hover:text-blue-600 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />

@@ -30,10 +30,10 @@ watch(() => props.ordenes, (nuevoValor) => {
 })
 </script>
 <template>
-    <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+    <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm  overflow-hidden">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-800">
+                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider">
                     <th class="p-4 font-semibold">Nro.</th>
                     <th class="p-4 font-semibold">Vehículo</th>
                     <th class="p-4 font-semibold">Diágnostico inicial</th>
@@ -43,7 +43,7 @@ watch(() => props.ordenes, (nuevoValor) => {
                     <th class="p-4 font-semibold text-center">Acción</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-800">
+            <tbody>
                 <Fila 
                     v-for="orden in ordenesListado" 
                     :key="orden.id" 
@@ -53,7 +53,7 @@ watch(() => props.ordenes, (nuevoValor) => {
                 />
             </tbody>
         </table>
-        <div v-if="ordenesListado.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800">
+        <div v-if="ordenesListado.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
         <div class="servi-grey-font mb-2">
           <p class="servi-grey-font text-lg">No se encontraron ordenes de trabajo</p>
           <p class="text-sm servi-grey-font">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>

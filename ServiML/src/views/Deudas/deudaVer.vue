@@ -149,7 +149,7 @@ onMounted(() => {
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <!-- Filtros Estado -->
-          <div class="inline-flex self-start w-fit rounded-xl border border-gray-800 servi-adapt-bg shadow-sm overflow-hidden">
+          <div class="inline-flex self-start w-fit rounded-xl border border-gray-100 servi-adapt-bg shadow-sm overflow-hidden">
             <button
               type="button"
               @click="filtroEstado = 'todas'"
@@ -168,7 +168,7 @@ onMounted(() => {
             <button
               type="button"
               @click="filtroEstado = 'pendiente'"
-              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-800"
+              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-100"
               :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'"
             >
               Pendientes
@@ -183,7 +183,7 @@ onMounted(() => {
             <button
               type="button"
               @click="filtroEstado = 'pagada'"
-              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-800"
+              class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-100"
               :class="filtroEstado === 'pagada' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'"
             >
               Pagadas
@@ -200,7 +200,7 @@ onMounted(() => {
           <div class="flex items-center gap-2">
             <select
               v-model="ordenCampo"
-              class="servi-yellow servi-grey-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm outline-none"
+              class="servi-yellow servi-grey-font font-bold border border-gray-100 rounded-lg px-3 py-2 shadow-sm outline-none"
               title="Ordenar por"
             >
               <option value="created_at">Fecha</option>
@@ -210,7 +210,7 @@ onMounted(() => {
             <button
               type="button"
               @click="ordenAsc = !ordenAsc"
-              class="servi-yellow servi-grey-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2 hover:opacity-90 transition"
+              class="servi-yellow servi-grey-font font-bold border border-gray-100 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2 hover:opacity-90 transition"
               :title="ordenAsc ? 'Ascendente' : 'Descendente'"
             >
               <svg
@@ -247,7 +247,7 @@ onMounted(() => {
 
       <template v-else>
         <!-- Sin cuentas -->
-        <div v-if="deudas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800">
+        <div v-if="deudas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
           <div class="servi-grey-font mb-2">
             <p class="servi-grey-font text-lg">No hay deudas creadas</p>
             <p class="text-sm servi-grey-font">Crea una deuda para agrupar OTs y registrar abonos.</p>
@@ -279,7 +279,7 @@ onMounted(() => {
         <!-- Con cuentas, pero filtros sin resultados -->
         <div
           v-else-if="deudasFiltradas.length === 0"
-          class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800"
+          class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100"
         >
           <p class="servi-white-font text-lg font-bold">No hay resultados con esos filtros.</p>
           <p class="servi-grey-font">Prueba cambiando el estado o el orden.</p>
@@ -300,10 +300,10 @@ onMounted(() => {
 
         <!-- Listado -->
         <div v-else>
-          <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+          <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-800">
+                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
                   <th class="p-4 font-semibold">Deuda</th>
                   <th class="p-4 font-semibold">Estado</th>
                   <th class="p-4 font-semibold text-center">Notificación</th>
@@ -380,7 +380,7 @@ onMounted(() => {
               tabindex="0"
               @click="verDetalle(item.id)"
             >
-              <div class="flex justify-between items-start border-b border-gray-800 pb-2">
+              <div class="flex justify-between items-start border-b border-gray-100 pb-2">
                 <div class="flex flex-col min-w-0">
                   <span class="font-bold text-lg truncate">{{ item.nombre }}</span>
                   <span class="text-xs servi-grey-font">Creada: {{ formatearFecha(item.created_at) }}</span>
@@ -405,7 +405,7 @@ onMounted(() => {
                 <span v-else class="servi-grey-font">—</span>
               </div>
 
-              <div class="flex mt-2 pt-2 border-t border-gray-800 items-center justify-between">
+              <div class="flex mt-2 pt-2 border-t border-gray-100 items-center justify-between">
                 <span class="servi-grey-font text-sm pl-1">Ver Detalles</span>
                 <RouterLink
                   :to="{ name: 'ver-deuda', params: { id: item.id } }"

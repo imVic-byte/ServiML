@@ -9,11 +9,10 @@
     --color-servi-white-bg: #ffffff;
     --color-servi-white: #021029;
     --color-servi-yellow: #D8B462;
-    --text-servi-grey-font: #1F2F4A;
-    --text-servi-white-font: #ffffff;
-    --text-servi-grey-font: #6c757d;
+    --text-servi-grey-font: #0A0A0A;
     --color-en-espera: #f6ff4c;
     --color-servi-adapt-bg: #ffffff;
+    --color-gray-100: #DBDBDB;
 }
 
 @layer base {
@@ -23,11 +22,9 @@
         --color-servi-blue: #091f3c;
         --color-servi-grey: #1e2530;
         --color-servi-dark: #1F2F4A;
-        --servi-grey-font: #ffffff;
-        --text-servi-grey-font: #ffffff;
-        --text-servi-white-font: #ffffff;
         --text-servi-grey-font: #ffffff;
         --color-servi-adapt-bg: #1f3d64;
+        --color-gray-100: #202020;
     }
 }
 
@@ -36,11 +33,10 @@
 .servi-grey { background-color: var(--color-servi-grey); }
 .servi-white { background-color: var(--color-servi-white-bg); }
 .servi-yellow { background-color: var(--color-servi-yellow); }
-.servi-grey-font { color: var(--color-servi-blue); }
 .servi-dark-font { color: var(--color-servi-dark); }
 .servi-grey-font { color: var(--text-servi-grey-font); }
-.servi-white-font { color: var(--color-servi-white); }
 .servi-yellow-font { color: var(--color-servi-yellow); }
 .servi-yellow-border { border-color: var(--color-servi-yellow); }
 .en-espera { background-color: var(--color-en-espera); }
 .servi-adapt-bg { background-color: var(--color-servi-adapt-bg); }
+.border-gray-100 { border-color: var(--color-gray-100); }

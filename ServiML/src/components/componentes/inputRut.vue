@@ -44,7 +44,7 @@ watch(() => props.modelValue, (nuevoValor) => {
       :class="{ 'border-red-500': !esValidoLocal }" 
       type="text" 
       placeholder="12345678-9" 
-      class="w-full p-2 border border-gray-800 rounded-lg mb-3 servi-adapt-bg" 
+      class="w-full p-2 border border-gray-100 rounded-lg mb-3 servi-adapt-bg" 
     />
   </div>
 </template>

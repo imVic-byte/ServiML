@@ -252,7 +252,7 @@ onMounted(cargarDatos);
     </div>
 
     <div v-else class="max-w-7xl mx-auto px-4 py-8">
-      <div class="servi-adapt-bg card-shadow border border-gray-800 overflow-hidden mb-8">
+      <div class="servi-adapt-bg card-shadow border border-gray-100 overflow-hidden mb-8">
         <div class="p-6 md:p-8 flex justify-between items-start flex-wrap gap-4 servi-blue">
           <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-bold servi-white-font">{{ deuda.nombre }}</h1>
@@ -291,19 +291,19 @@ onMounted(cargarDatos);
           </div>
 
           <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            <div class="servi-blue rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
               <div class="text-xs servi-grey-font uppercase">OTs</div>
               <div class="font-bold servi-white-font">{{ otsEnDeuda.length }}</div>
             </div>
-            <div class="servi-blue rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
               <div class="text-xs servi-grey-font uppercase">Total deuda</div>
               <div class="font-bold servi-white-font">{{ formatearDinero(totalDeuda) }}</div>
             </div>
-            <div class="servi-blue rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
               <div class="text-xs servi-grey-font uppercase">Pagado</div>
               <div class="font-bold servi-white-font">{{ formatearDinero(totalPagado) }}</div>
             </div>
-            <div class="servi-blue rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
               <div class="text-xs servi-grey-font uppercase">Saldo</div>
               <div class="font-bold servi-white-font">{{ formatearDinero(saldoPendiente) }}</div>
             </div>
@@ -311,7 +311,7 @@ onMounted(cargarDatos);
         </div>
 
         <!-- Acciones -->
-        <div v-if="!esCompletada" class="servi-adapt-bg px-6 py-4 border-t border-gray-800 flex flex-wrap gap-3 items-center">
+        <div v-if="!esCompletada" class="servi-adapt-bg px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 items-center">
           <button
             @click="buscarOTsDisponibles"
             class="flex rounded-lg servi-yellow servi-grey-font justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition"
@@ -403,7 +403,7 @@ onMounted(cargarDatos);
       <!-- Listados -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Órdenes -->
-        <div class="card-shadow overflow-hidden border border-gray-800 servi-adapt-bg">
+        <div class="card-shadow overflow-hidden border border-gray-100 servi-adapt-bg">
           <div class="servi-blue servi-yellow-font px-4 py-3 flex items-center justify-between">
             <h3 class="font-bold text-xs uppercase tracking-wider">Órdenes ({{ otsEnDeuda.length }})</h3>
           </div>
@@ -441,7 +441,7 @@ onMounted(cargarDatos);
         </div>
 
         <!-- Abonos -->
-        <div class="card-shadow overflow-hidden border border-gray-800 servi-adapt-bg">
+        <div class="card-shadow overflow-hidden border border-gray-100 servi-adapt-bg">
           <div class="servi-blue servi-yellow-font px-4 py-3 flex items-center justify-between">
             <h3 class="font-bold text-xs uppercase tracking-wider">Abonos Realizados</h3>
           </div>
@@ -492,7 +492,7 @@ onMounted(cargarDatos);
             <div class="flex items-center gap-3 min-w-0">
               <div
                 class="w-5 h-5 rounded border flex items-center justify-center flex-shrink-0"
-                :class="otsSeleccionadas.includes(ot.id) ? 'servi-adapt-bg/20 border-white/50' : 'border-gray-800 servi-adapt-bg'"
+                :class="otsSeleccionadas.includes(ot.id) ? 'servi-adapt-bg/20 border-white/50' : 'border-gray-100 servi-adapt-bg'"
               >
                 <svg v-if="otsSeleccionadas.includes(ot.id)" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                   <path

@@ -8,7 +8,7 @@ import { useUserStore } from "./stores/user";
 import {useDark} from '@/stores/useDark'
 const uiStore = useInterfaz();
 const userStore = useUserStore();
-const { isDark, toggleDark } = useDark()
+const { isDark } = useDark()
 let safetyTimer = null
 watch(
   () => uiStore.isLoading,

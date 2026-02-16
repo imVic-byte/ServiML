@@ -63,7 +63,7 @@ onMounted(async () => {
 
       <!-- Header -->
       <div class="mb-6 hidden sm:block">
-        <h1 class="text-2xl font-bold servi-white-font">Listado de Vehículos</h1>
+        <h1 class="text-2xl font-bold servi-grey-font">Listado de Vehículos</h1>
         <p class="text-sm servi-grey-font mt-1">{{ vehiculos.length }} vehículos registrados</p>
       </div>
 
@@ -77,7 +77,7 @@ onMounted(async () => {
             v-model="busqueda"
             type="text"
             placeholder="Buscar por patente, marca, modelo o dueño..."
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-800 servi-adapt-bg servi-white-font text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-800 servi-adapt-bg servi-grey-font text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           />
         </div>
       </div>
@@ -85,7 +85,7 @@ onMounted(async () => {
       <!-- Tabla (pantallas grandes) -->
       <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-800 text-sm">
+          <table class="min-w-full text-sm">
             <thead class="servi-blue servi-yellow-font">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Patente</th>
@@ -96,12 +96,12 @@ onMounted(async () => {
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody class="servi-adapt-bg divide-y divide-gray-800">
+            <tbody class="servi-adapt-bg divide-y divide-gray-100">
               <tr v-for="v in vehiculosFiltrados" :key="v.id" class="hover:opacity-80 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ v.patente || 'S/P' }}</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap servi-white-font font-medium">{{ v.marca || '—' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap servi-grey-font font-medium">{{ v.marca || '—' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap servi-grey-font">{{ v.modelo || '—' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap servi-grey-font max-w-[150px] truncate">{{ camelCase(v.cliente?.nombre) }} {{ camelCase(v.cliente?.apellido) }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -137,7 +137,7 @@ onMounted(async () => {
             <span v-if="v.en_taller" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
             <span v-else class="px-2 py-1 servi-adapt-bg servi-grey-font rounded-full text-xs font-semibold">Fuera</span>
           </div>
-          <p class="font-semibold servi-white-font text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
+          <p class="font-semibold servi-grey-font text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
           <div class="space-y-1 text-sm mt-2 border-t border-gray-800 pt-2">
             <div class="flex items-center gap-2 servi-grey-font">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 servi-grey-font shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -146,7 +146,7 @@ onMounted(async () => {
               <span class="truncate">{{ camelCase(v.cliente?.nombre) }} {{ camelCase(v.cliente?.apellido) || '—' }}</span>
             </div>
           </div>
-          <button class="servi-blue mt-2 w-full servi-white-font px-2 py-1 rounded-xl hover:opacity-90 transition">
+          <button class="servi-blue mt-2 w-full servi-grey-font px-2 py-1 rounded-xl hover:opacity-90 transition">
             Ver Vehículo
           </button>
         </div>

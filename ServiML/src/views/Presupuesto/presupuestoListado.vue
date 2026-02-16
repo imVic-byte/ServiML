@@ -94,7 +94,7 @@ const claseEstado = (estado) => {
         case 2: return {clase: 'bg-green-100 text-green-800 border-green-200', texto: 'Confirmado'};
         case 3: return {clase: 'bg-red-100 text-red-800 border-red-200', texto: 'Descartado'};
         case 1: return {clase: 'bg-yellow-100 text-yellow-800 border-yellow-200', texto: 'En espera'};
-        default: return {clase: 'servi-adapt-bg servi-white-font border-gray-800', texto: 'Cerrado'};
+        default: return {clase: 'servi-adapt-bg servi-white-font border-gray-100', texto: 'Cerrado'};
     }
 }
 
@@ -127,40 +127,40 @@ onMounted(async () => {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
+        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Total Presupuestos / mes</p>
             <p class="text-2xl font-bold servi-grey-font">{{ stats.total }}</p>
         </div>
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
+        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Pendientes / mes</p>
             <p class="text-2xl font-bold text-yellow-600">{{ stats.pendientes }}</p>
         </div>
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
+        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Confirmados / mes</p>
             <p class="text-2xl font-bold text-green-600">{{ stats.confirmados }}</p>
         </div>
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
+        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Flujo Potencial / mes</p>
-            <p class="text-lg font-bold servi-white-font">{{ formatearDinero(stats.dineroPendiente) }}</p>
+            <p class="text-lg font-bold servi-grey-font">{{ formatearDinero(stats.dineroPendiente) }}</p>
         </div>
       </div>
       <Transition name="slide-stats">
         <div v-show="showStats" class="md:hidden grid grid-cols-2 gap-3 mb-6">
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
+          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
               <p class="text-xs servi-grey-font uppercase font-bold">Total / mes</p>
               <p class="text-xl font-bold servi-grey-font">{{ stats.total }}</p>
           </div>
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
+          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
               <p class="text-xs servi-grey-font uppercase font-bold">Pendientes / mes</p>
               <p class="text-xl font-bold text-yellow-600">{{ stats.pendientes }}</p>
           </div>
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
+          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
               <p class="text-xs servi-grey-font uppercase font-bold">Confirmados / mes</p>
               <p class="text-xl font-bold text-green-600">{{ stats.confirmados }}</p>
           </div>
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
+          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
               <p class="text-xs servi-grey-font uppercase font-bold">Flujo Potencial / mes</p>
-              <p class="text-lg font-bold servi-white-font">{{ formatearDinero(stats.dineroPendiente) }}</p>
+              <p class="text-lg font-bold servi-grey-font">{{ formatearDinero(stats.dineroPendiente) }}</p>
           </div>
         </div>
       </Transition>
@@ -173,7 +173,7 @@ onMounted(async () => {
         <div class="flex items-center gap-2">
           <button 
             @click="showStats = !showStats" 
-            class="md:hidden servi-adapt-bg servi-grey-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-800 hover:opacity-80 transition-all flex items-center gap-2"
+            class="md:hidden servi-adapt-bg servi-grey-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-100 hover:opacity-80 transition-all flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -209,7 +209,7 @@ onMounted(async () => {
           @click="irADetalle(item.id)"
         />
       </div>  
-      <div v-if="servicios.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-800 md:hidden">
+      <div v-if="servicios.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
         <div class="servi-grey-font mb-2">
           <p class="servi-grey-font text-lg">No se encontraron presupuestos</p>
           <p class="text-sm servi-grey-font">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>

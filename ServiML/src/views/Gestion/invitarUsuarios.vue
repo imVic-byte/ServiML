@@ -217,8 +217,8 @@ onMounted(async () => {
             <input 
               v-model="formulario.nombre" 
               type="text" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.nombre ? 'border-red-400' : 'border-gray-800'"
+              class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all  text-base text-[#1f3d64] font-medium servi-grey-font"
+              :class="errores.nombre ? 'border-red-400' : 'border-gray-100'"
             />
             <p v-if="errores.nombre" class="text-red-500 text-xs font-medium">{{ errores.nombre }}</p>
           </div>
@@ -229,8 +229,8 @@ onMounted(async () => {
             <input 
               v-model="formulario.apellido" 
               type="text" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.apellido ? 'border-red-400' : 'border-gray-800'"
+              class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
+              :class="errores.apellido ? 'border-red-400' : 'border-gray-100'"
             />
             <p v-if="errores.apellido" class="text-red-500 text-xs font-medium">{{ errores.apellido }}</p>
           </div>
@@ -244,8 +244,8 @@ onMounted(async () => {
               type="text" 
               placeholder="12.345.678-9"
               maxlength="12"
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.rut ? 'border-red-400' : 'border-gray-800'"
+              class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
+              :class="errores.rut ? 'border-red-400' : 'border-gray-100'"
             />
             <p v-if="errores.rut" class="text-red-500 text-xs font-medium">{{ errores.rut }}</p>
             <label class="flex items-center gap-2 mt-1 cursor-pointer select-none">
@@ -260,8 +260,8 @@ onMounted(async () => {
             <input 
               v-model="formulario.telefono" 
               type="tel" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.telefono ? 'border-red-400' : 'border-gray-800'"
+              class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
+              :class="errores.telefono ? 'border-red-400' : 'border-gray-100'"
             />
             <p v-if="errores.telefono" class="text-red-500 text-xs font-medium">{{ errores.telefono }}</p>
           </div>
@@ -272,8 +272,8 @@ onMounted(async () => {
             <input 
               v-model="formulario.email" 
               type="email" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.email ? 'border-red-400' : 'border-gray-800'"
+              class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
+              :class="errores.email ? 'border-red-400' : 'border-gray-100'"
             />
             <p v-if="errores.email" class="text-red-500 text-xs font-medium">{{ errores.email }}</p>
           </div>
@@ -284,7 +284,7 @@ onMounted(async () => {
             <div class="relative">
               <select 
                 v-model="formulario.rol" 
-                class="w-full border-2 border-gray-800 rounded-xl p-3.5 servi-adapt-bg focus:border-[#D8B462] focus:ring-0 transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium servi-grey-font"
+                class="w-full border-2 border-gray-100 rounded-xl p-3.5 servi-adapt-bg focus:border-[#D8B462] focus:ring-0 transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium servi-grey-font"
               >
                 <option value="Trabajador">Trabajador</option>
                 <option value="Administrador">Administrador</option>
@@ -337,7 +337,7 @@ onMounted(async () => {
           </h3>
           <p class="text-sm servi-grey-font leading-relaxed">{{ estado.mensaje }}</p>
         </div>
-        <div class="p-4 flex justify-center border-t border-gray-800">
+        <div class="p-4 flex justify-center border-t border-gray-100">
           <button 
             @click="cerrarModal"
             class="w-full py-3 rounded-xl font-bold transition-transform active:scale-95 servi-blue servi-yellow-font cursor-pointer"

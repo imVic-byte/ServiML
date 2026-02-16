@@ -69,19 +69,19 @@ onMounted(async () => {
     <div class="max-w-7xl mx-auto">
       <div class="flex justify-end items-center mb-6 sm:justify-between">
         <div class="sm:block hidden">
-          <h1 class="text-2xl font-bold servi-white-font">Gestión de Personal</h1>
+          <h1 class="text-2xl font-bold servi-grey-font">Gestión de Personal</h1>
           <p class="text-sm servi-grey-font mt-1">Administra los usuarios y sus permisos de acceso.</p>
         </div>
         <div class="flex gap-2">
           <button 
           @click="obtenerTrabajadores" 
-          class="px-4 cursor-pointer py-2 servi-yellow servi-grey-font border border-gray-800 rounded-lg text-sm font-medium hover:opacity-80 shadow-sm transition-colors"
+          class="px-4 cursor-pointer py-2 servi-yellow servi-grey-font border border-gray-100 rounded-lg text-sm font-medium hover:opacity-80 shadow-sm transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
           </svg>
         </button>
-        <button @click="invitarUsuario" class="px-4 cursor-pointer py-2 servi-yellow servi-grey-font border border-gray-800 rounded-lg text-sm font-medium hover:opacity-80 shadow-sm transition-colors">
+        <button @click="invitarUsuario" class="px-4 cursor-pointer py-2 servi-yellow servi-grey-font border border-gray-100 rounded-lg text-sm font-medium hover:opacity-80 shadow-sm transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
               <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
             </svg>
@@ -89,7 +89,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div v-if="cargando" class="p-8 text-center servi-grey-font">
           Cargando datos del personal...
         </div>
@@ -119,15 +119,15 @@ onMounted(async () => {
                 </th>
               </tr>
             </thead>
-            <tbody class="servi-adapt-bg divide-y divide-gray-800">
+            <tbody class="servi-adapt-bg divide-y divide-gray-100">
               <tr v-for="trabajador in trabajadores" :key="trabajador.id" class="hover:opacity-80 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
+                  <div class="flex items-center servi-grey-font">
                     <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
                       {{ trabajador.nombre ? trabajador.nombre.charAt(0).toUpperCase() : '?' }}
                     </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium servi-white-font">
+                      <div class="text-sm font-medium servi-grey-font">
                         {{ trabajador.nombre }} {{ trabajador.apellido }}
                       </div>
                       <div class="text-sm servi-grey-font">
@@ -138,7 +138,7 @@ onMounted(async () => {
                 </td>
                 
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm servi-white-font">{{ trabajador.email }}</div>
+                  <div class="text-sm servi-grey-font">{{ trabajador.email }}</div>
                   <div class="text-sm servi-grey-font">{{ trabajador.telefono || 'Sin teléfono' }}</div>
                 </td>
 
@@ -148,7 +148,7 @@ onMounted(async () => {
                     :class="{
                       'bg-purple-100 text-purple-800': trabajador.rol === 'Administrador',
                       'bg-blue-100 text-blue-800': trabajador.rol === 'Gerente',
-                      'servi-adapt-bg servi-white-font': trabajador.rol === 'Mecánico' || trabajador.rol === 'Trabajador',
+                      'servi-adapt-bg servi-grey-font': trabajador.rol === 'Mecánico' || trabajador.rol === 'Trabajador',
                       'servi-yellow-font': trabajador.rol === 'Soporte'
                     }"
                   >

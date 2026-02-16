@@ -442,7 +442,7 @@ onMounted(async () => {
 
       <!-- Header -->
       <div class="mb-6 hidden sm:block">
-        <h1 class="text-2xl font-bold servi-white-font">Gestión ServiML</h1>
+        <h1 class="text-2xl font-bold servi-grey-font">Gestión ServiML</h1>
         <p class="text-sm servi-grey-font mt-1">Administra la configuración general de la empresa.</p>
       </div>
 
@@ -455,7 +455,7 @@ onMounted(async () => {
           class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer"
           :class="tabActiva === tab.id
             ? 'servi-blue servi-yellow-font shadow-md'
-            : 'servi-adapt-bg servi-grey-font border border-gray-800 hover:opacity-80'"
+            : 'servi-adapt-bg servi-grey-font border border-gray-100 hover:opacity-80'"
         >
           <!-- Building icon -->
           <svg v-if="tab.icon === 'building'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -484,7 +484,7 @@ onMounted(async () => {
 
       <!-- ═══════════════════ TAB: EMPRESA ═══════════════════ -->
       <div v-if="tabActiva === 'empresa'">
-        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <!-- Header de la tarjeta -->
           <div class="servi-blue p-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -495,7 +495,7 @@ onMounted(async () => {
               </div>
               <div>
                 <h2 class="text-lg font-bold servi-yellow-font">Datos de la Empresa</h2>
-                <p class="servi-white-font text-sm">Información general y contacto</p>
+                <p class="servi-grey-font text-sm">Información general y contacto</p>
               </div>
             </div>
             <button
@@ -525,10 +525,10 @@ onMounted(async () => {
                     v-if="editandoEmpresa"
                     v-model="empresa[key]"
                     type="text"
-                    class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-blue servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    class="mt-1 block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue servi-grey-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     :placeholder="campo"
                   />
-                  <p v-else class="mt-1 servi-white-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
+                  <p v-else class="mt-1 servi-grey-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                     {{ empresa[key] || '—' }}
                   </p>
                 </label>
@@ -536,7 +536,7 @@ onMounted(async () => {
             </div>
 
             <!-- Teléfonos -->
-            <div class="mt-6 pt-5 border-t border-gray-800">
+            <div class="mt-6 pt-5 border-t border-gray-100">
               <div class="flex justify-between items-center mb-3">
                 <span class="text-xs servi-grey-font uppercase font-bold tracking-wide">Teléfonos de Contacto</span>
                 <button v-if="editandoEmpresa" @click="agregarTelefono" class="text-xs servi-grey-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
@@ -561,10 +561,10 @@ onMounted(async () => {
                       v-if="editandoEmpresa"
                       v-model="tel.valor"
                       type="tel"
-                      class="block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-blue servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      class="block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue servi-grey-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="+56 9 1234 5678"
                     />
-                    <p v-else class="servi-white-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
+                    <p v-else class="servi-grey-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                       {{ tel.valor || '—' }}
                     </p>
                   </div>
@@ -577,7 +577,7 @@ onMounted(async () => {
             </div>
 
             <!-- Emails -->
-            <div class="mt-6 pt-5 border-t border-gray-800">
+            <div class="mt-6 pt-5 border-t border-gray-100">
               <div class="flex justify-between items-center mb-3">
                 <span class="text-xs servi-grey-font uppercase font-bold tracking-wide">Emails de Contacto</span>
                 <button v-if="editandoEmpresa" @click="agregarEmail" class="text-xs servi-grey-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
@@ -602,10 +602,10 @@ onMounted(async () => {
                       v-if="editandoEmpresa"
                       v-model="em.valor"
                       type="email"
-                      class="block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-blue servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      class="block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue servi-grey-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="contacto@serviml.cl"
                     />
-                    <p v-else class="servi-white-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
+                    <p v-else class="servi-grey-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                       {{ em.valor || '—' }}
                     </p>
                   </div>
@@ -618,8 +618,8 @@ onMounted(async () => {
             </div>
 
             <!-- Botones de acción -->
-            <div v-if="editandoEmpresa" class="flex justify-end gap-3 mt-6 pt-5 border-t border-gray-800">
-              <button @click="cancelarEdicionEmpresa" class="px-5 py-2.5 servi-adapt-bg servi-white-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">
+            <div v-if="editandoEmpresa" class="flex justify-end gap-3 mt-6 pt-5 border-t border-gray-100">
+              <button @click="cancelarEdicionEmpresa" class="px-5 py-2.5 servi-adapt-bg servi-grey-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">
                 Cancelar
               </button>
               <button @click="guardarEmpresa" class="px-5 py-2.5 servi-blue text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">
@@ -634,7 +634,7 @@ onMounted(async () => {
       <div v-if="tabActiva === 'talleres'">
         <div class="flex justify-between items-center mb-4">
           <div>
-            <h2 class="text-lg font-bold servi-white-font">Talleres Registrados</h2>
+            <h2 class="text-lg font-bold servi-grey-font">Talleres Registrados</h2>
             <p class="text-sm servi-grey-font">Gestiona los talleres y su capacidad</p>
           </div>
           <button @click="abrirModalTaller()" class="px-4 py-2.5 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
@@ -647,7 +647,7 @@ onMounted(async () => {
 
         <div class="space-y-4">
           <div v-for="taller in talleres" :key="taller.id"
-            class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden hover:shadow-md transition-shadow">
+            class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-5">
               <div class="flex justify-between items-start">
                 <div class="flex items-center gap-3">
@@ -657,7 +657,7 @@ onMounted(async () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 class="font-bold servi-white-font">{{ taller.nombre }}</h3>
+                    <h3 class="font-bold servi-grey-font">{{ taller.nombre }}</h3>
                     <p class="text-sm servi-grey-font">{{ taller.direccion || 'Sin dirección' }}</p>
                   </div>
                 </div>
@@ -698,7 +698,7 @@ onMounted(async () => {
         </div>
 
         <!-- Taller vacío -->
-        <div v-if="talleres.length === 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-10 text-center">
+        <div v-if="talleres.length === 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-10 text-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto servi-grey-font mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
           </svg>
@@ -711,7 +711,7 @@ onMounted(async () => {
       <div v-if="tabActiva === 'servicios'">
         <div class="flex justify-between items-center mb-4">
           <div>
-            <h2 class="text-lg font-bold servi-white-font">Catálogo de Servicios</h2>
+            <h2 class="text-lg font-bold servi-grey-font">Catálogo de Servicios</h2>
             <p class="text-sm servi-grey-font">Define los servicios que ofrece tu taller</p>
           </div>
           <button @click="abrirModalServicio()" class="px-4 py-2.5 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
@@ -722,7 +722,7 @@ onMounted(async () => {
           </button>
         </div>
 
-        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-800">
               <thead class="servi-blue servi-yellow-font">
@@ -743,10 +743,10 @@ onMounted(async () => {
                           <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </div>
-                      <span class="text-sm font-medium servi-white-font truncate">{{ servicio.nombre }}</span>
+                      <span class="text-sm font-medium servi-grey-font truncate">{{ servicio.nombre }}</span>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold servi-white-font">
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold servi-grey-font">
                     {{ formatoMoneda(servicio.precio) }}
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
@@ -786,7 +786,7 @@ onMounted(async () => {
       <div v-if="tabActiva === 'cuentas'">
         <div class="flex justify-between items-center mb-4">
           <div>
-            <h2 class="text-lg font-bold servi-white-font">Cuentas Bancarias</h2>
+            <h2 class="text-lg font-bold servi-grey-font">Cuentas Bancarias</h2>
             <p class="text-sm servi-grey-font">Administra las cuentas de la empresa</p>
           </div>
           <button @click="abrirModalCuenta()" class="px-4 py-2.5 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
@@ -797,7 +797,7 @@ onMounted(async () => {
           </button>
         </div>
 
-        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-800 text-sm">
               <thead class="servi-blue servi-yellow-font">
@@ -819,11 +819,11 @@ onMounted(async () => {
                           <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4" />
                         </svg>
                       </div>
-                      <span class="font-medium servi-white-font">{{ cuenta.banco }}</span>
+                      <span class="font-medium servi-grey-font">{{ cuenta.banco }}</span>
                     </div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap servi-grey-font">{{ cuenta.tipo_cuenta }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap font-mono servi-white-font">{{ cuenta.numero_cuenta }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap font-mono servi-grey-font">{{ cuenta.numero_cuenta }}</td>
                   <td class="px-6 py-4 whitespace-nowrap servi-grey-font max-w-[150px] truncate">{{ cuenta.titular }}</td>
                   <td class="px-6 py-4 whitespace-nowrap servi-grey-font">{{ cuenta.rut_titular }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-right">
@@ -864,23 +864,23 @@ onMounted(async () => {
         <div class="p-6 space-y-4">
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Nombre del Taller</label>
-            <input v-model="nuevoTaller.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Taller Central" />
+            <input v-model="nuevoTaller.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Taller Central" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Dirección</label>
-            <input v-model="nuevoTaller.direccion" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Dirección del taller" />
+            <input v-model="nuevoTaller.direccion" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Dirección del taller" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Capacidad Máxima (vehículos)</label>
-            <input v-model.number="nuevoTaller.capacidad_maxima" type="number" min="1" class="mt-1 block w-full rounded-lg border servi-grey-font border-gray-800 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input v-model.number="nuevoTaller.capacidad_maxima" type="number" min="1" class="mt-1 block w-full rounded-lg border servi-grey-font border-gray-100 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div class="flex items-center gap-2">
             <input v-model="nuevoTaller.activo" type="checkbox" id="tallerActivo" class="rounded" />
-            <label for="tallerActivo" class="text-sm servi-white-font font-medium">Taller activo</label>
+            <label for="tallerActivo" class="text-sm servi-grey-font font-medium">Taller activo</label>
           </div>
         </div>
         <div class="px-6 pb-6 flex justify-end gap-3">
-          <button @click="cerrarModalTaller" class="px-4 py-2.5 servi-adapt-bg servi-white-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
+          <button @click="cerrarModalTaller" class="px-4 py-2.5 servi-adapt-bg servi-grey-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
           <button @click="guardarTaller" class="px-4 py-2.5 servi-yellow text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
         </div>
       </div>
@@ -898,19 +898,19 @@ onMounted(async () => {
         <div class="p-6 space-y-4">
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Nombre del Servicio</label>
-            <input v-model="nuevoServicio.nombre" type="text" class="mt-1 block w-full servi-blue servi-grey-font rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Cambio de Aceite" />
+            <input v-model="nuevoServicio.nombre" type="text" class="mt-1 block w-full servi-blue servi-grey-font rounded-lg border border-gray-100 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Cambio de Aceite" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Precio (CLP)</label>
-            <input v-model.number="nuevoServicio.precio" type="number" min="0" class="mt-1 block w-full servi-blue servi-grey-font rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input v-model.number="nuevoServicio.precio" type="number" min="0" class="mt-1 block w-full servi-blue servi-grey-font rounded-lg border border-gray-100 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div class="flex items-center gap-2">
             <input v-model="nuevoServicio.activo" type="checkbox" id="servicioActivo" class="rounded" />
-            <label for="servicioActivo" class="text-sm servi-white-font font-medium">Servicio activo</label>
+            <label for="servicioActivo" class="text-sm servi-grey-font font-medium">Servicio activo</label>
           </div>
         </div>
         <div class="px-6 pb-6 flex justify-end gap-3">
-          <button @click="cerrarModalServicio" class="px-4 py-2.5 servi-adapt-bg servi-white-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
+          <button @click="cerrarModalServicio" class="px-4 py-2.5 servi-adapt-bg servi-grey-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
           <button @click="guardarServicio" class="px-4 py-2.5 servi-yellow text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
         </div>
       </div>
@@ -928,13 +928,13 @@ onMounted(async () => {
         <div class="p-6 space-y-4">
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Banco</label>
-            <select v-model="nuevaCuenta.banco" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select v-model="nuevaCuenta.banco" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-100 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option v-for="banco in bancos" :key="banco.codigo" :value="banco.nombre">{{ banco.nombre }}</option>
             </select>
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Tipo de Cuenta</label>
-            <select v-model="nuevaCuenta.tipo_cuenta" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select v-model="nuevaCuenta.tipo_cuenta" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-100 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option value="Cuenta Corriente">Cuenta Corriente</option>
               <option value="Cuenta Vista">Cuenta Vista</option>
               <option value="Cuenta de Ahorro">Cuenta de Ahorro</option>
@@ -943,19 +943,19 @@ onMounted(async () => {
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Número de Cuenta</label>
-            <input v-model="nuevaCuenta.numero_cuenta" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: 12345678" />
+            <input v-model="nuevaCuenta.numero_cuenta" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-100 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: 12345678" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Titular</label>
-            <input v-model="nuevaCuenta.titular" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nombre del titular" />
+            <input v-model="nuevaCuenta.titular" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-100 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nombre del titular" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">RUT Titular</label>
-            <input v-model="nuevaCuenta.rut_titular" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="12.345.678-9" />
+            <input v-model="nuevaCuenta.rut_titular" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-100 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="12.345.678-9" />
           </div>
         </div>
         <div class="px-6 pb-6 flex justify-end gap-3">
-          <button @click="cerrarModalCuenta" class="px-4 py-2.5 servi-adapt-bg servi-white-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
+          <button @click="cerrarModalCuenta" class="px-4 py-2.5 servi-adapt-bg servi-grey-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
           <button @click="guardarCuenta" class="px-4 py-2.5 servi-yellow text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
         </div>
       </div>

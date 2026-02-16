@@ -126,7 +126,7 @@ onMounted(async () => {
 
       <div class="flex flex-col lg:flex-row gap-6">
         <div class="lg:w-1/3 space-y-6">
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue p-6 flex flex-col items-center relative">
               <div class="w-20 h-20 rounded-full servi-white flex items-center justify-center servi-yellow-font text-2xl font-bold mb-3">
                 {{ iniciales(cliente.nombre, cliente.apellido) }}
@@ -168,8 +168,8 @@ onMounted(async () => {
                 </div>
                 <div class="flex-1">
                   <p class="text-xs servi-grey-font uppercase font-semibold">Nombre</p>
-                  <input v-if="editando" v-model="cliente.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 servi-adapt-bg servi-white-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm servi-white-font">{{ camelCase(cliente.nombre) || '—' }}</p>
+                  <input v-if="editando" v-model="cliente.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ camelCase(cliente.nombre) || '—' }}</p>
                 </div>
               </div>
 
@@ -182,8 +182,8 @@ onMounted(async () => {
                 </div>
                 <div class="flex-1">
                   <p class="text-xs servi-grey-font uppercase font-semibold">Apellido</p>
-                  <input v-if="editando" v-model="cliente.apellido" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 servi-adapt-bg servi-white-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm servi-white-font">{{ camelCase(cliente.apellido) || '—' }}</p>
+                  <input v-if="editando" v-model="cliente.apellido" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ camelCase(cliente.apellido) || '—' }}</p>
                 </div>
               </div>
 
@@ -196,8 +196,8 @@ onMounted(async () => {
                 </div>
                 <div class="flex-1">
                   <p class="text-xs servi-grey-font uppercase font-semibold">Email</p>
-                  <input v-if="editando" v-model="cliente.email" type="email" class="mt-1 block w-full rounded-lg border border-gray-800 servi-adapt-bg servi-white-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm servi-white-font break-all">{{ cliente.email || '—' }}</p>
+                  <input v-if="editando" v-model="cliente.email" type="email" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font break-all">{{ cliente.email || '—' }}</p>
                 </div>
               </div>
 
@@ -210,8 +210,8 @@ onMounted(async () => {
                 </div>
                 <div class="flex-1">
                   <p class="text-xs servi-grey-font uppercase font-semibold">Teléfono</p>
-                  <input v-if="editando" v-model="cliente.telefono" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 servi-adapt-bg servi-white-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  <p v-else class="text-sm servi-white-font">{{ cliente.telefono ? '+' + (cliente.codigo_pais || '56') + ' ' + cliente.telefono : '—' }}</p>
+                  <input v-if="editando" v-model="cliente.telefono" type="text" class="mt-1 block w-full rounded-lg border border-gray-100 servi-adapt-bg servi-grey-font px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  <p v-else class="text-sm servi-grey-font">{{ cliente.telefono ? '+' + (cliente.codigo_pais || '56') + ' ' + cliente.telefono : '—' }}</p>
                 </div>
               </div>
 
@@ -224,7 +224,7 @@ onMounted(async () => {
                 </div>
                 <div>
                   <p class="text-xs servi-grey-font uppercase font-semibold">RUT</p>
-                  <p class="text-sm servi-white-font">{{ cliente.rut }}</p>
+                  <p class="text-sm servi-grey-font">{{ cliente.rut }}</p>
                 </div>
               </div>
 
@@ -238,7 +238,7 @@ onMounted(async () => {
                 </div>
                 <div>
                   <p class="text-xs servi-grey-font uppercase font-semibold">Dirección</p>
-                  <p class="text-sm servi-white-font">{{ cliente.direccion }}</p>
+                  <p class="text-sm servi-grey-font">{{ cliente.direccion }}</p>
                 </div>
               </div>
             </div>
@@ -246,15 +246,15 @@ onMounted(async () => {
 
           <!-- Estadísticas -->
           <div class="grid grid-cols-2 gap-3">
-            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
+            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
               <p class="text-3xl font-bold servi-grey-font">{{ totalOT }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
             </div>
-            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
+            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
               <p class="text-3xl font-bold servi-grey-font">{{ totalPresupuestos }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Presupuestos</p>
             </div>
-            <div class="col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
+            <div class="col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
               <p class="text-3xl font-bold servi-grey-font">{{ vehiculos.length }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Vehículos Registrados</p>
             </div>
@@ -263,9 +263,9 @@ onMounted(async () => {
 
         <!-- Columna derecha: Vehículos -->
         <div class="lg:w-2/3">
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-800 servi-adapt-bg flex items-center justify-between">
-              <h2 class="font-bold servi-white-font">Vehículos del Cliente</h2>
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 servi-adapt-bg flex items-center justify-between">
+              <h2 class="font-bold servi-grey-font">Vehículos del Cliente</h2>
               <span class="text-xs servi-grey-font font-semibold">{{ vehiculos.length }} registrado{{ vehiculos.length !== 1 ? 's' : '' }}</span>
             </div>
 
@@ -290,7 +290,7 @@ onMounted(async () => {
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ v.patente || 'S/P' }}</span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap servi-white-font font-medium">{{ v.marca || '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap servi-grey-font font-medium">{{ v.marca || '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap servi-grey-font">{{ v.modelo || '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <span v-if="v.en_taller" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
@@ -314,7 +314,7 @@ onMounted(async () => {
                   <span v-if="v.en_taller" class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">En taller</span>
                   <span v-else class="px-2 py-1 servi-adapt-bg servi-grey-font rounded-full text-xs font-semibold">Fuera</span>
                 </div>
-                <p class="font-semibold servi-white-font text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
+                <p class="font-semibold servi-grey-font text-sm">{{ v.marca || '—' }} {{ v.modelo || '—' }}</p>
               </div>
             </div>
 
