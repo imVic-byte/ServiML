@@ -520,7 +520,7 @@ onMounted(async () => {
         <p class="font-bold">No eres el técnico asignado. Modo solo lectura.</p>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
+      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
         <div class="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 min-w-max md:min-w-0">
           <div v-for="estado in estados" :key="estado.id" class="flex flex-col items-center group">
             <div v-if="estado.id !== 1" @click="verificarCambioEstado(estado.id) ? openModal(estado) : null"
@@ -542,7 +542,7 @@ onMounted(async () => {
 
         <div class="lg:col-span-2 space-y-6">
           
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h1 class="servi-yellow-font font-bold text-lg tracking-wide">INFORMACIÓN GENERAL</h1>
             </div>
@@ -560,7 +560,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h1 class="servi-yellow-font font-bold text-lg tracking-wide">DATOS DE RECEPCIÓN</h1>
             </div>
@@ -618,27 +618,27 @@ onMounted(async () => {
                 <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                   <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Inventario Rápido</label>
                   <div class="grid grid-cols-2 gap-3">
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
+                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_documentos" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Documentos</span>
                     </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
+                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_llaves" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Llaves</span>
                     </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
+                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_candado_seguridad" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-xs font-medium text-gray-700">Tuerca Seguridad</span>
                     </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
+                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_panel_radio" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Panel Radio</span>
                     </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
+                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_rueda_repuesto" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Rueda Repuesto</span>
                     </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 bg-white rounded-lg border hover:border-blue-400 transition-colors">
+                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
                       <input type="checkbox" v-model="orden.trae_encendedor" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
                       <span class="text-sm font-medium text-gray-700">Encendedor</span>
                     </label>
@@ -649,7 +649,7 @@ onMounted(async () => {
           </div>
 
           <!-- FOTOS DE RECEPCIÓN -->
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Fotos de Recepción</h3>
             </div>
@@ -721,7 +721,7 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Bitácora de Observaciones</h3>
               <button v-if="!soloLectura && !isCerrado" @click="agregarObservacion" class="servi-yellow text-blue-900 font-bold p-2 rounded-full shadow-md transition-all transform hover:scale-105" title="Agregar Observación">
@@ -747,7 +747,7 @@ onMounted(async () => {
                     </div>
                   </div>
                   <div class="flex-grow">
-                    <div class="relative bg-white border border-gray-200 p-4 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="relative servi-adapt-bg border border-gray-200 p-4 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm hover:shadow-md transition-shadow">
                       <div class="flex justify-between items-start mb-2">
                         <span class="text-xs text-gray-400 font-semibold">{{ new Date(observacion.fecha).toLocaleDateString() }}</span>
                         <button v-if="observacion.isNew" @click="eliminarObservacion(index)" class="text-red-400 hover:text-red-600">
@@ -824,7 +824,7 @@ onMounted(async () => {
         </div>
 
         <div class="space-y-6">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-4">
             <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
             <div class="flex flex-col gap-3">
               <button v-if="!soloLectura && !isCerrado" @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
@@ -855,7 +855,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="showModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm">
-      <div class="bg-white servi-blue-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
+      <div class="servi-adapt-bg servi-blue-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
         <h3 class="text-xl font-bold servi-blue-font mb-2">Confirmar cambio</h3>
         <p class="text-gray-600 text-sm mb-6">¿Confirmas cambiar el estado a <span class="font-bold servi-blue-font">"{{ selectedEstado?.estado }}"</span>?</p>
         <div class="flex justify-end gap-3">
@@ -866,7 +866,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="showSecondModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-md">
-      <div class="bg-white rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
+      <div class="servi-adapt-bg rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
         <div class="flex items-center gap-2 mb-4">
           <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
           <h3 class="text-xl font-bold text-gray-900">Finalizar Orden</h3>
@@ -880,7 +880,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="showThirdModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-md">
-      <div class="bg-white servi-blue-font rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
+      <div class="servi-adapt-bg servi-blue-font rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
         <div class="flex items-center gap-2 mb-4">
            <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
           <h3 class="text-xl font-bold text-gray-900">Generar Informe</h3>

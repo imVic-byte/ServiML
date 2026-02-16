@@ -74,7 +74,7 @@ onMounted(async () => {
         />
       </div>
 
-      <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
+      <div v-if="ordenes.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
         <div class="text-gray-400 mb-2">
           <p class="text-gray-500 text-lg">No se encontraron órdenes sin asignar</p>
           <p class="text-sm text-gray-400">Todas las órdenes tienen un técnico asignado.</p>

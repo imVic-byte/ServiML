@@ -4,7 +4,7 @@ import { useUserStore } from '../stores/user'
 import navbar from '../components/componentes/navbar.vue'
 import { useInterfaz } from '../stores/interfaz.js'
 import { onMounted } from 'vue'
-
+import cambiarTema from '../components/componentes/cambiarTema.vue'
 const userStore = useUserStore()
 const router = useRouter()
 const uiStore = useInterfaz()
@@ -28,21 +28,22 @@ onMounted(() => {
 </script>
 <template>
 
-  <div class="min-h-screen bg-gray-50 font-sans pb-20">
+  <div class="min-h-screen servi-white font-sans pb-20">
     <navbar subtitulo="Panel de Control ServiML" class="navbar shadow-sm" searchInput="false" />
 
     <div class="container mx-auto px-6 mt-2 pb-15">
 
       <div class="mb-8">
-        <h2 class="text-2xl font-bold text-gray-800">Hola, {{ userStore.trabajador?.nombre?.split(' ')[0] || 'Usuario'
+        <h2 class="text-2xl font-bold servi-white-font">Hola, {{ userStore.trabajador?.nombre?.split(' ')[0] || 'Usuario'
           }}</h2>
-        <p class="text-gray-600">¿Qué deseas administrar hoy?</p>
+        <p class="servi-grey-font">¿Qué deseas administrar hoy?</p>
+        <cambiarTema />
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 
         <div @click="router.push('/perfil')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-blue-100 text-blue-600 p-4 rounded-full mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -51,12 +52,12 @@ onMounted(() => {
                 d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A7.5 7.5 0 0 1 4.501 20.118Z" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-700 mb-1">Mi Perfil</h3>
-          <p class="text-sm text-gray-500">Mis datos y seguridad</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-blue-700 mb-1">Mi Perfil</h3>
+          <p class="text-sm servi-grey-font">Mis datos y seguridad</p>
         </div>
 
         <div @click="router.push('/gestion-usuarios')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-indigo-100 text-indigo-600 p-4 rounded-full mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -65,12 +66,12 @@ onMounted(() => {
                 d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-700 mb-1">Usuarios</h3>
-          <p class="text-sm text-gray-500">Administrar equipo</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-blue-700 mb-1">Usuarios</h3>
+          <p class="text-sm servi-grey-font">Administrar equipo</p>
         </div>
 
         <div @click="router.push('/vehiculos')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-yellow-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-yellow-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-yellow-100 text-yellow-600 p-4 rounded-full mb-4 group-hover:bg-yellow-500 group-hover:text-white transition-colors duration-300">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-8 h-8">
@@ -79,12 +80,12 @@ onMounted(() => {
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-yellow-600 mb-1">Flota de Autos</h3>
-          <p class="text-sm text-gray-500">Gestión de vehículos</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-yellow-600 mb-1">Flota de Autos</h3>
+          <p class="text-sm servi-grey-font">Gestión de vehículos</p>
         </div>
 
         <div @click="router.push('/clientes')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-cyan-100 text-cyan-600 p-4 rounded-full mb-4 group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -93,12 +94,12 @@ onMounted(() => {
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-700 mb-1">Clientes</h3>
-          <p class="text-sm text-gray-500">Cartera de clientes</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-blue-700 mb-1">Clientes</h3>
+          <p class="text-sm servi-grey-font">Cartera de clientes</p>
         </div>
 
         <div @click="router.push('/deudas')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-orange-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-orange-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-orange-100 text-orange-600 p-4 rounded-full mb-4 group-hover:bg-orange-600 group-hover:text-white transition-colors duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -109,12 +110,12 @@ onMounted(() => {
                 d="M12 15.75h.008v.008H12v-.008ZM12 12.75h.008v.008H12v-.008Z" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-orange-700 mb-1">Deudas y Abonos</h3>
-          <p class="text-sm text-gray-500">Cuentas por cobrar</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-orange-700 mb-1">Deudas y Abonos</h3>
+          <p class="text-sm servi-grey-font">Cuentas por cobrar</p>
         </div>
 
         <div @click="router.push('/finanzas')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-green-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-green-400 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-green-100 text-green-600 p-4 rounded-full mb-4 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -123,12 +124,12 @@ onMounted(() => {
                 d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-green-700 mb-1">Finanzas</h3>
-          <p class="text-sm text-gray-500">Ingresos y Egresos</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-green-700 mb-1">Finanzas</h3>
+          <p class="text-sm servi-grey-font">Ingresos y Egresos</p>
         </div>
 
         <div @click="router.push('/gastos')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-red-300 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-red-300 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-red-100 text-red-500 p-4 rounded-full mb-4 group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -137,19 +138,19 @@ onMounted(() => {
                 d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-red-600 mb-1">Gastos Mensuales</h3>
-          <p class="text-sm text-gray-500">Control de costos</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-red-600 mb-1">Gastos Mensuales</h3>
+          <p class="text-sm servi-grey-font">Control de costos</p>
         </div>
         <div @click="router.push('/serviml')"
-          class="group bg-white rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-800 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
+          class="group servi-adapt-bg rounded-2xl p-6 cursor-pointer shadow-md border-2 border-transparent hover:border-blue-800 hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 flex flex-col items-center text-center">
           <div
             class="bg-blue-900 text-yellow-500 p-4 rounded-full mb-4 group-hover:bg-yellow-600 group-hover:text-blue-900 transition-colors duration-300">
             <svg class="w-8 h-8" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 7.205c4.418 0 8-1.165 8-2.602C20 3.165 16.418 2 12 2S4 3.165 4 4.603c0 1.437 3.582 2.602 8 2.602ZM12 22c4.963 0 8-1.686 8-2.603v-4.404c-.052.032-.112.06-.165.09a7.75 7.75 0 0 1-.745.387c-.193.088-.394.173-.6.253-.063.024-.124.05-.189.073a18.934 18.934 0 0 1-6.3.998c-2.135.027-4.26-.31-6.3-.998-.065-.024-.126-.05-.189-.073a10.143 10.143 0 0 1-.852-.373 7.75 7.75 0 0 1-.493-.267c-.053-.03-.113-.058-.165-.09v4.404C4 20.315 7.037 22 12 22Zm7.09-13.928a9.91 9.91 0 0 1-.6.253c-.063.025-.124.05-.189.074a18.935 18.935 0 0 1-6.3.998c-2.135.027-4.26-.31-6.3-.998-.065-.024-.126-.05-.189-.074a10.163 10.163 0 0 1-.852-.372 7.816 7.816 0 0 1-.493-.268c-.055-.03-.115-.058-.167-.09V12c0 .917 3.037 2.603 8 2.603s8-1.686 8-2.603V7.596c-.052.031-.112.059-.165.09a7.816 7.816 0 0 1-.745.386Z"/>
             </svg>
           </div>
-          <h3 class="text-lg font-bold text-gray-800 group-hover:text-blue-900 mb-1">ServiML</h3>
-          <p class="text-sm text-gray-500">Control de ServiML</p>
+          <h3 class="text-lg font-bold servi-grey-font group-hover:text-blue-900 mb-1">ServiML</h3>
+          <p class="text-sm servi-grey-font">Control de ServiML</p>
         </div>
 
         <div @click="manejarCierreSesion"

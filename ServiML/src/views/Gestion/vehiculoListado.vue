@@ -76,13 +76,13 @@ onMounted(async () => {
             v-model="busqueda"
             type="text"
             placeholder="Buscar por patente, marca, modelo o dueño..."
-            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 servi-adapt-bg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
           />
         </div>
       </div>
 
       <!-- Tabla (pantallas grandes) -->
-      <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 text-sm">
             <thead class="servi-blue servi-yellow-font">
@@ -95,7 +95,7 @@ onMounted(async () => {
                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="servi-adapt-bg divide-y divide-gray-200">
               <tr v-for="v in vehiculosFiltrados" :key="v.id" class="hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ v.patente || 'S/P' }}</span>
@@ -128,7 +128,7 @@ onMounted(async () => {
         <div
           v-for="v in vehiculosFiltrados"
           :key="v.id"
-          class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer"
+          class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-4 cursor-pointer"
           @click="verVehiculo(v.id)"
         >
           <div class="flex items-center justify-between mb-2">
@@ -149,7 +149,7 @@ onMounted(async () => {
             Ver Vehículo
           </button>
         </div>
-        <div v-if="vehiculosFiltrados.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
+        <div v-if="vehiculosFiltrados.length === 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-10 text-center">
           <p class="text-gray-500 font-medium">{{ busqueda ? 'No se encontraron resultados' : 'No hay vehículos registrados' }}</p>
         </div>
       </div>

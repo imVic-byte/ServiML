@@ -212,7 +212,7 @@ onMounted(async () => {
         <div class="flex flex-col lg:flex-row gap-6 mt-6">
             
             <div class="lg:w-2/3 space-y-6">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="servi-blue px-6 py-3 border-b border-gray-200 flex justify-between items-center">
                         <h2 class="servi-white-font font-bold text-lg">Información General</h2>
                         <span :class="handleEstados(presupuesto.estado).clase" class="px-3 py-1 rounded-full text-xs servi-white-font">
@@ -259,7 +259,7 @@ onMounted(async () => {
                     </div>
                 </div>
 
-                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                         <h3 class="servi-blue-font font-bold">Servicios Solicitados</h3>
                     </div>
@@ -273,7 +273,7 @@ onMounted(async () => {
             </div>
 
             <div class="lg:w-1/3 space-y-6">
-                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-sm font-bold text-gray-800 mb-4 pb-2 border-b border-gray-100">Resumen Financiero</h3>
                     
                     <div class="space-y-3">
@@ -301,7 +301,7 @@ onMounted(async () => {
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Acciones</h3>
                     
                     <!-- Selector de cuenta bancaria -->

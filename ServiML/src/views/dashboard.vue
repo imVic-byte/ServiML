@@ -224,7 +224,7 @@ onMounted(async () => {
           <p class="text-slate-500 capitalize">{{ fechaHoy }}</p>
         </div>
         <div class="mt-2 sm:mt-0 flex items-center gap-3">
-          <select v-model="tallerSeleccionado" @change="cambiarTaller" class="text-sm font-medium bg-white text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none cursor-pointer">
+          <select v-model="tallerSeleccionado" @change="cambiarTaller" class="text-sm font-medium servi-adapt-bg text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none cursor-pointer">
             <option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }}</option>
           </select>
           <span v-if="!esFinDeSemana" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-servi-blue border border-blue-100">
@@ -239,7 +239,7 @@ onMounted(async () => {
       </div>
 
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
-        <div @click="VehiculosEnTaller" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="VehiculosEnTaller" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -262,7 +262,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="SinAsignar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="SinAsignar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -286,7 +286,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="PresupuestosSemana" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="PresupuestosSemana" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -308,7 +308,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="ListoParaEntregar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="ListoParaEntregar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -334,7 +334,7 @@ onMounted(async () => {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <!-- Flujo de trabajo reciente (2/3) -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="lg:col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <h2 class="text-lg font-bold text-slate-800">Flujo de Trabajo Reciente</h2>
             <button @click="verTablero" class="text-sm cursor-pointer text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
@@ -369,7 +369,7 @@ onMounted(async () => {
         <div class="space-y-6">
           
           <div class="space-y-6">
-  <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+  <div class="servi-adapt-bg rounded-xl shadow-sm border border-slate-100 overflow-hidden">
     <div class="p-5 border-b border-slate-100 bg-slate-50/50">
       <h3 class="font-bold text-slate-800">Métricas de Eficiencia</h3>
     </div>

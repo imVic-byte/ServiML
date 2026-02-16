@@ -61,7 +61,7 @@ onMounted(async () => {
 })
 </script>
 <template>
-    <div class="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-100">
+    <div class="lg:col-span-2 servi-adapt-bg rounded-lg shadow-sm border border-gray-100">
                         <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                             <h3 class="font-bold text-gray-800 text-lg">Flujo de Trabajo Reciente</h3>
                             <button @click="handleRedirect" class="text-blue-600 cursor-pointer text-sm font-medium hover:text-blue-800 transition-colors">Ver tablero completo</button>

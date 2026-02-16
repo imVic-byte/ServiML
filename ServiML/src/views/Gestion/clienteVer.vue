@@ -125,9 +125,9 @@ onMounted(async () => {
 
       <div class="flex flex-col lg:flex-row gap-6">
         <div class="lg:w-1/3 space-y-6">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="servi-blue p-6 flex flex-col items-center relative">
-              <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center servi-yellow-font text-2xl font-bold mb-3">
+              <div class="w-20 h-20 rounded-full servi-adapt-bg/20 flex items-center justify-center servi-yellow-font text-2xl font-bold mb-3">
                 {{ iniciales(cliente.nombre, cliente.apellido) }}
               </div>
               <h1 class="text-xl font-bold servi-yellow-font text-center">
@@ -136,7 +136,7 @@ onMounted(async () => {
               <!-- Botón editar / guardar / cancelar -->
               <div class="absolute top-4 right-4 flex gap-2">
                 <template v-if="!editando">
-                  <button @click="iniciarEdicion" class="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition cursor-pointer" title="Editar">
+                  <button @click="iniciarEdicion" class="p-2 servi-adapt-bg/20 hover:servi-adapt-bg/30 rounded-lg transition cursor-pointer" title="Editar">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -245,15 +245,15 @@ onMounted(async () => {
 
           <!-- Estadísticas -->
           <div class="grid grid-cols-2 gap-3">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
+            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-4 text-center">
               <p class="text-3xl font-bold servi-blue-font">{{ totalOT }}</p>
               <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
+            <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-4 text-center">
               <p class="text-3xl font-bold servi-blue-font">{{ totalPresupuestos }}</p>
               <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Presupuestos</p>
             </div>
-            <div class="col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center">
+            <div class="col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-4 text-center">
               <p class="text-3xl font-bold servi-blue-font">{{ vehiculos.length }}</p>
               <p class="text-xs text-gray-500 mt-1 uppercase font-semibold">Vehículos Registrados</p>
             </div>
@@ -262,7 +262,7 @@ onMounted(async () => {
 
         <!-- Columna derecha: Vehículos -->
         <div class="lg:w-2/3">
-          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
               <h2 class="font-bold text-gray-900">Vehículos del Cliente</h2>
               <span class="text-xs text-gray-400 font-semibold">{{ vehiculos.length }} registrado{{ vehiculos.length !== 1 ? 's' : '' }}</span>
@@ -279,7 +279,7 @@ onMounted(async () => {
                     <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
                   </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="servi-adapt-bg divide-y divide-gray-200">
                   <tr
                     v-for="v in vehiculos"
                     :key="v.id"

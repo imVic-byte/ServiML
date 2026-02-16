@@ -199,7 +199,7 @@ onMounted(async () => {
         Volver a la lista
       </button>
 
-      <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div class="servi-adapt-bg rounded-2xl shadow-2xl overflow-hidden">
         
         <div class="servi-blue p-8 sm:p-10 text-center relative border-b-4 border-[#D8B462]">
           <h2 class="text-2xl sm:text-3xl font-extrabold servi-yellow-font tracking-tight">Registrar Nuevo Trabajador</h2>
@@ -284,7 +284,7 @@ onMounted(async () => {
             <div class="relative">
               <select 
                 v-model="formulario.rol" 
-                class="w-full border-2 border-gray-200 rounded-xl p-3.5 bg-white focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium"
+                class="w-full border-2 border-gray-200 rounded-xl p-3.5 servi-adapt-bg focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium"
               >
                 <option value="Trabajador">Trabajador</option>
                 <option value="Administrador">Administrador</option>
@@ -318,7 +318,7 @@ onMounted(async () => {
 
     <!-- Modal resultado -->
     <div v-if="mostrarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden">
+      <div class="servi-adapt-bg rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden">
         <div class="p-6 text-center">
           <!-- Icono -->
           <div 

@@ -75,7 +75,7 @@ onMounted(async () => {
         <div 
           v-for="vehiculo in vehiculos" 
           :key="vehiculo.id"
-          class="bg-white rounded-xl shadow-sm overflow-hidden border-l-4 transition-all hover:shadow-md cursor-pointer"
+          class="servi-adapt-bg rounded-xl shadow-sm overflow-hidden border-l-4 transition-all hover:shadow-md cursor-pointer"
           :style="{ borderLeftColor: obtenerEstado(vehiculo.orden_trabajo).color }"
           @click="vehiculo.orden_trabajo && redirigir(vehiculo.orden_trabajo.id)"
         >
@@ -135,7 +135,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div v-if="vehiculos.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
+        <div v-if="vehiculos.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
           <p class="text-gray-500 text-lg">No hay vehículos en taller actualmente</p>
           <p class="text-sm text-gray-400">Todos los vehículos han sido entregados.</p>
         </div>

@@ -149,17 +149,17 @@ onMounted(() => {
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <!-- Filtros Estado -->
-          <div class="inline-flex self-start w-fit rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div class="inline-flex self-start w-fit rounded-xl border border-gray-200 servi-adapt-bg shadow-sm overflow-hidden">
             <button
               type="button"
               @click="filtroEstado = 'todas'"
               class="px-4 py-2 text-sm font-bold transition-colors"
-              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'bg-white servi-blue-font hover:bg-gray-50'"
+              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:bg-gray-50'"
             >
               Todas
               <span
                 class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
-                :class="filtroEstado === 'todas' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'"
+                :class="filtroEstado === 'todas' ? 'servi-adapt-bg/20 text-white' : 'bg-gray-100 text-gray-600'"
               >
                 {{ deudas.length }}
               </span>
@@ -169,12 +169,12 @@ onMounted(() => {
               type="button"
               @click="filtroEstado = 'pendiente'"
               class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-200"
-              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'bg-white servi-blue-font hover:bg-gray-50'"
+              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:bg-gray-50'"
             >
               Pendientes
               <span
                 class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
-                :class="filtroEstado === 'pendiente' ? 'bg-white/20 text-white' : 'bg-red-50 text-red-600'"
+                :class="filtroEstado === 'pendiente' ? 'servi-adapt-bg/20 text-white' : 'bg-red-50 text-red-600'"
               >
                 {{ cantidadPendientes }}
               </span>
@@ -184,12 +184,12 @@ onMounted(() => {
               type="button"
               @click="filtroEstado = 'pagada'"
               class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-200"
-              :class="filtroEstado === 'pagada' ? 'servi-blue servi-yellow-font' : 'bg-white servi-blue-font hover:bg-gray-50'"
+              :class="filtroEstado === 'pagada' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:bg-gray-50'"
             >
               Pagadas
               <span
                 class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
-                :class="filtroEstado === 'pagada' ? 'bg-white/20 text-white' : 'bg-green-50 text-green-700'"
+                :class="filtroEstado === 'pagada' ? 'servi-adapt-bg/20 text-white' : 'bg-green-50 text-green-700'"
               >
                 {{ cantidadPagadas }}
               </span>
@@ -247,7 +247,7 @@ onMounted(() => {
 
       <template v-else>
         <!-- Sin cuentas -->
-        <div v-if="deudas.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
+        <div v-if="deudas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
           <div class="text-gray-400 mb-2">
             <p class="text-gray-500 text-lg">No hay deudas creadas</p>
             <p class="text-sm text-gray-400">Crea una deuda para agrupar OTs y registrar abonos.</p>
@@ -279,7 +279,7 @@ onMounted(() => {
         <!-- Con cuentas, pero filtros sin resultados -->
         <div
           v-else-if="deudasFiltradas.length === 0"
-          class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-200"
+          class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-200"
         >
           <p class="text-gray-700 text-lg font-bold">No hay resultados con esos filtros.</p>
           <p class="text-gray-400">Prueba cambiando el estado o el orden.</p>
@@ -300,7 +300,7 @@ onMounted(() => {
 
         <!-- Listado -->
         <div v-else>
-          <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">

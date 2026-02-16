@@ -403,7 +403,7 @@ onMounted(cargarDatos);
       <!-- Listados -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Órdenes -->
-        <div class="card-shadow overflow-hidden border border-gray-200 bg-white">
+        <div class="card-shadow overflow-hidden border border-gray-200 servi-adapt-bg">
           <div class="servi-blue servi-yellow-font px-4 py-3 flex items-center justify-between">
             <h3 class="font-bold text-xs uppercase tracking-wider">Órdenes ({{ otsEnDeuda.length }})</h3>
           </div>
@@ -441,7 +441,7 @@ onMounted(cargarDatos);
         </div>
 
         <!-- Abonos -->
-        <div class="card-shadow overflow-hidden border border-gray-200 bg-white">
+        <div class="card-shadow overflow-hidden border border-gray-200 servi-adapt-bg">
           <div class="servi-blue servi-yellow-font px-4 py-3 flex items-center justify-between">
             <h3 class="font-bold text-xs uppercase tracking-wider">Abonos Realizados</h3>
           </div>
@@ -485,14 +485,14 @@ onMounted(cargarDatos);
             class="w-full p-3 rounded-lg transition-all flex justify-between items-center text-left"
             :class="
               otsSeleccionadas.includes(ot.id)
-                ? 'bg-white/10 ring-2 ring-white/50'
+                ? 'servi-adapt-bg/10 ring-2 ring-white/50'
                 : 'servi-yellow servi-blue-font hover:opacity-90'
             "
           >
             <div class="flex items-center gap-3 min-w-0">
               <div
                 class="w-5 h-5 rounded border flex items-center justify-center flex-shrink-0"
-                :class="otsSeleccionadas.includes(ot.id) ? 'bg-white/20 border-white/50' : 'border-gray-300 bg-white'"
+                :class="otsSeleccionadas.includes(ot.id) ? 'servi-adapt-bg/20 border-white/50' : 'border-gray-300 servi-adapt-bg'"
               >
                 <svg v-if="otsSeleccionadas.includes(ot.id)" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                   <path

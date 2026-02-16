@@ -454,7 +454,7 @@ onMounted(async () => {
           class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 cursor-pointer"
           :class="tabActiva === tab.id
             ? 'servi-blue servi-yellow-font shadow-md'
-            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'"
+            : 'servi-adapt-bg text-gray-600 border border-gray-200 hover:bg-gray-100'"
         >
           <!-- Building icon -->
           <svg v-if="tab.icon === 'building'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -483,11 +483,11 @@ onMounted(async () => {
 
       <!-- ═══════════════════ TAB: EMPRESA ═══════════════════ -->
       <div v-if="tabActiva === 'empresa'">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <!-- Header de la tarjeta -->
           <div class="servi-blue p-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
-              <div class="p-2.5 bg-white/10 rounded-full text-white">
+              <div class="p-2.5 servi-adapt-bg/10 rounded-full text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
@@ -646,7 +646,7 @@ onMounted(async () => {
 
         <div class="space-y-4">
           <div v-for="taller in talleres" :key="taller.id"
-            class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
             <div class="p-5">
               <div class="flex justify-between items-start">
                 <div class="flex items-center gap-3">
@@ -697,7 +697,7 @@ onMounted(async () => {
         </div>
 
         <!-- Taller vacío -->
-        <div v-if="talleres.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
+        <div v-if="talleres.length === 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 p-10 text-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5" />
           </svg>
@@ -721,7 +721,7 @@ onMounted(async () => {
           </button>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="servi-blue servi-yellow-font">
@@ -732,7 +732,7 @@ onMounted(async () => {
                   <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              <tbody class="servi-adapt-bg divide-y divide-gray-200">
                 <tr v-for="servicio in servicios" :key="servicio.id" class="hover:bg-gray-50 transition-colors">
                   <td class="px-6 py-4 max-w-[200px]">
                     <div class="flex items-center gap-3">
@@ -796,7 +796,7 @@ onMounted(async () => {
           </button>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
               <thead class="bg-gray-50">
@@ -809,7 +809,7 @@ onMounted(async () => {
                   <th class="px-6 py-3 text-right text-sm font-medium uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
+              <tbody class="servi-adapt-bg divide-y divide-gray-200">
                 <tr v-for="cuenta in cuentas" :key="cuenta.id" class="hover:bg-gray-50 transition-colors">
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center gap-3">
@@ -856,7 +856,7 @@ onMounted(async () => {
   <Teleport to="body">
     <div v-if="mostrarModalTaller" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="cerrarModalTaller"></div>
-      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="relative servi-adapt-bg rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div class="servi-blue p-5">
           <h3 class="text-lg font-bold text-white">{{ tallerEditando ? 'Editar Taller' : 'Nuevo Taller' }}</h3>
         </div>
@@ -890,7 +890,7 @@ onMounted(async () => {
   <Teleport to="body">
     <div v-if="mostrarModalServicio" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="cerrarModalServicio"></div>
-      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="relative servi-adapt-bg rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div class="servi-blue p-5">
           <h3 class="text-lg font-bold text-white">{{ servicioEditando ? 'Editar Servicio' : 'Nuevo Servicio' }}</h3>
         </div>
@@ -920,7 +920,7 @@ onMounted(async () => {
   <Teleport to="body">
     <div v-if="mostrarModalCuenta" class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="cerrarModalCuenta"></div>
-      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="relative servi-adapt-bg rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         <div class="servi-blue p-5">
           <h3 class="text-lg font-bold text-white">{{ cuentaEditando ? 'Editar Cuenta' : 'Nueva Cuenta Bancaria' }}</h3>
         </div>

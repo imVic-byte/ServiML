@@ -16,7 +16,7 @@ defineProps({
             v-slot="{ navigate, href }"
         >
             <tr
-                class="bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                class="servi-adapt-bg hover:bg-gray-50 transition-colors cursor-pointer"
                 :href="href"
                 @click="navigate"
                 tabindex="0"

@@ -32,7 +32,7 @@ const onInput = (event) => {
 </script>
 <template>
 <nav>
-    <header class="header servi-blue servi-white-font px-5 py-3 shadow-lg rounded-b-xl justify-between h-auto">
+    <header class="header servi-blue text-white px-5 py-3 shadow-lg rounded-b-xl justify-between h-auto">
     <div class="flex-center flex justify-between h-auto">
       <div class="user-info">
       <h2 class="welcome">{{ titulo }}</h2>

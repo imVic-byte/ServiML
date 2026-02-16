@@ -88,7 +88,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div v-if="cargando" class="p-8 text-center text-gray-500">
           Cargando datos del personal...
         </div>
@@ -118,7 +118,7 @@ onMounted(async () => {
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="servi-adapt-bg divide-y divide-gray-200">
               <tr v-for="trabajador in trabajadores" :key="trabajador.id" class="hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
