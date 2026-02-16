@@ -28,6 +28,38 @@ const alertaEmail = ref(true);
 const presupuesto_id = ref(null);
 const loading = ref(false);
 
+// ── Autocompletado de servicios ──
+const serviciosCatalogo = ref([])
+const autocompletadoActivo = ref(-1) // índice del item que tiene el dropdown abierto
+
+const sugerenciasFiltradas = computed(() => {
+  if (autocompletadoActivo.value < 0) return []
+  const texto = (items.value[autocompletadoActivo.value]?.descripcion || '').toLowerCase().trim()
+  if (!texto) return serviciosCatalogo.value
+  return serviciosCatalogo.value.filter(s => s.nombre.toLowerCase().includes(texto))
+})
+
+const abrirAutocompletado = (index) => {
+  autocompletadoActivo.value = index
+}
+const cerrarAutocompletado = () => {
+  setTimeout(() => { autocompletadoActivo.value = -1 }, 150)
+}
+const seleccionarServicio = (servicio, index) => {
+  items.value[index].descripcion = servicio.nombre
+  items.value[index].monto = servicio.precio
+  autocompletadoActivo.value = -1
+}
+
+const cargarServicios = async () => {
+  const { data } = await supabase
+    .from('servicios')
+    .select('nombre, precio')
+    .eq('activo', true)
+    .order('nombre', { ascending: true })
+  if (data) serviciosCatalogo.value = data
+}
+
 const agregarItem = () => items.value.push({ descripcion: "", monto: "" });
 const eliminarItem = (index) => items.value.splice(index, 1);
 
@@ -150,6 +182,10 @@ const redirigir = () => {
     modalState.value.visible = false;
   }
 };
+
+onMounted(() => {
+  cargarServicios()
+})
 </script>
 
 <template>
@@ -238,14 +274,34 @@ const redirigir = () => {
               Servicios
             </h2>
             <div class="space-y-4 px-3">
-               <div v-for="(item, index) in items" :key="index" class="flex gap-4 items-end animate-fadeIn">
-                 <div class="flex-1 group">
+               <div v-for="(item, index) in items" :key="index" class="flex gap-4 items-end animate-fadeIn relative" :style="{ zIndex: autocompletadoActivo === index ? 20 : 0 }">
+                 <div class="flex-1 group relative">
                    <input
                      v-model="item.descripcion"
                      type="text"
                      class="w-full py-2 bg-transparent border-b border-yellow-400 focus:border-blue-900 focus:outline-none text-sm"
-                     placeholder="Descripción del servicio"
+                     placeholder="Buscar servicio..."
+                     @focus="abrirAutocompletado(index)"
+                     @blur="cerrarAutocompletado()"
+                     @input="abrirAutocompletado(index)"
+                     autocomplete="off"
                    />
+                   <!-- Dropdown autocompletado -->
+                   <div
+                     v-if="autocompletadoActivo === index && sugerenciasFiltradas.length > 0"
+                     class="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+                   >
+                     <button
+                       v-for="servicio in sugerenciasFiltradas"
+                       :key="servicio.nombre"
+                       type="button"
+                       class="w-full px-3 py-2.5 text-left bg-white-100 hover:bg-blue-50 flex justify-between items-center gap-2 text-sm transition-colors cursor-pointer"
+                       @mousedown.prevent="seleccionarServicio(servicio, index)"
+                     >
+                       <span class="truncate text-gray-800">{{ servicio.nombre }}</span>
+                       <span class="text-xs font-semibold text-gray-500 whitespace-nowrap">{{ formatearMoneda(servicio.precio) }}</span>
+                     </button>
+                   </div>
                  </div>
                  <div class="w-32 group">
                    <input

@@ -102,7 +102,7 @@ const updatePassword = async () => {
     <navbar 
       titulo="Bienvenido al Equipo" 
       subtitulo="Activa tu cuenta profesional" 
-      class="fixed-nav"
+      class="navbar"
     />
     
     <div class="content-container">

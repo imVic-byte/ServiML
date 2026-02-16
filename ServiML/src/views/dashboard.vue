@@ -9,22 +9,30 @@ import { supabase } from '@/lib/supabaseClient'
 const interfaz = useInterfaz()
 const userStore = useUserStore()
 const router = useRouter()
-const nombreCompleto = computed(() => userStore.trabajador?.nombre + ' ' + userStore.trabajador?.apellido || 'Usuario')
+const nombre = userStore.trabajador?.nombre || ''
+const apellido = userStore.trabajador?.apellido || ''
+const nombreCompleto = computed(() => nombre + ' ' + apellido)
 const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 const diaSemana = new Date().getDay()
+const formatoLocal = (fecha) => {
+  const y = fecha.getFullYear()
+  const m = String(fecha.getMonth() + 1).padStart(2, '0')
+  const d = String(fecha.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 const fechaInicioSemana = computed(() => {
   const fecha = new Date()
   const dia = fecha.getDay()
   const diferencia = dia === 0 ? -6 : 1 - dia
   fecha.setDate(fecha.getDate() + diferencia)
-  return fecha.toISOString().split('T')[0]
+  return formatoLocal(fecha)
 })
 const fechaFinSemana = computed(() => {
   const fecha = new Date()
   const dia = fecha.getDay()
   const diferencia = dia === 0 ? 0 : 7 - dia
   fecha.setDate(fecha.getDate() + diferencia)
-  return fecha.toISOString().split('T')[0]
+  return formatoLocal(fecha)
 })
 const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
 const vehiculosEnTaller = ref(0)
@@ -37,6 +45,8 @@ const aprobadosHoy = ref(0)
 const otPorEntregar = ref(0)
 const capacidadMaxima = ref(15)
 const listaEstados = ref([])
+const talleres = ref([])
+const tallerSeleccionado = ref(null)
 const porcentajeCapacidad = computed(() => (vehiculosEnTaller.value / capacidadMaxima.value) * 100)
 const TruncarPorcentaje = computed(() => Math.trunc(porcentajeCapacidad.value))
 
@@ -60,9 +70,28 @@ const verTablero = () => {
   router.push({ name: 'ordenes-de-trabajo' })
 }
 
+const verOT = (id) => {
+  router.push({ name: 'ver-orden-de-trabajo', params: { id } })
+}
+
+const obtenerTalleres = async () => {
+  try {
+    const { data, error } = await supabase.from('serviml_taller').select('*').order('id', { ascending: true })
+    if (error) throw error
+    talleres.value = data || []
+    if (talleres.value.length > 0) tallerSeleccionado.value = talleres.value[0].id
+  } catch (error) {
+    console.error('Error al obtener talleres:', error)
+  }
+}
+
 const handleVehiculos = async () => {
   try {
-    const {data, error} = await supabase.from('vehiculo').select('*').eq('en_taller', true)
+    let query = supabase.from('orden_trabajo').select('id, id_taller, vehiculo!inner(en_taller)').eq('vehiculo.en_taller', true)
+    if (tallerSeleccionado.value) {
+      query = query.eq('id_taller', tallerSeleccionado.value)
+    }
+    const { data, error } = await query
     if (error) throw error
     vehiculosEnTaller.value = data.length
   } catch (error) {
@@ -70,13 +99,25 @@ const handleVehiculos = async () => {
   }
 }
 
+const cambiarTaller = async () => {
+  await handleVehiculos()
+  await handleOT()
+  handleOTSinAsignar()
+  handlePorEntregar()
+  handleOTRecientes()
+}
+
 const handleOT = async () => {
   try {
-    const {data, error} = await supabase.from('orden_trabajo').select('*, vehiculo(*), cliente(*), presupuesto(*)')
+    let query = supabase.from('orden_trabajo').select('*, vehiculo(*), cliente(*), presupuesto(*)')
+    if (tallerSeleccionado.value) {
+      query = query.eq('id_taller', tallerSeleccionado.value)
+    }
+    const {data, error} = await query
     if (error) throw error
     listaOT.value = data
   } catch (error) {
-    console.error('Error al obtener OT sin asignar:', error)
+    console.error('Error al obtener OT:', error)
   }
 }
 
@@ -123,8 +164,43 @@ const handleOrdenarEstado = (estado) => {
   return listaEstados.value.find(e => e.id === estado) || {estado: 'Desconocido', color: 'bg-gray-500'}
 }
 
+const metricas = ref({
+  ocupacion_actual: 0,
+  ticket_promedio: 0,
+  porcentaje_a_tiempo: 0,
+  porcentaje_rechazos: 0
+})
+
+const cargarMetricas = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('vista_dashboard_metricas')
+      .select('*')
+      .single()
+
+    if (error) throw error
+    
+    if (data) {
+      metricas.value = data
+      console.log(metricas.value)
+    }
+
+  } catch (error) {
+    console.error('Error al obtener KPIs:', error)
+  }
+}
+
+const formatoMoneda = (valor) => {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0
+  }).format(valor)
+}
+
 onMounted(async () => {
   interfaz.showLoading()
+  await obtenerTalleres()
   await handleVehiculos()
   await handleOT()
   await handleOTSinAsignar()
@@ -133,6 +209,7 @@ onMounted(async () => {
   await handlePorEntregar()
   await handleOTRecientes()
   await handleEstados()
+  await cargarMetricas()
   interfaz.hideLoading()
 })
 </script>
@@ -146,20 +223,23 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-800">Hola, {{ nombreCompleto }}</h1>
           <p class="text-slate-500 capitalize">{{ fechaHoy }}</p>
         </div>
-        <div class="mt-2 sm:mt-0">
+        <div class="mt-2 sm:mt-0 flex items-center gap-3">
+          <select v-model="tallerSeleccionado" @change="cambiarTaller" class="text-sm font-medium bg-white text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 shadow-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none cursor-pointer">
+            <option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }}</option>
+          </select>
           <span v-if="!esFinDeSemana" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-servi-blue border border-blue-100">
             <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-            Taller Operativo
+            Operativo
           </span>
           <span v-else class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-50 text-red-600 border border-red-100">
             <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-            Taller Cerrado
+            Cerrado
           </span>
         </div>
       </div>
 
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
-        <div @click="VehiculosEnTaller" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="VehiculosEnTaller" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -182,7 +262,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="SinAsignar" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="SinAsignar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -206,7 +286,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="PresupuestosSemana" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="PresupuestosSemana" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -228,7 +308,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div @click="ListoParaEntregar" class="bg-white overflow-hidden rounded-xl shadow-sm border border-slate-100">
+        <div @click="ListoParaEntregar" class="bg-white overflow-hidden cursor-pointer rounded-xl shadow-sm border border-slate-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -257,7 +337,7 @@ onMounted(async () => {
         <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex justify-between items-center">
             <h2 class="text-lg font-bold text-slate-800">Flujo de Trabajo Reciente</h2>
-            <button @click="verTablero" class="text-sm text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
+            <button @click="verTablero" class="text-sm cursor-pointer text-servi-blue hover:text-blue-800 font-medium">Ver tablero</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
@@ -270,13 +350,16 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                <tr v-for="ot in listaOTRecientes" :key="ot.id" class="hover:bg-slate-50 transition-colors">
+                <tr v-for="ot in listaOTRecientes" @click="verOT(ot.id)" :key="ot.id" class="hover:bg-slate-50 transition-colors cursor-pointer">
                   <td class="px-5 py-3.5 font-medium text-slate-800">#{{ ot.id }}</td>
                   <td class="px-5 py-3.5 text-slate-600">{{ ot.vehiculo.patente }}</td>
-                  <td class="px-5 py-3.5 text-slate-600">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
+                  <td class="px-5 py-3.5 text-slate-600 truncate max-w-[100px] sm:max-w-none">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
                   <td class="px-5 py-3.5">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleOrdenarEstado(ot.estado_actual_id).color, color: handleOrdenarEstado(ot.estado_actual_id).texto }">{{ handleOrdenarEstado(ot.estado_actual_id).estado }}</span>
                   </td>
+                </tr>
+                <tr v-if="listaOTRecientes.length === 0" class="hover:bg-slate-50 transition-colors cursor-pointer">
+                  <td class="px-5 py-3.5 font-medium text-slate-800">No hay OT recientes</td>
                 </tr>
               </tbody>
             </table>
@@ -285,45 +368,62 @@ onMounted(async () => {
 
         <div class="space-y-6">
           
-          <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 class="font-bold text-slate-800">Métricas de Eficiencia</h3>
-            </div>
-            <div class="p-5 space-y-5">
-              <div>
-                <div class="flex justify-between mb-2">
-                  <span class="text-sm font-medium text-slate-600">Ocupación Taller</span>
-                  <span class="text-sm font-bold text-servi-blue">85%</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                  <div class="bg-servi-blue h-2.5 rounded-full" style="width: 85%"></div>
-                </div>
-              </div>
-              
-              <div>
-                <div class="flex justify-between mb-2">
-                  <span class="text-sm font-medium text-slate-600">Entrega a Tiempo</span>
-                  <span class="text-sm font-bold text-green-600">92%</span>
-                </div>
-                <div class="w-full bg-slate-100 rounded-full h-2.5">
-                  <div class="bg-green-500 h-2.5 rounded-full" style="width: 92%"></div>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
-                <div class="text-center p-3 bg-slate-50 rounded-lg">
-                  <div class="text-xs text-slate-500 uppercase tracking-wider">Ticket Prom.</div>
-                  <div class="font-bold text-slate-800 mt-1">$185k</div>
-                </div>
-                <div class="text-center p-3 bg-slate-50 rounded-lg">
-                  <div class="text-xs text-slate-500 uppercase tracking-wider">Rechazos</div>
-                  <div class="font-bold text-red-500 mt-1">12%</div>
-                </div>
-              </div>
-            </div>
+          <div class="space-y-6">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+      <h3 class="font-bold text-slate-800">Métricas de Eficiencia</h3>
+    </div>
+    <div class="p-5 space-y-5">
+      
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium text-slate-600">
+            Ocupación Taller ({{ vehiculosEnTaller }}/{{ capacidadMaxima }})
+          </span>
+          <span class="text-sm font-bold text-servi-blue">
+            {{ Math.min(Math.round((vehiculosEnTaller / capacidadMaxima) * 100), 100) }}%
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2.5">
+          <div 
+            class="bg-servi-blue h-2.5 rounded-full transition-all duration-500" 
+            :style="{ width: `${Math.min((vehiculosEnTaller / capacidadMaxima) * 100, 100)}%` }">
           </div>
+        </div>
+      </div>
+      
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium text-slate-600">Entrega a Tiempo</span>
+          <span class="text-sm font-bold text-green-600">
+            {{ metricas.porcentaje_a_tiempo }}%
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2.5">
+          <div 
+            class="bg-green-500 h-2.5 rounded-full transition-all duration-500" 
+            :style="{ width: `${metricas.porcentaje_a_tiempo}%` }">
+          </div>
+        </div>
+      </div>
 
-
+      <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100">
+        <div class="text-center p-3 bg-slate-50 rounded-lg transition-all duration-200 hover:bg-slate-100 hover:shadow-sm">
+          <div class="text-xs text-slate-500 uppercase tracking-wider">Ticket Prom.</div>
+          <div class="font-bold text-slate-800 mt-1">
+            {{ formatoMoneda(metricas.ticket_promedio) }}
+          </div>
+        </div>
+        <div class="text-center p-3 bg-slate-50 rounded-lg">
+          <div class="text-xs text-slate-500 uppercase tracking-wider">Rechazos</div>
+          <div class="font-bold text-red-500 mt-1">
+            {{ metricas.porcentaje_rechazos }}%
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
         </div>
       </div>
 

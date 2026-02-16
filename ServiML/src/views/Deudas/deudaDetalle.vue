@@ -63,8 +63,15 @@ const estadoDeudaUI = computed(() => {
   };
 });
 
-const formatearDinero = (valor) =>
-  new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(valor || 0);
+const formatearDinero = (valor) => {
+  const valorLimpio = Math.round(valor || 0) || 0;
+
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(valorLimpio);
+};
 
 const formatearFecha = (fechaString) => {
   if (!fechaString) return "---";
@@ -442,7 +449,7 @@ onMounted(cargarDatos);
 
 <template>
   <div class="min-h-screen bg-gray-50 pb-12 font-sans servi-blue-font">
-    <navbar titulo="Gestión de Deuda" :subtitulo="deuda?.nombre || 'Detalle'" />
+    <navbar titulo="Gestión de Deuda" :subtitulo="deuda?.nombre || 'Detalle'" class="navbar" />
 
     <div v-if="loading" class="flex justify-center mt-10">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700"></div>
@@ -631,7 +638,7 @@ onMounted(cargarDatos);
         class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in zoom-in duration-200">
         <div class="px-6 py-4 border-b border-white/10">
           <h2 class="text-lg font-bold servi-yellow-font">Agregar Órdenes</h2>
-          <p class="text-sm text-white/80">Selecciona una o varias OTs para vincular a esta cuenta.</p>
+          <p class="text-sm text-white/80">Selecciona una o varias OTs para vincular a esta Deuda.</p>
         </div>
 
         <div class="p-6 flex-1 overflow-y-auto space-y-2">

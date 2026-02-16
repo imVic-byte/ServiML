@@ -38,7 +38,7 @@ const onInput = (event) => {
       <h2 class="welcome">{{ titulo }}</h2>
       <h1 class="user-name">{{ subtitulo }}</h1>
     </div>
-    <div v-if="notificaciones === 'true'" @click="handleMostrarNotificaciones">
+    <div v-if="notificaciones === 'true'" @click="handleMostrarNotificaciones" class="flex items-center justify-center">
       <div v-if="hasNotifications">
         <newNotification />
       </div>

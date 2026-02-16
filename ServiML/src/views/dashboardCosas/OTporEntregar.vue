@@ -2,8 +2,10 @@
 import { ref, onMounted } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
 import ordenTrabajoCard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
+import ordentrabajoListado from '../../components/ordenTrabajo/ordentrabajoListado.vue';
 import navbar from "../../components/componentes/navbar.vue";
 import { useInterfaz } from '../../stores/interfaz.js'
+
 const ordenes = ref([]);
 const uiStore = useInterfaz()
 const estados = ref([]);
@@ -42,16 +44,25 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div class="bg-gray-50 min-h-screen pb-15">
     <navbar
       titulo="ServiML"
       subtitulo="OT Por Entregar"
-      class="navbar"
-      searchInput="true"
+      class="sticky top-0 z-50"
     />
-    <div class="contenedor pb-20">
-      <div class="header-acciones flex justify-between items-center my-2 px-2">
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-bold servi-blue-font">OT Por Entregar</h2>
+          <p class="text-sm text-gray-500">Órdenes de trabajo listas para entregar al cliente</p>
+        </div>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-1">
+
+      <ordentrabajoListado :ordenes="ordenes" :estados="estados" @actualizar="obtenerOrdenes()" />
+
+      <div class="md:hidden grid grid-cols-1">
         <ordenTrabajoCard
           v-for="item in ordenes"
           :key="item.id"
@@ -59,12 +70,19 @@ onMounted(async () => {
           :estado="handleEstados(item.estado_actual_id)"
           @asignacion-exitosa="obtenerOrdenes"
         />
+        <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
+        <div class="text-gray-400 mb-2">
+          <p class="text-gray-500 text-lg">No hay órdenes por entregar</p>
+          <p class="text-sm text-gray-400">Todas las órdenes han sido entregadas.</p>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mt-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
       </div>
+      </div>
+
+      
+
     </div>
-</template> 
-<style scoped>
-.navbar {
-  position: sticky;
-  top: 0;
-}
-</style>
+  </div>
+</template>

@@ -137,13 +137,13 @@ onMounted(() => {
 
 <template>
   <div class="min-h-screen bg-gray-50 pb-12 font-sans servi-blue-font">
-    <navbar titulo="ServiML" subtitulo="Cuentas Corrientes" />
+    <navbar titulo="ServiML" subtitulo="Deudas y Abonos" class="navbar" />
 
     <div class="max-w-7xl mx-auto px-4 py-8">
       <!-- Header + Toolbar -->
       <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
         <div>
-          <h2 class="text-2xl font-bold">Cuentas</h2>
+          <h2 class="text-2xl font-bold">Deudas</h2>
           <p class="text-gray-500">Gestiona las deudas agrupadas por cliente</p>
         </div>
 
@@ -206,11 +206,12 @@ onMounted(() => {
               </span>
             </button>
 
-
-            <button @click="showModalCrear = true"
-              class="w-full sm:w-auto servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
-              <span class="text-xl leading-none mb-1">+</span>
-              <span class="hidden sm:inline">Nueva Cuenta</span>
+            <button
+              @click="showModalCrear = true"
+              class="servi-yellow servi-blue-font px-5 py-2.5 rounded-lg font-bold shadow-sm flex items-center gap-2 hover:opacity-90 transition"
+            >
+              <span class="text-xl leading-none">+</span>
+              Nueva Deuda
             </button>
 
           </div>
@@ -226,12 +227,21 @@ onMounted(() => {
         <!-- Sin cuentas -->
         <div v-if="deudas.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
           <div class="text-gray-400 mb-2">
-            <p class="text-gray-500 text-lg">No hay cuentas corrientes creadas</p>
-            <p class="text-sm text-gray-400">Crea una cuenta para agrupar OTs y registrar abonos.</p>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mt-6" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <p class="text-gray-500 text-lg">No hay deudas creadas</p>
+            <p class="text-sm text-gray-400">Crea una deuda para agrupar OTs y registrar abonos.</p>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-12 w-12 mx-auto mt-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
           </div>
 
@@ -264,7 +274,7 @@ onMounted(() => {
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
-                  <th class="p-4 font-semibold">Cuenta</th>
+                  <th class="p-4 font-semibold">Deuda</th>
                   <th class="p-4 font-semibold">Estado</th>
                   <th class="p-4 font-semibold text-center">Notificación</th>
                   <th class="p-4 font-semibold text-center">Creación</th>
@@ -361,8 +371,8 @@ onMounted(() => {
       <div
         class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         <div class="px-6 py-4 border-b border-white/10">
-          <h2 class="text-lg font-bold servi-yellow-font">Abrir Nueva Cuenta</h2>
-          <p class="text-sm text-white/80">Crea una cuenta para agrupar OTs y registrar abonos.</p>
+          <h2 class="text-lg font-bold servi-yellow-font">Abrir Nueva Deuda</h2>
+          <p class="text-sm text-white/80">Crea una deuda para agrupar OTs y registrar abonos.</p>
         </div>
 
         <div class="p-6">

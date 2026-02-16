@@ -17,9 +17,9 @@ const showStats = ref(false);
 const inicioSemana = computed(() => {
   const fecha = new Date();
   const dia = fecha.getDay();
-  const diff = fecha.getDate() - dia + (dia === 0 ? -6 : 1);
-  
-  const lunes = new Date(fecha.setDate(diff));
+  const diferencia = dia === 0 ? -6 : 1 - dia;
+  const lunes = new Date(fecha);
+  lunes.setDate(fecha.getDate() + diferencia);
   lunes.setHours(0, 0, 0, 0);
   return lunes;
 });
@@ -32,7 +32,8 @@ const handleBusqueda = (texto) => {
 };
 
 const obtenerPresupuestos = async (busqueda = '', esCargaInicial = false) => {
-  const fechaCorte = inicioSemana.value.toISOString();
+  const f = inicioSemana.value;
+  const fechaCorte = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}T00:00:00`;
 
   let query = supabase
     .from("presupuesto")
@@ -188,6 +189,7 @@ onMounted(async () => {
       </div>
 
     </div>
+  </div>
 </template>
 
 <style scoped>
