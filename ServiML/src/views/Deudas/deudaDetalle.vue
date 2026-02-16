@@ -244,7 +244,7 @@ onMounted(cargarDatos);
 </script>
 
 <template>
-  <div class="min-h-screen servi-white pb-12 font-sans servi-blue-font">
+  <div class="min-h-screen servi-white pb-12 font-sans servi-grey-font">
     <navbar titulo="Gestión de Deuda" :subtitulo="deuda?.nombre || 'Detalle'" class="navbar" />
 
     <div v-if="loading" class="flex justify-center mt-10">
@@ -252,8 +252,8 @@ onMounted(cargarDatos);
     </div>
 
     <div v-else class="max-w-7xl mx-auto px-4 py-8">
-      <div class="servi-white card-shadow border border-gray-800 overflow-hidden mb-8">
-        <div class="p-6 md:p-8 flex justify-between items-start flex-wrap gap-4">
+      <div class="servi-adapt-bg card-shadow border border-gray-800 overflow-hidden mb-8">
+        <div class="p-6 md:p-8 flex justify-between items-start flex-wrap gap-4 servi-blue">
           <div class="flex flex-col gap-2">
             <h1 class="text-2xl font-bold servi-white-font">{{ deuda.nombre }}</h1>
 
@@ -281,8 +281,8 @@ onMounted(cargarDatos);
         </div>
 
         <div class="px-6 pb-6">
-          <div class="w-full servi-adapt-bg rounded-full h-3 overflow-hidden">
-            <div class="servi-blue h-3 rounded-full transition-all duration-700" :style="{ width: `${porcentajePagado}%` }"></div>
+          <div class="w-full servi-adapt-bg mt-2 rounded-full h-3 overflow-hidden">
+            <div class="bg-green-500 h-3 rounded-full transition-all duration-700" :style="{ width: `${porcentajePagado}%` }"></div>
           </div>
 
           <div class="flex justify-between items-center mt-2">
@@ -291,19 +291,19 @@ onMounted(cargarDatos);
           </div>
 
           <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            <div class="servi-adapt-bg rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-800">
               <div class="text-xs servi-grey-font uppercase">OTs</div>
               <div class="font-bold servi-white-font">{{ otsEnDeuda.length }}</div>
             </div>
-            <div class="servi-adapt-bg rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-800">
               <div class="text-xs servi-grey-font uppercase">Total deuda</div>
               <div class="font-bold servi-white-font">{{ formatearDinero(totalDeuda) }}</div>
             </div>
-            <div class="servi-adapt-bg rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-800">
               <div class="text-xs servi-grey-font uppercase">Pagado</div>
               <div class="font-bold servi-white-font">{{ formatearDinero(totalPagado) }}</div>
             </div>
-            <div class="servi-adapt-bg rounded-lg p-3 border border-gray-800">
+            <div class="servi-blue rounded-lg p-3 border border-gray-800">
               <div class="text-xs servi-grey-font uppercase">Saldo</div>
               <div class="font-bold servi-white-font">{{ formatearDinero(saldoPendiente) }}</div>
             </div>
@@ -314,7 +314,7 @@ onMounted(cargarDatos);
         <div v-if="!esCompletada" class="servi-adapt-bg px-6 py-4 border-t border-gray-800 flex flex-wrap gap-3 items-center">
           <button
             @click="buscarOTsDisponibles"
-            class="flex rounded-lg servi-yellow servi-blue-font justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition"
+            class="flex rounded-lg servi-yellow servi-grey-font justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -350,7 +350,7 @@ onMounted(cargarDatos);
 
           <button
             @click="marcarGestionado"
-            class="flex rounded-lg servi-yellow servi-blue-font justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition ml-auto"
+            class="flex rounded-lg servi-yellow servi-grey-font justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition ml-auto"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path
@@ -383,7 +383,7 @@ onMounted(cargarDatos);
         <!-- Config recordatorios -->
         <div v-if="showConfig" class="servi-blue p-4 border-t border-white/10 flex items-center gap-4 animate-fadeIn">
           <span class="servi-yellow-font font-bold text-sm">Recordarme cobrar cada:</span>
-          <select v-model="diasNotificacion" class="rounded-lg px-3 py-2 servi-yellow servi-blue-font font-bold text-sm">
+          <select v-model="diasNotificacion" class="rounded-lg px-3 py-2 servi-yellow servi-grey-font font-bold text-sm">
             <option :value="0">Nunca</option>
             <option :value="5">5 días</option>
             <option :value="10">10 días</option>
@@ -392,7 +392,7 @@ onMounted(cargarDatos);
           </select>
           <button
             @click="guardarConfigNotificacion"
-            class="px-4 py-2 text-sm font-bold servi-yellow servi-blue-font rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 text-sm font-bold servi-yellow servi-grey-font rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="procesandoNotificacion"
           >
             {{ procesandoNotificacion ? 'Guardando...' : 'Guardar' }}
@@ -414,7 +414,7 @@ onMounted(cargarDatos);
             <div
               v-for="item in otsEnDeuda"
               :key="item.id"
-              class="flex items-center justify-between py-3 border-b last:border-0 hover:opacity-80 px-2 rounded transition-colors"
+              class="flex items-center justify-between servi-blue py-3 border-b last:border-0 hover:opacity-80 px-2 rounded-xl transition-colors"
             >
               <div class="min-w-0">
                 <span class="font-bold servi-white-font block">OT #{{ item.orden_trabajo.id }}</span>
@@ -452,7 +452,7 @@ onMounted(cargarDatos);
             <div
               v-for="abono in abonos"
               :key="abono.id"
-              class="flex justify-between py-3 border-b last:border-0 hover:opacity-80 px-2 rounded transition-colors"
+              class="flex justify-between py-3 servi-blue border-b last:border-0 hover:opacity-80 px-2 rounded-xl transition-colors"
             >
               <div class="min-w-0">
                 <span class="text-xs servi-grey-font block">{{ formatearFecha(abono.created_at) }}</span>
@@ -485,8 +485,8 @@ onMounted(cargarDatos);
             class="w-full p-3 rounded-lg transition-all flex justify-between items-center text-left"
             :class="
               otsSeleccionadas.includes(ot.id)
-                ? 'servi-adapt-bg/10 ring-2 ring-white/50'
-                : 'servi-yellow servi-blue-font hover:opacity-90'
+                ? 'servi-yellow ring-2 ring-white/50'
+                : 'servi-adapt-bg servi-grey-font hover:opacity-90'
             "
           >
             <div class="flex items-center gap-3 min-w-0">
@@ -523,7 +523,7 @@ onMounted(cargarDatos);
           <button
             @click="agregarOTsMasivas"
             :disabled="otsSeleccionadas.length === 0"
-            class="w-full servi-yellow servi-blue-font font-bold py-3 rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+            class="w-full servi-yellow servi-grey-font font-bold py-3 rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             Agregar {{ otsSeleccionadas.length }} OTs Seleccionadas
           </button>
@@ -547,7 +547,7 @@ onMounted(cargarDatos);
             <input
               v-model="nuevoAbono"
               type="number"
-              class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
+              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg servi-grey-font font-bold outline-none"
               placeholder="0"
             />
           </div>
@@ -557,18 +557,18 @@ onMounted(cargarDatos);
             <input
               v-model="abonoObs"
               type="text"
-              class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
+              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg servi-grey-font font-bold outline-none"
               placeholder="Ej: Transferencia, efectivo, etc."
             />
           </div>
         </div>
 
         <div class="px-6 py-4 flex justify-end gap-3">
-          <button @click="showModalAbono = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-blue-font rounded-lg">Cancelar</button>
+          <button @click="showModalAbono = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-grey-font rounded-lg">Cancelar</button>
 
           <button
             @click="registrarAbono"
-            class="px-4 py-2 text-sm font-bold servi-yellow servi-blue-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 text-sm font-bold servi-yellow servi-grey-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="nuevoAbono <= 0"
           >
             Confirmar
@@ -605,6 +605,5 @@ onMounted(cargarDatos);
 .card-shadow {
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  background-color: white;
 }
 </style>

@@ -261,12 +261,12 @@ onMounted(async () => {
 
                 <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-800 servi-adapt-bg">
-                        <h3 class="servi-blue-font font-bold">Servicios Solicitados</h3>
+                        <h3 class="servi-grey-font font-bold">Servicios Solicitados</h3>
                     </div>
                     <div class="divide-y divide-gray-800">
                         <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:opacity-80 transition-colors">
                             <span class="text-sm servi-white-font font-medium">{{ camelCase(detalle.descripcion) }}</span>
-                            <span class="text-sm font-bold servi-blue-font">{{ formatearNumero(detalle.monto) }}</span>
+                            <span class="text-sm font-bold servi-grey-font">{{ formatearNumero(detalle.monto) }}</span>
                         </div>
                     </div>
                 </div>
@@ -296,7 +296,7 @@ onMounted(async () => {
                         
                         <div class="pt-4 mt-2 border-t border-gray-800 flex justify-between items-center">
                             <span class="font-bold servi-white-font text-lg">TOTAL</span>
-                            <span class="font-extrabold text-2xl servi-blue-font">{{ formatearNumero(presupuesto.total_final || 0) }}</span>
+                            <span class="font-extrabold text-2xl servi-grey-font">{{ formatearNumero(presupuesto.total_final || 0) }}</span>
                         </div>
                     </div>
                 </div>

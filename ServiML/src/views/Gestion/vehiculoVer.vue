@@ -91,9 +91,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Vehículo" />
+  <div class="servi-white min-h-screen">
+    <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Vehículo" />
 
-  <div v-if="vehiculo" class="servi-white min-h-screen pb-24">
+    <div v-if="vehiculo" class="servi-white min-h-screen pb-24">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
 
       <!-- Botón volver -->
@@ -111,7 +112,7 @@ onMounted(async () => {
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
             <div class="servi-blue p-6 flex flex-col items-center relative">
               <!-- Icono auto -->
-              <div class="w-20 h-20 rounded-full servi-adapt-bg/20 flex items-center justify-center servi-yellow-font mb-3">
+              <div class="w-20 h-20 rounded-full servi-white flex items-center justify-center servi-yellow-font mb-3">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h.01M16 17h.01M3 11l1.5-5A2 2 0 016.4 4h11.2a2 2 0 011.9 1.4L21 11M3 11v6a1 1 0 001 1h1a2 2 0 104 0h6a2 2 0 104 0h1a1 1 0 001-1v-6M3 11h18" />
                 </svg>
@@ -209,11 +210,11 @@ onMounted(async () => {
           <!-- Estadísticas -->
           <div class="grid grid-cols-2 gap-3">
             <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalOT }}</p>
+              <p class="text-3xl font-bold servi-grey-font">{{ totalOT }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
             </div>
             <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalPresupuestos }}</p>
+              <p class="text-3xl font-bold servi-grey-font">{{ totalPresupuestos }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Presupuestos</p>
             </div>
           </div>
@@ -222,7 +223,7 @@ onMounted(async () => {
         <!-- Columna derecha: Dueño -->
         <div class="lg:w-2/3">
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-800 servi-adapt-bg">
+            <div class="px-6 py-4 border-b border-gray-800 servi-blue">
               <h2 class="font-bold servi-white-font">Propietario</h2>
             </div>
 
@@ -266,6 +267,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>

@@ -184,14 +184,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen servi-white pb-40">
+  <div class="min-h-screen servi-white pb-25">
     <navbar class="navbar" titulo="Invitar Trabajador" subtitulo="Creación y gestión de usuarios"></navbar>
     
     <div class="max-w-2xl mx-auto mt-6 px-4 sm:px-0 sm:mt-10">
       
       <button 
         @click="volver"
-        class="mb-6 flex items-center text-sm font-bold text-[#1f3d64] hover:text-[#D8B462] transition-colors py-2 group"
+        class="mb-6 flex items-center text-sm font-bold servi-grey-font hover:text-[#D8B462] transition-colors py-2 group"
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 mr-2 transition-transform group-hover:-translate-x-1">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -217,7 +217,7 @@ onMounted(async () => {
             <input 
               v-model="formulario.nombre" 
               type="text" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none text-base text-[#1f3d64] font-medium"
+              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
               :class="errores.nombre ? 'border-red-400' : 'border-gray-800'"
             />
             <p v-if="errores.nombre" class="text-red-500 text-xs font-medium">{{ errores.nombre }}</p>
@@ -229,7 +229,7 @@ onMounted(async () => {
             <input 
               v-model="formulario.apellido" 
               type="text" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none text-base text-[#1f3d64] font-medium"
+              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
               :class="errores.apellido ? 'border-red-400' : 'border-gray-800'"
             />
             <p v-if="errores.apellido" class="text-red-500 text-xs font-medium">{{ errores.apellido }}</p>
@@ -244,12 +244,12 @@ onMounted(async () => {
               type="text" 
               placeholder="12.345.678-9"
               maxlength="12"
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none text-base text-[#1f3d64] font-medium placeholder-gray-300"
+              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
               :class="errores.rut ? 'border-red-400' : 'border-gray-800'"
             />
             <p v-if="errores.rut" class="text-red-500 text-xs font-medium">{{ errores.rut }}</p>
             <label class="flex items-center gap-2 mt-1 cursor-pointer select-none">
-              <input type="checkbox" v-model="validarRut" class="w-4 h-4 rounded border-gray-300 text-[#1f3d64] focus:ring-[#D8B462] cursor-pointer accent-[#1f3d64]" />
+              <input type="checkbox" v-model="validarRut" class="w-4 h-4 rounded border-gray-300 text-[#1f3d64] focus:ring-[#D8B462] cursor-pointer accent-[#162f50]" />
               <span class="text-xs servi-grey-font">Validar dígito verificador</span>
             </label>
           </div>
@@ -260,7 +260,7 @@ onMounted(async () => {
             <input 
               v-model="formulario.telefono" 
               type="tel" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none text-base text-[#1f3d64] font-medium"
+              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
               :class="errores.telefono ? 'border-red-400' : 'border-gray-800'"
             />
             <p v-if="errores.telefono" class="text-red-500 text-xs font-medium">{{ errores.telefono }}</p>
@@ -268,11 +268,11 @@ onMounted(async () => {
 
           <!-- Email -->
           <div class="md:col-span-2 space-y-2 group">
-            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Email Corporativo</label>
+            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Email</label>
             <input 
               v-model="formulario.email" 
               type="email" 
-              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none text-base text-[#1f3d64] font-medium"
+              class="w-full border-2 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
               :class="errores.email ? 'border-red-400' : 'border-gray-800'"
             />
             <p v-if="errores.email" class="text-red-500 text-xs font-medium">{{ errores.email }}</p>
@@ -284,7 +284,7 @@ onMounted(async () => {
             <div class="relative">
               <select 
                 v-model="formulario.rol" 
-                class="w-full border-2 border-gray-800 rounded-xl p-3.5 servi-adapt-bg focus:border-[#D8B462] focus:ring-0 focus:bg-[#fffdf5] transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium"
+                class="w-full border-2 border-gray-800 rounded-xl p-3.5 servi-adapt-bg focus:border-[#D8B462] focus:ring-0 transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium servi-grey-font"
               >
                 <option value="Trabajador">Trabajador</option>
                 <option value="Administrador">Administrador</option>
@@ -332,7 +332,7 @@ onMounted(async () => {
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h3 class="text-lg font-bold servi-blue-font mb-2">
+          <h3 class="text-lg font-bold servi-grey-font mb-2">
             {{ estado.tipo === 'success' ? '¡Invitación Enviada!' : 'Ocurrió un Error' }}
           </h3>
           <p class="text-sm servi-grey-font leading-relaxed">{{ estado.mensaje }}</p>

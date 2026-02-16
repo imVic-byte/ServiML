@@ -434,10 +434,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <navbar class="navbar" titulo="ServiML" subtitulo="Gestión del Sistema" />
+  <div class="servi-white">
+    <navbar class="navbar" titulo="ServiML" subtitulo="Gestión del Sistema" />
 
-  <div class="servi-white min-h-screen pb-30">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
+    <div class="servi-white min-h-screen pb-30">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
 
       <!-- Header -->
       <div class="mb-6 hidden sm:block">
@@ -500,7 +501,7 @@ onMounted(async () => {
             <button
               v-if="!editandoEmpresa"
               @click="iniciarEdicionEmpresa"
-              class="px-4 py-2 servi-yellow servi-blue-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
+              class="px-4 py-2 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
             >
               Editar
             </button>
@@ -524,10 +525,10 @@ onMounted(async () => {
                     v-if="editandoEmpresa"
                     v-model="empresa[key]"
                     type="text"
-                    class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-blue servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     :placeholder="campo"
                   />
-                  <p v-else class="mt-1 servi-white-font font-medium text-sm servi-adapt-bg rounded-lg px-3 py-2.5">
+                  <p v-else class="mt-1 servi-white-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                     {{ empresa[key] || '—' }}
                   </p>
                 </label>
@@ -538,7 +539,7 @@ onMounted(async () => {
             <div class="mt-6 pt-5 border-t border-gray-800">
               <div class="flex justify-between items-center mb-3">
                 <span class="text-xs servi-grey-font uppercase font-bold tracking-wide">Teléfonos de Contacto</span>
-                <button v-if="editandoEmpresa" @click="agregarTelefono" class="text-xs servi-blue-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
+                <button v-if="editandoEmpresa" @click="agregarTelefono" class="text-xs servi-grey-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                   Agregar
                 </button>
@@ -560,14 +561,14 @@ onMounted(async () => {
                       v-if="editandoEmpresa"
                       v-model="tel.valor"
                       type="tel"
-                      class="block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      class="block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-blue servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="+56 9 1234 5678"
                     />
-                    <p v-else class="servi-white-font font-medium text-sm servi-adapt-bg rounded-lg px-3 py-2.5">
+                    <p v-else class="servi-white-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                       {{ tel.valor || '—' }}
                     </p>
                   </div>
-                  <span v-if="!editandoEmpresa && tel.prioritario" class="text-xs font-semibold servi-yellow servi-blue-font px-2 py-0.5 rounded-full whitespace-nowrap">Principal</span>
+                  <span v-if="!editandoEmpresa && tel.prioritario" class="text-xs font-semibold servi-yellow servi-grey-font px-2 py-0.5 rounded-full whitespace-nowrap">Principal</span>
                   <button v-if="editandoEmpresa && empresa.telefonos.length > 1" @click="eliminarTelefono(index)" class="flex-shrink-0 p-1.5 servi-grey-font hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
@@ -579,7 +580,7 @@ onMounted(async () => {
             <div class="mt-6 pt-5 border-t border-gray-800">
               <div class="flex justify-between items-center mb-3">
                 <span class="text-xs servi-grey-font uppercase font-bold tracking-wide">Emails de Contacto</span>
-                <button v-if="editandoEmpresa" @click="agregarEmail" class="text-xs servi-blue-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
+                <button v-if="editandoEmpresa" @click="agregarEmail" class="text-xs servi-grey-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                   Agregar
                 </button>
@@ -601,14 +602,14 @@ onMounted(async () => {
                       v-if="editandoEmpresa"
                       v-model="em.valor"
                       type="email"
-                      class="block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      class="block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm servi-blue servi-white-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="contacto@serviml.cl"
                     />
-                    <p v-else class="servi-white-font font-medium text-sm servi-adapt-bg rounded-lg px-3 py-2.5">
+                    <p v-else class="servi-white-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                       {{ em.valor || '—' }}
                     </p>
                   </div>
-                  <span v-if="!editandoEmpresa && em.prioritario" class="text-xs font-semibold servi-yellow servi-blue-font px-2 py-0.5 rounded-full whitespace-nowrap">Principal</span>
+                  <span v-if="!editandoEmpresa && em.prioritario" class="text-xs font-semibold servi-yellow servi-grey-font px-2 py-0.5 rounded-full whitespace-nowrap">Principal</span>
                   <button v-if="editandoEmpresa && empresa.emails.length > 1" @click="eliminarEmail(index)" class="flex-shrink-0 p-1.5 servi-grey-font hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
@@ -636,7 +637,7 @@ onMounted(async () => {
             <h2 class="text-lg font-bold servi-white-font">Talleres Registrados</h2>
             <p class="text-sm servi-grey-font">Gestiona los talleres y su capacidad</p>
           </div>
-          <button @click="abrirModalTaller()" class="px-4 py-2.5 servi-yellow servi-blue-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
+          <button @click="abrirModalTaller()" class="px-4 py-2.5 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
@@ -678,10 +679,10 @@ onMounted(async () => {
                 <div class="flex-1">
                   <div class="flex justify-between mb-1">
                     <span class="text-xs servi-grey-font font-medium">Capacidad Máxima</span>
-                    <span class="text-xs font-bold servi-blue-font">{{ taller.capacidad_maxima }} vehículos</span>
+                    <span class="text-xs font-bold servi-grey-font">{{ taller.capacidad_maxima }} vehículos</span>
                   </div>
                   <div class="w-full servi-adapt-bg rounded-full h-2">
-                    <div class="servi-blue h-2 rounded-full" :style="`width: ${(taller.porcentaje || 0).toFixed(1)}%`"></div>
+                    <div class="bg-green-500 h-2 rounded-full" :style="`width: ${(taller.porcentaje || 0).toFixed(1)}%`"></div>
                   </div>
                 </div>
                 <span
@@ -713,7 +714,7 @@ onMounted(async () => {
             <h2 class="text-lg font-bold servi-white-font">Catálogo de Servicios</h2>
             <p class="text-sm servi-grey-font">Define los servicios que ofrece tu taller</p>
           </div>
-          <button @click="abrirModalServicio()" class="px-4 py-2.5 servi-yellow servi-blue-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
+          <button @click="abrirModalServicio()" class="px-4 py-2.5 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
@@ -788,7 +789,7 @@ onMounted(async () => {
             <h2 class="text-lg font-bold servi-white-font">Cuentas Bancarias</h2>
             <p class="text-sm servi-grey-font">Administra las cuentas de la empresa</p>
           </div>
-          <button @click="abrirModalCuenta()" class="px-4 py-2.5 servi-yellow servi-blue-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
+          <button @click="abrirModalCuenta()" class="px-4 py-2.5 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
@@ -799,7 +800,7 @@ onMounted(async () => {
         <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-800 text-sm">
-              <thead class="servi-adapt-bg">
+              <thead class="servi-blue servi-yellow-font">
                 <tr>
                   <th class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider">Banco</th>
                   <th class="px-6 py-3 text-left text-sm font-medium uppercase tracking-wider">Tipo</th>
@@ -863,15 +864,15 @@ onMounted(async () => {
         <div class="p-6 space-y-4">
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Nombre del Taller</label>
-            <input v-model="nuevoTaller.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Taller Central" />
+            <input v-model="nuevoTaller.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Taller Central" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Dirección</label>
-            <input v-model="nuevoTaller.direccion" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Dirección del taller" />
+            <input v-model="nuevoTaller.direccion" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Dirección del taller" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Capacidad Máxima (vehículos)</label>
-            <input v-model.number="nuevoTaller.capacidad_maxima" type="number" min="1" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input v-model.number="nuevoTaller.capacidad_maxima" type="number" min="1" class="mt-1 block w-full rounded-lg border servi-grey-font border-gray-800 px-3 servi-blue servi-grey-font py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div class="flex items-center gap-2">
             <input v-model="nuevoTaller.activo" type="checkbox" id="tallerActivo" class="rounded" />
@@ -880,7 +881,7 @@ onMounted(async () => {
         </div>
         <div class="px-6 pb-6 flex justify-end gap-3">
           <button @click="cerrarModalTaller" class="px-4 py-2.5 servi-adapt-bg servi-white-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
-          <button @click="guardarTaller" class="px-4 py-2.5 servi-blue text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
+          <button @click="guardarTaller" class="px-4 py-2.5 servi-yellow text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
         </div>
       </div>
     </div>
@@ -897,11 +898,11 @@ onMounted(async () => {
         <div class="p-6 space-y-4">
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Nombre del Servicio</label>
-            <input v-model="nuevoServicio.nombre" type="text" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Cambio de Aceite" />
+            <input v-model="nuevoServicio.nombre" type="text" class="mt-1 block w-full servi-blue servi-grey-font rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: Cambio de Aceite" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Precio (CLP)</label>
-            <input v-model.number="nuevoServicio.precio" type="number" min="0" class="mt-1 block w-full rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+            <input v-model.number="nuevoServicio.precio" type="number" min="0" class="mt-1 block w-full servi-blue servi-grey-font rounded-lg border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
           </div>
           <div class="flex items-center gap-2">
             <input v-model="nuevoServicio.activo" type="checkbox" id="servicioActivo" class="rounded" />
@@ -910,7 +911,7 @@ onMounted(async () => {
         </div>
         <div class="px-6 pb-6 flex justify-end gap-3">
           <button @click="cerrarModalServicio" class="px-4 py-2.5 servi-adapt-bg servi-white-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
-          <button @click="guardarServicio" class="px-4 py-2.5 servi-blue text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
+          <button @click="guardarServicio" class="px-4 py-2.5 servi-yellow text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
         </div>
       </div>
     </div>
@@ -927,13 +928,13 @@ onMounted(async () => {
         <div class="p-6 space-y-4">
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Banco</label>
-            <select v-model="nuevaCuenta.banco" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select v-model="nuevaCuenta.banco" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option v-for="banco in bancos" :key="banco.codigo" :value="banco.nombre">{{ banco.nombre }}</option>
             </select>
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Tipo de Cuenta</label>
-            <select v-model="nuevaCuenta.tipo_cuenta" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select v-model="nuevaCuenta.tipo_cuenta" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option value="Cuenta Corriente">Cuenta Corriente</option>
               <option value="Cuenta Vista">Cuenta Vista</option>
               <option value="Cuenta de Ahorro">Cuenta de Ahorro</option>
@@ -942,24 +943,25 @@ onMounted(async () => {
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Número de Cuenta</label>
-            <input v-model="nuevaCuenta.numero_cuenta" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: 12345678" />
+            <input v-model="nuevaCuenta.numero_cuenta" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ej: 12345678" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">Titular</label>
-            <input v-model="nuevaCuenta.titular" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nombre del titular" />
+            <input v-model="nuevaCuenta.titular" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nombre del titular" />
           </div>
           <div>
             <label class="text-xs servi-grey-font uppercase font-bold">RUT Titular</label>
-            <input v-model="nuevaCuenta.rut_titular" type="text" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="12.345.678-9" />
+            <input v-model="nuevaCuenta.rut_titular" type="text" class="mt-1 block w-full rounded-lg servi-blue servi-grey-font border border-gray-800 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="12.345.678-9" />
           </div>
         </div>
         <div class="px-6 pb-6 flex justify-end gap-3">
           <button @click="cerrarModalCuenta" class="px-4 py-2.5 servi-adapt-bg servi-white-font rounded-lg text-sm font-semibold hover:opacity-80 transition cursor-pointer">Cancelar</button>
-          <button @click="guardarCuenta" class="px-4 py-2.5 servi-blue text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
+          <button @click="guardarCuenta" class="px-4 py-2.5 servi-yellow text-white rounded-lg text-sm font-semibold hover:opacity-90 transition cursor-pointer">Guardar</button>
         </div>
       </div>
     </div>
   </Teleport>
+  </div>
 </template>
 
 <style scoped>

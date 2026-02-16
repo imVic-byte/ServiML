@@ -57,7 +57,7 @@ onMounted(async () => {
 
       <div class="flex justify-between items-center mb-6">
         <div class="block">
-            <h2 class="text-xl font-bold servi-blue-font">OT Sin Asignar</h2>
+            <h2 class="text-xl font-bold servi-grey-font">OT Sin Asignar</h2>
             <p class="text-sm servi-grey-font">Órdenes de trabajo pendientes de asignación</p>
         </div>
       </div>

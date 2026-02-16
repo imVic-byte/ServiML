@@ -55,9 +55,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <navbar class="navbar" titulo="ServiML" subtitulo="Vehículos" />
+  <div class="servi-white min-h-screen">
+    <navbar class="navbar" titulo="ServiML" subtitulo="Vehículos" />
 
-  <div class="servi-white min-h-screen pb-24">
+    <div class="servi-white min-h-screen pb-24">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-4">
 
       <!-- Header -->
@@ -156,6 +157,7 @@ onMounted(async () => {
 
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>

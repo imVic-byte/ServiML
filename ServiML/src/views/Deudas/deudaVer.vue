@@ -136,7 +136,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen servi-white pb-12 font-sans servi-blue-font">
+  <div class="min-h-screen servi-white pb-12 font-sans servi-grey-font">
     <navbar titulo="ServiML" subtitulo="Deudas y Abonos" class="navbar" />
 
     <div class="max-w-7xl mx-auto px-4 py-8">
@@ -154,7 +154,7 @@ onMounted(() => {
               type="button"
               @click="filtroEstado = 'todas'"
               class="px-4 py-2 text-sm font-bold transition-colors"
-              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:opacity-80'"
+              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'"
             >
               Todas
               <span
@@ -169,7 +169,7 @@ onMounted(() => {
               type="button"
               @click="filtroEstado = 'pendiente'"
               class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-800"
-              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:opacity-80'"
+              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'"
             >
               Pendientes
               <span
@@ -184,7 +184,7 @@ onMounted(() => {
               type="button"
               @click="filtroEstado = 'pagada'"
               class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-800"
-              :class="filtroEstado === 'pagada' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-blue-font hover:opacity-80'"
+              :class="filtroEstado === 'pagada' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'"
             >
               Pagadas
               <span
@@ -200,7 +200,7 @@ onMounted(() => {
           <div class="flex items-center gap-2">
             <select
               v-model="ordenCampo"
-              class="servi-yellow servi-blue-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm outline-none"
+              class="servi-yellow servi-grey-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm outline-none"
               title="Ordenar por"
             >
               <option value="created_at">Fecha</option>
@@ -210,7 +210,7 @@ onMounted(() => {
             <button
               type="button"
               @click="ordenAsc = !ordenAsc"
-              class="servi-yellow servi-blue-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2 hover:opacity-90 transition"
+              class="servi-yellow servi-grey-font font-bold border border-gray-800 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2 hover:opacity-90 transition"
               :title="ordenAsc ? 'Ascendente' : 'Descendente'"
             >
               <svg
@@ -231,7 +231,7 @@ onMounted(() => {
 
             <button
               @click="showModalCrear = true"
-              class="servi-yellow servi-blue-font px-5 py-2.5 rounded-lg font-bold shadow-sm flex items-center gap-2 hover:opacity-90 transition"
+              class="servi-yellow servi-grey-font px-5 py-2.5 rounded-lg font-bold shadow-sm flex items-center gap-2 hover:opacity-90 transition"
             >
               <span class="text-xl leading-none">+</span>
               Nueva Deuda
@@ -269,7 +269,7 @@ onMounted(() => {
 
           <button
             @click="showModalCrear = true"
-            class="mt-2 inline-flex items-center gap-2 servi-yellow servi-blue-font px-4 py-2 rounded-lg font-bold shadow-sm hover:opacity-90"
+            class="mt-2 inline-flex items-center gap-2 servi-yellow servi-grey-font px-4 py-2 rounded-lg font-bold shadow-sm hover:opacity-90"
           >
             <span class="text-xl leading-none">+</span>
             Crear la primera
@@ -285,7 +285,7 @@ onMounted(() => {
           <p class="servi-grey-font">Prueba cambiando el estado o el orden.</p>
           <button
             @click="limpiarFiltros"
-            class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg servi-yellow servi-blue-font font-bold shadow-sm hover:opacity-90"
+            class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg servi-yellow servi-grey-font font-bold shadow-sm hover:opacity-90"
           >
             Limpiar filtros
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -351,7 +351,7 @@ onMounted(() => {
                     <RouterLink
                       :to="{ name: 'ver-deuda', params: { id: item.id } }"
                       @click.stop
-                      class="inline-flex servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
+                      class="inline-flex servi-adapt-bg servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
                       aria-label="Ver detalle"
                     >
                       <svg
@@ -375,7 +375,7 @@ onMounted(() => {
             <div
               v-for="item in deudasFiltradas"
               :key="item.id"
-              class="servi-white mx-2 servi-blue-font card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md"
+              class="servi-adapt-bg mx-2 servi-grey-font card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md"
               role="button"
               tabindex="0"
               @click="verDetalle(item.id)"
@@ -444,19 +444,19 @@ onMounted(() => {
             v-model="form.nombre"
             type="text"
             placeholder="Ej: Juan Pérez, Deuda Pepe, etc."
-            class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold"
+            class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-grey-font font-bold"
           />
         </div>
 
         <div class="px-6 py-4 flex justify-end gap-3">
-          <button @click="showModalCrear = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-blue-font rounded-lg">
+          <button @click="showModalCrear = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-grey-font rounded-lg">
             Cancelar
           </button>
 
           <button
             @click="crearDeuda"
             :disabled="!form.nombre"
-            class="px-4 py-2 text-sm font-bold servi-yellow servi-blue-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            class="px-4 py-2 text-sm font-bold servi-yellow servi-grey-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             Crear
           </button>
@@ -470,6 +470,5 @@ onMounted(() => {
 .card-shadow {
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  background-color: white;
 }
 </style>

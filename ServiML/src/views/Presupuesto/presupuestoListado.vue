@@ -192,7 +192,7 @@ onMounted(async () => {
           
           <button 
             @click="irACrear" 
-            class="servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
+            class="servi-yellow servi-grey-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
           >
             <span class="text-xl leading-none mb-1">+</span>
             <span class="hidden sm:inline">Nuevo Presupuesto</span>

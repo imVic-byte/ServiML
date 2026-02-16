@@ -110,9 +110,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Cliente" />
+  <div class="servi-white min-h-screen">
+    <navbar class="navbar" titulo="ServiML" subtitulo="Detalle de Cliente" />
 
-  <div v-if="cliente" class="servi-white min-h-screen pb-24">
+    <div v-if="cliente" class="servi-white min-h-screen pb-24">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 pt-4">
 
       <!-- Botón volver -->
@@ -127,7 +128,7 @@ onMounted(async () => {
         <div class="lg:w-1/3 space-y-6">
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 overflow-hidden">
             <div class="servi-blue p-6 flex flex-col items-center relative">
-              <div class="w-20 h-20 rounded-full servi-adapt-bg/20 flex items-center justify-center servi-yellow-font text-2xl font-bold mb-3">
+              <div class="w-20 h-20 rounded-full servi-white flex items-center justify-center servi-yellow-font text-2xl font-bold mb-3">
                 {{ iniciales(cliente.nombre, cliente.apellido) }}
               </div>
               <h1 class="text-xl font-bold servi-yellow-font text-center">
@@ -246,15 +247,15 @@ onMounted(async () => {
           <!-- Estadísticas -->
           <div class="grid grid-cols-2 gap-3">
             <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalOT }}</p>
+              <p class="text-3xl font-bold servi-grey-font">{{ totalOT }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
             </div>
             <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ totalPresupuestos }}</p>
+              <p class="text-3xl font-bold servi-grey-font">{{ totalPresupuestos }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Presupuestos</p>
             </div>
             <div class="col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4 text-center">
-              <p class="text-3xl font-bold servi-blue-font">{{ vehiculos.length }}</p>
+              <p class="text-3xl font-bold servi-grey-font">{{ vehiculos.length }}</p>
               <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Vehículos Registrados</p>
             </div>
           </div>
@@ -326,6 +327,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>

@@ -60,6 +60,7 @@ onMounted( async () => {
 </script>
 
 <template>
+    <div class="servi-white">
     <navbar titulo="Historial" subtitulo="Registro de actividades" class="navbar"/>
 
     <div class="max-w-4xl mx-auto p-4 pb-20">
@@ -82,5 +83,6 @@ onMounted( async () => {
             <cardOT v-for="orden in historial" :key="orden.id" :orden="orden" :estado="handleEstados(orden.estado_actual_id)" />
         </div>
 
+    </div>
     </div>
 </template>

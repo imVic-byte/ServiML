@@ -9,7 +9,7 @@
     --color-servi-white-bg: #ffffff;
     --color-servi-white: #021029;
     --color-servi-yellow: #D8B462;
-    --text-servi-blue-font: #1F2F4A;
+    --text-servi-grey-font: #1F2F4A;
     --text-servi-white-font: #ffffff;
     --text-servi-grey-font: #6c757d;
     --color-en-espera: #f6ff4c;
@@ -23,8 +23,8 @@
         --color-servi-blue: #091f3c;
         --color-servi-grey: #1e2530;
         --color-servi-dark: #1F2F4A;
-        --servi-blue-font: #ffffff;
-        --text-servi-blue-font: #ffffff;
+        --servi-grey-font: #ffffff;
+        --text-servi-grey-font: #ffffff;
         --text-servi-white-font: #ffffff;
         --text-servi-grey-font: #ffffff;
         --color-servi-adapt-bg: #1f3d64;
@@ -36,7 +36,7 @@
 .servi-grey { background-color: var(--color-servi-grey); }
 .servi-white { background-color: var(--color-servi-white-bg); }
 .servi-yellow { background-color: var(--color-servi-yellow); }
-.servi-blue-font { color: var(--color-servi-blue); }
+.servi-grey-font { color: var(--color-servi-blue); }
 .servi-dark-font { color: var(--color-servi-dark); }
 .servi-grey-font { color: var(--text-servi-grey-font); }
 .servi-white-font { color: var(--color-servi-white); }

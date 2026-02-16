@@ -39,14 +39,14 @@ const showButtons = computed(() => {
       Descartar
     </button>
 
-    <button @click="ejecutarPdf" class="servi-yellow px-4 py-2 rounded-lg servi-blue-font cursor-pointer hover:scale-105 transition-all">
+    <button @click="ejecutarPdf" class="servi-yellow px-4 py-2 rounded-lg servi-grey-font cursor-pointer hover:scale-105 transition-all">
       PDF
     </button>
   </div>
 
   <div v-if="confirm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
     <div class="relative w-full max-w-md servi-adapt-bg rounded-lg shadow p-6 text-center">
-      <h3 class="mb-5 text-lg font-normal servi-blue-font">¿Estás seguro de confirmar el presupuesto?</h3>
+      <h3 class="mb-5 text-lg font-normal servi-grey-font">¿Estás seguro de confirmar el presupuesto?</h3>
       <div class="flex justify-center gap-3">
         <button @click="ejecutarConfirmacion" class="servi-blue px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
           Sí, confirmar
@@ -60,7 +60,7 @@ const showButtons = computed(() => {
 
   <div v-if="discard" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
     <div class="relative w-full max-w-md servi-adapt-bg rounded-lg shadow p-6 text-center">
-      <h3 class="mb-5 text-lg font-normal servi-blue-font">¿Estás seguro de descartar el presupuesto?</h3>
+      <h3 class="mb-5 text-lg font-normal servi-grey-font">¿Estás seguro de descartar el presupuesto?</h3>
       <div class="flex justify-center gap-3">
         <button @click="ejecutarDescarte" class="bg-red-800 px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
           Sí, descartar

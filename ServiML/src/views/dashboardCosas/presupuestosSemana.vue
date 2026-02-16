@@ -107,7 +107,7 @@ onMounted(async () => {
       <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
         <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
             <p class="text-xs servi-grey-font uppercase font-bold">Total Presupuestos / semana</p>
-            <p class="text-2xl font-bold servi-blue-font">{{ stats.total }}</p>
+            <p class="text-2xl font-bold servi-grey-font">{{ stats.total }}</p>
         </div>
         <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-800">
             <p class="text-xs servi-grey-font uppercase font-bold">Pendientes / semana</p>
@@ -126,7 +126,7 @@ onMounted(async () => {
         <div v-show="showStats" class="md:hidden grid grid-cols-2 gap-3 mb-6">
           <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
               <p class="text-xs servi-grey-font uppercase font-bold">Total / mes</p>
-              <p class="text-xl font-bold servi-blue-font">{{ stats.total }}</p>
+              <p class="text-xl font-bold servi-grey-font">{{ stats.total }}</p>
           </div>
           <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-800">
               <p class="text-xs servi-grey-font uppercase font-bold">Pendientes / mes</p>
@@ -145,13 +145,13 @@ onMounted(async () => {
 
       <div class="flex justify-between items-center mb-6">
         <div>
-            <h2 class="text-xl font-bold servi-blue-font">Listado de Presupuestos</h2>
+            <h2 class="text-xl font-bold servi-grey-font">Listado de Presupuestos</h2>
             <p class="text-sm servi-grey-font">Administra y revisa el estado de tus cotizaciones</p>
         </div>
         <div class="flex items-center gap-2">
           <button 
             @click="showStats = !showStats" 
-            class="md:hidden servi-adapt-bg servi-blue-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-800 transition-all flex items-center gap-2"
+            class="md:hidden servi-adapt-bg servi-grey-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-800 transition-all flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />

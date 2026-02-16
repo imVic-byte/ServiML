@@ -827,7 +827,7 @@ onMounted(async () => {
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-800 p-4">
             <h3 class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
             <div class="flex flex-col gap-3">
-              <button v-if="!soloLectura && !isCerrado" @click="guardarCambios()" class="w-full servi-yellow servi-blue-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
+              <button v-if="!soloLectura && !isCerrado" @click="guardarCambios()" class="w-full servi-yellow servi-grey-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
@@ -855,9 +855,9 @@ onMounted(async () => {
     </div>
 
     <div v-if="showModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm">
-      <div class="servi-adapt-bg servi-blue-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
-        <h3 class="text-xl font-bold servi-blue-font mb-2">Confirmar cambio</h3>
-        <p class="servi-grey-font text-sm mb-6">¿Confirmas cambiar el estado a <span class="font-bold servi-blue-font">"{{ selectedEstado?.estado }}"</span>?</p>
+      <div class="servi-adapt-bg servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
+        <h3 class="text-xl font-bold servi-grey-font mb-2">Confirmar cambio</h3>
+        <p class="servi-grey-font text-sm mb-6">¿Confirmas cambiar el estado a <span class="font-bold servi-grey-font">"{{ selectedEstado?.estado }}"</span>?</p>
         <div class="flex justify-end gap-3">
           <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
           <button @click="confirmarCambioEstado()" class="px-4 py-2 servi-blue text-white rounded-md font-bold hover:bg-blue-700">Confirmar</button>
@@ -880,7 +880,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="showThirdModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-md">
-      <div class="servi-adapt-bg servi-blue-font rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
+      <div class="servi-adapt-bg servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
         <div class="flex items-center gap-2 mb-4">
            <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
           <h3 class="text-xl font-bold servi-white-font">Generar Informe</h3>

@@ -85,7 +85,7 @@ const formatearFecha = (fechaString) => {
 }
 </script>
 <template>
-  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-adapt-bg servi-blue-font mx-2 card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
+  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-adapt-bg servi-grey-font mx-2 card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
     
     <div class="flex justify-between items-start border-b border-gray-800 pb-2">
       <div class="flex flex-col">
@@ -125,7 +125,7 @@ const formatearFecha = (fechaString) => {
       </RouterLink>
     </div>
 
-    <button v-if="!empleadoAsignado" @click="abrirModalAsignar" class="mt-2 flex rounded-lg servi-yellow servi-blue-font justify-center items-center px-3 py-2 w-full mx-auto transition-colors hover:bg-yellow-400">
+    <button v-if="!empleadoAsignado" @click="abrirModalAsignar" class="mt-2 flex rounded-lg servi-yellow servi-grey-font justify-center items-center px-3 py-2 w-full mx-auto transition-colors hover:bg-yellow-400">
       <span class="font-bold text-sm mr-2">Asignar Técnico</span>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
@@ -143,7 +143,7 @@ const formatearFecha = (fechaString) => {
 
       <div class="p-6">
         <label class="block text-sm font-medium mb-2">Seleccione un técnico</label>
-        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold">
+        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-grey-font font-bold">
           <option value="" disabled>-- Seleccionar --</option>
           <option v-for="emple in empleados" :key="emple.id" :value="emple.id">
             {{ emple.nombre }} {{ emple.apellido }}
@@ -152,13 +152,13 @@ const formatearFecha = (fechaString) => {
       </div>
 
       <div class="px-6 py-4 flex justify-end gap-3">
-        <button @click="modalAsignar = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-blue-font rounded-lg">
+        <button @click="modalAsignar = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-grey-font rounded-lg">
           Cancelar
         </button>
         <button 
           @click="asignarOrden" 
           :disabled="!empleadoSeleccionado || cargando"
-          class="px-4 py-2 text-s servi-yellow servi-blue-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 text-s servi-yellow servi-grey-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <span v-if="cargando">Guardando...</span>
           <span v-else>Confirmar</span>

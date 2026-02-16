@@ -196,7 +196,7 @@ onMounted(() => {
       
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 rounded-lg">
         
-        <div class="lg:col-span-7 space-y-12">
+        <div class="lg:col-span-7 space-y-12 servi-adapt-bg rounded-xl">
           
           <section>
             <h2 class="text-2xl w-full servi-blue servi-yellow-font border-b-2 border-yellow-400 rounded-t-lg p-2 inline-block pb-1 mb-6">
@@ -208,7 +208,7 @@ onMounted(() => {
                 <input
                   v-model="patente"
                   type="text"
-                  class="w-full py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-xl font-medium uppercase transition-colors"
+                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-xl font-medium uppercase transition-colors"
                   placeholder="AAAA11"
                   @input="patente = patente.toUpperCase()"
                   maxlength="7"
@@ -216,18 +216,18 @@ onMounted(() => {
               </div>
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Marca</label>
-                <input v-model="marca" type="text" class="w-full py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="Ej: Toyota" />
+                <input v-model="marca" type="text" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="Ej: Toyota" />
               </div>
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Modelo</label>
-                <input v-model="modelo" type="text" class="w-full py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="Ej: Yaris" />
+                <input v-model="modelo" type="text" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="Ej: Yaris" />
               </div>
               <div class="md:col-span-2 group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Diagnóstico Técnico</label>
                 <textarea
                   v-model="diagnostico"
                   rows="2"
-                  class="w-full py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none servi-white-font resize-none transition-colors"
+                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none servi-white-font resize-none transition-colors"
                   placeholder="Describe el problema del vehículo..."
                 ></textarea>
               </div>
@@ -241,30 +241,30 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 px-3">
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Nombre</label>
-                <input v-model="nombre" type="text" class="w-full py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" />
+                <input v-model="nombre" type="text" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="Juan" />
               </div>
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Apellido</label>
-                <input v-model="apellido" type="text" class="w-full py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" />
+                <input v-model="apellido" type="text" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="Perez" />
               </div>
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Teléfono</label>
                 <div class="flex items-end gap-2">
-                  <select v-model="codigoPais" class="w-20 py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-sm">
+                  <select v-model="codigoPais" class="w-20 py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-sm">
                     <option value="+56">+56</option>
                     <option value="+51">+51</option>
                   </select>
                   <input
                     v-model="telefono"
                     type="number"
-                    class="flex-1 py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors"
+                    class="flex-1 py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors"
                     placeholder="912345678"
                   />
                 </div>
               </div>
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Correo Electrónico</label>
-                <input v-model="correo" type="email" class="w-full py-2 bg-transparent border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="opcional" />
+                <input v-model="correo" type="email" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-lg transition-colors" placeholder="ejemplo@gmail.com" />
               </div>
             </div>
           </section>
@@ -279,7 +279,7 @@ onMounted(() => {
                    <input
                      v-model="item.descripcion"
                      type="text"
-                     class="w-full py-2 bg-transparent border-b border-yellow-400 focus:border-blue-900 focus:outline-none text-sm"
+                     class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-sm"
                      placeholder="Buscar servicio..."
                      @focus="abrirAutocompletado(index)"
                      @blur="cerrarAutocompletado()"
@@ -307,7 +307,7 @@ onMounted(() => {
                    <input
                      v-model.number="item.monto"
                      type="number"
-                     class="w-full py-2 bg-transparent border-b border-yellow-400 focus:border-blue-900 focus:outline-none text-sm text-right"
+                     class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-800 focus:border-blue-900 focus:outline-none text-sm text-right"
                      placeholder="$0"
                    />
                  </div>
@@ -320,9 +320,9 @@ onMounted(() => {
                
                <button
                   @click="agregarItem"
-                  class="mt-4 text-sm font-bold text-blue-800 hover:text-blue-600 flex items-center gap-2 transition-colors"
+                  class="mt-4 text-sm font-bold servi-blue servi-yellow-font px-2 py-1 rounded-sm mb-2 hover:text-blue-600 flex items-center gap-2 transition-colors"
                 >
-                  <span class="text-xl">+</span> Agregar otro ítem
+                  <span class="text-xl ">+</span> Agregar otro ítem
                 </button>
             </div>
           </section>
@@ -330,14 +330,14 @@ onMounted(() => {
         </div>
 
         <div class="lg:col-span-5 relative">
-          <div class="servi-adapt-bg shadow-xl rounded-sm sticky top-24">
+          <div class="servi-adapt-bg shadow-xl sticky top-24 rounded-xl">
             <h2 class="text-2xl w-full font-light servi-blue servi-yellow-font border-b-2 border-yellow-400 rounded-t-lg p-2 inline-block pb-1 mb-6">
               Resumen
             </h2>
              <div class="space-y-4 mb-8 px-3">
                 <div class="flex justify-between text-sm">
                   <span class="servi-grey-font">Subtotal</span>
-                  <span class="font-medium">{{ formatearMoneda(totales.subtotal) }}</span>
+                  <span class="font-medium servi-grey-font">{{ formatearMoneda(totales.subtotal) }}</span>
                 </div>
                 <div class="flex justify-between items-center text-sm">
                   <span class="servi-grey-font">Descuento</span>
@@ -345,7 +345,7 @@ onMounted(() => {
                     <input
                       v-model.number="descuentoPorcentaje"
                       type="number"
-                      class="w-full text-right text-sm focus:outline-none"
+                      class="w-full text-right text-sm servi-grey-font focus:outline-none"
                       placeholder="0"
                     />
                     <span class="text-xs font-bold servi-grey-font">%</span>
@@ -366,14 +366,14 @@ onMounted(() => {
                 </div>
                 <div class="flex justify-between text-sm border-t pt-4 ">
                   <span class="servi-grey-font">Monto IVA</span>
-                  <span class="font-medium">{{ formatearMoneda(totales.iva) }}</span>
+                  <span class="font-medium servi-grey-font">{{ formatearMoneda(totales.iva) }}</span>
                 </div>
              </div>
 
              <div class="flex justify-between items-center mb-8 px-3">
                <span class="text-xs font-bold servi-grey-font tracking-widest uppercase">Total Estimado</span>
                <div class="text-right">
-                 <p class="text-3xl font-bold text-blue-900">{{ formatearMoneda(totales.total_final) }}</p>
+                 <p class="text-3xl font-bold servi-yellow-font">{{ formatearMoneda(totales.total_final) }}</p>
                </div>
              </div>
 
