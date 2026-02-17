@@ -116,9 +116,7 @@ const redirigirInformeFinal = () => {
   router.push({ name: 'ver-informe-final', params: { id: orden.value.id } });
 };
 
-const manejarBloqueo = (estado) => {
-  loading.value = estado;
-};
+
 
 const verificarEstadoCerrado = () => {
   if (isCerrado.value) {
@@ -157,8 +155,53 @@ const eliminarObservacion = (index) => {
   observaciones.value.splice(index, 1);
 };
 
+const validarDatos = () => {
+  if (orden.value.kilometraje_inicial < 0) {
+    modalState.value = { 
+      visible: true, 
+      titulo: "Datos Incorrectos", 
+      mensaje: "El kilometraje no puede ser negativo.", 
+      exito: false 
+    };
+    return false;
+  }
+
+  if (orden.value.kilometraje_inicial === "" || isNaN(orden.value.kilometraje_inicial)) {
+    modalState.value = { 
+      visible: true, 
+      titulo: "Datos Incorrectos", 
+      mensaje: "El kilometraje debe ser un valor numérico válido.", 
+      exito: false 
+    };
+    return false;
+  }
+
+  if (!orden.value.tipo_trabajo || !orden.value.tipo_trabajo.trim()) {
+    modalState.value = { 
+      visible: true, 
+      titulo: "Campo Obligatorio", 
+      mensaje: "Debes especificar el Tipo de Trabajo.", 
+      exito: false 
+    };
+    return false;
+  }
+
+  if (!orden.value.diagnostico || !orden.value.diagnostico.trim()) {
+    modalState.value = { 
+      visible: true, 
+      titulo: "Campo Obligatorio", 
+      mensaje: "Debes ingresar un Diagnóstico Inicial.", 
+      exito: false 
+    };
+    return false;
+  }
+
+  return true;
+};
+
 const guardarCambios = async () => {
   if (verificarEstadoCerrado()) return;
+  if (!validarDatos()) return; 
   manejarBloqueo(true);
   interfaz.showLoadingOverlay();
   const { error } = await supabase
@@ -253,6 +296,10 @@ const guardarCambios = async () => {
      interfaz.hideLoadingOverlay();
   }
   manejarBloqueo(false);
+};
+
+const manejarBloqueo = (estado) => {
+  loading.value = estado;
 };
 
 const traerObservaciones = async () => {
