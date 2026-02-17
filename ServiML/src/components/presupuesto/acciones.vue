@@ -4,11 +4,15 @@ import { ref, computed } from 'vue'
 const confirm = ref(false)
 const discard = ref(false)
 
-const emit = defineEmits(['descartar', 'confirmar', 'pdf'])
+const emit = defineEmits(['descartar', 'confirmar', 'pdf', 'ir-a-ot'])
 
 const ejecutarConfirmacion = () => {
   emit('confirmar')
   confirm.value = false
+}
+
+const ejecutarIrAOT = () => {
+  emit('ir-a-ot')
 }
 
 const ejecutarDescarte = () => {
@@ -27,6 +31,11 @@ const props = defineProps({
 const showButtons = computed(() => {
     return props.estado === 1
 })
+
+const ShowOt = computed(() => {
+    return props.estado === 2
+})
+
 </script>
 
 <template>
@@ -41,6 +50,9 @@ const showButtons = computed(() => {
 
     <button @click="ejecutarPdf" class="servi-yellow px-4 py-2 rounded-lg text-white cursor-pointer hover:scale-105 transition-all">
       PDF
+    </button>
+    <button v-if="ShowOt" @click="ejecutarIrAOT" class="servi-yellow px-4 py-2 rounded-lg text-white cursor-pointer hover:scale-105 transition-all">
+      Ir a OT 
     </button>
   </div>
 

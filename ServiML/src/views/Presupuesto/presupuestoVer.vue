@@ -159,6 +159,15 @@ const handleEstados = (estado) => {
       return {clase: 'badge-cerrado', texto: 'Cerrado'}
   }
 }
+const manejarIrAOT = async () => {
+    const {data, error} = await supabase.from('orden_trabajo').select('*').eq('id_presupuesto', presupuesto.value.id).single()
+    if (data) {
+        router.push({name: 'ver-orden-de-trabajo', params: {id: data.id}})
+    } else {
+        console.log(error)
+    }
+}
+
 const generarPDF = () => {
   const elemento = document.getElementById('elemento-a-imprimir');
   
@@ -323,6 +332,7 @@ onMounted(async () => {
                             @confirmar="manejarConfirmacion"
                             @descartar="manejarDescarte"
                             @pdf="generarPDF"
+                            @ir-a-ot="manejarIrAOT"
                         />
                     </div>
                 </div>
