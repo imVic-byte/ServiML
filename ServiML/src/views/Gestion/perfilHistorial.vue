@@ -60,7 +60,7 @@ onMounted( async () => {
 </script>
 
 <template>
-    <div class="servi-white">
+    <div class="servi-white min-h-screen">
     <navbar titulo="Historial" subtitulo="Registro de actividades" class="navbar"/>
 
     <div class="max-w-4xl mx-auto p-4 pb-20">
