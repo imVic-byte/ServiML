@@ -155,7 +155,7 @@ const router = createRouter({
       component: () => import('../views/Deudas/deudaVer.vue'),
       meta: { 
         requiresAuth: true,
-        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+        allowedRoles: ['Gerente', 'Soporte']
        }
     },
     {
@@ -164,7 +164,7 @@ const router = createRouter({
       component: () => import('../views/Deudas/deudaDetalle.vue'),
       meta: { 
         requiresAuth: true,
-        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+        allowedRoles: ['Gerente', 'Soporte']
        }
     },
     {
@@ -222,13 +222,13 @@ const router = createRouter({
       path: '/finanzas',
       name: 'finanzas',
       component: () => import('../views/Gestion/finanzas.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
     },
     {
       path: '/gastos',
       name: 'gastos',
       component: () => import('../views/Gestion/gastos.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
     },
     {
       path: '/:pathMatch(.*)*',
@@ -239,7 +239,7 @@ const router = createRouter({
       path: '/serviml',
       name: 'serviml',
       component: () => import('../views/Gestion/serviml.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
     },
   ],
 })
