@@ -4,12 +4,14 @@ import navbar from '../../components/componentes/navbar.vue';
 import {useInterfaz} from '../../stores/interfaz.js';
 import { supabase } from '../../lib/supabaseClient.js'; 
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user';
 
 const router = useRouter();
 const trabajadores = ref([]);
 const cargando = ref(true);
 const errorMsg = ref('');
 const interfaz = useInterfaz();
+const userStore = useUserStore();
 
 const obtenerTrabajadores = async () => {
   try {
@@ -33,6 +35,14 @@ const invitarUsuario = () => {
 }
 
 const alternarEstado = async (id, estadoActual) => {
+  if(userStore.user.id === id){
+    alert('No puedes desactivar tu propio usuario.');
+    return;
+  }
+  if(!userStore.isGerente || !userStore.isSoporte){
+    alert('No tienes permiso para desactivar usuarios.');
+    return;
+  }
   if (estadoActual) {
     if (!confirm('¿Está seguro de que desea desactivar este usuario?')) {
       return;
