@@ -646,7 +646,7 @@ onMounted(cargarDatos);
                 <span class="text-xs text-white">Ingreso: {{ formatearFecha(item.created_at) }}</span>
               </div>
               <div class="flex items-center gap-3">
-                <span class="p-4 text-right font-bold servi-grey-font">
+                <span class="p-4 text-right font-bold text-white">
                   {{
                     formatearDinero(
                       (item.presupuesto?.total_final || 0) +
@@ -786,13 +786,13 @@ onMounted(cargarDatos);
           <div>
             <label class="block text-xs font-bold text-white/80 uppercase mb-1">Monto</label>
             <input v-model="nuevoAbono" type="number"
-              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg text-white font-bold outline-none" placeholder="0" />
+              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg servi-grey-font font-bold outline-none" placeholder="0" />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-white/80 uppercase mb-1">Observación</label>
             <input v-model="abonoObs" type="text"
-              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg text-white font-bold outline-none"
+              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg servi-grey-font font-bold outline-none"
               placeholder="Ej: Transferencia, efectivo, etc." />
           </div>
 
@@ -802,7 +802,7 @@ onMounted(cargarDatos);
             
             <div v-if="!archivoAbono" class="flex gap-2">
               <button type="button" @click="activarInputAbono"
-                class="flex items-center gap-2 text-sm font-bold text-white servi-adapt-bg hover:opacity-80 px-4 py-2.5 rounded-lg transition-colors border border-white/20 cursor-pointer w-full justify-center">
+                class="flex items-center gap-2 text-sm font-bold servi-grey-font servi-adapt-bg hover:opacity-80 px-4 py-2.5 rounded-lg transition-colors border border-white/20 cursor-pointer w-full justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
