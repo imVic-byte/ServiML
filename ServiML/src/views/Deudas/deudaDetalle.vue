@@ -4,11 +4,11 @@ import { useRoute, useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import navbar from "../../components/componentes/navbar.vue";
 import modal from "../../components/componentes/modal.vue";
-
+import {useInterfaz} from '../../stores/interfaz'
 const route = useRoute();
 const router = useRouter();
 const deudaId = route.params.id;
-
+const interfaz = useInterfaz();
 // Estados
 const loading = ref(true);
 const deuda = ref(null);
@@ -55,7 +55,7 @@ const calcularEstacionamientoOT = (ot) => {
 
 const totalDeuda = computed(() => {
   const totalOTs = otsEnDeuda.value.reduce((acc, item) =>
-    acc + (item.orden_trabajo?.presupuesto?.total_final || 0), 0
+    acc + (item.presupuesto?.total_final || 0), 0
   );
 
   return totalOTs + totalEstacionamiento.value;
@@ -90,7 +90,6 @@ const estadoDeudaUI = computed(() => {
 
 const formatearDinero = (valor) => {
   const valorLimpio = Math.round(valor || 0) || 0;
-
   return new Intl.NumberFormat("es-CL", {
     style: "currency",
     currency: "CLP",
@@ -111,7 +110,6 @@ const formatearFecha = (fechaString) => {
 // --- CARGA DE DATOS ---
 const cargarDatos = async () => {
   loading.value = true;
-
   const { data: dataDeuda, error } = await supabase
     .from("deudas")
     .select("*")
@@ -127,19 +125,10 @@ const cargarDatos = async () => {
   diasNotificacion.value = dataDeuda.notificar_cada || 0;
 
   const { data: dataItems } = await supabase
-    .from("deuda_items")
-    .select(`
-    id, 
-    orden_trabajo (
-      id, 
-      created_at, 
-      fecha_estacionamiento,
-      fecha_termino_estacionamiento,
-      vehiculo(modelo, patente), 
-      presupuesto(total_final)
-    )
-  `)
-    .eq("deuda_id", deudaId);
+    .from("orden_trabajo")
+    .select(`*, vehiculo(*), presupuesto(*), cliente(*)`) 
+    .eq("id_deuda", deudaId)
+    .order("id", { ascending: false });
   otsEnDeuda.value = dataItems || [];
 
   const { data: dataAbonos } = await supabase
@@ -159,8 +148,7 @@ const guardarConfigNotificacion = async () => {
   const { error } = await supabase
     .from("deudas")
     .update({
-      notificar_cada: diasNotificacion.value,
-      ultima_notificacion: diasNotificacion.value > 0 ? new Date().toISOString() : null,
+      notificar_cada: diasNotificacion.value
     })
     .eq("id", deudaId);
 
@@ -178,52 +166,22 @@ const guardarConfigNotificacion = async () => {
   procesandoNotificacion.value = false;
 };
 
-// --- GESTIÓN DE OTs ---
 const buscarOTsDisponibles = async () => {
-  const { data: usados, error: errUsados } = await supabase
-    .from("deuda_items")
-    .select("ot_id");
-
-  if (errUsados) {
-    modalState.value = {
-      visible: true,
-      titulo: "Error",
-      mensaje: "No se pudo validar OTs ya asignadas: " + errUsados.message,
-      exito: false,
-    };
-    return;
-  }
-
-  const otIdsUsados = (usados || []).map((x) => x.ot_id).filter(Boolean);
-
-  let query = supabase
+  const { data: disponibles, error: errDisponibles } = await supabase
     .from("orden_trabajo")
-    .select(
-      `
-      *,
-      presupuesto(total_final),
-      vehiculo(modelo, patente)
-    `
-    )
-    .neq("estado_actual_id", 10);
-
-  if (otIdsUsados.length > 0) {
-    query = query.not("id", "in", `(${otIdsUsados.join(",")})`);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
+    .select("*, vehiculo(*), presupuesto(*), cliente(*)")
+    .is("id_deuda", null)
+    .order("id", { ascending: false });
+  if (errDisponibles) {
     modalState.value = {
       visible: true,
       titulo: "Error",
-      mensaje: "No se pudieron cargar OTs disponibles: " + error.message,
+      mensaje: "No se pudo validar OTs disponibles: " + errDisponibles.message,
       exito: false,
     };
     return;
   }
-
-  otsDisponibles.value = data || [];
+  otsDisponibles.value = disponibles || [];
 
   if (otsDisponibles.value.length === 0) {
     modalState.value = {
@@ -256,7 +214,7 @@ const agregarOTsMasivas = async () => {
     ot_id: otId,
   }));
 
-  const { error } = await supabase.from("deuda_items").insert(itemsInsertar);
+  const { error } = await supabase.from("orden_trabajo").update({ id_deuda: deudaId }).in('id', otsSeleccionadas.value);
 
   if (!error) {
     await cargarDatos();
@@ -280,6 +238,7 @@ const agregarOTsMasivas = async () => {
 
 // --- GESTIÓN DE ABONOS ---
 const registrarAbono = async () => {
+  interfaz.showLoadingOverlay();
   if (otsEnDeuda.value.length === 0) {
     modalState.value = {
       visible: true,
@@ -339,6 +298,7 @@ const registrarAbono = async () => {
 
   await cargarDatos();
   showModalAbono.value = false;
+  interfaz.hideLoadingOverlay();
   nuevoAbono.value = 0;
   abonoObs.value = "";
 
@@ -383,16 +343,11 @@ const abrirModalAbono = () => {
   showModalAbono.value = true;
 };
 
-const eliminarOTDeuda = async (deudaItem) => {
-  // deudaItem es el item de deuda_items (el que tienes en otsEnDeuda)
-  const otId = deudaItem?.orden_trabajo?.id;
-
-  // Confirmación
-  const ok = window.confirm(`¿Deseas desvincular la OT #${otId} de esta deuda?`);
+const eliminarOTDeuda = async (id) => {
+  const ok = window.confirm(`¿Deseas desvincular la OT #${id} de esta deuda?`);
   if (!ok) return;
 
-  // (Opcional) bloquear si al eliminar el saldo quedaría negativo
-  const montoOT = deudaItem?.orden_trabajo?.presupuesto?.total_final || 0;
+  const montoOT = deudaItem?.presupuesto?.total_final || 0;
   const nuevoTotal = totalDeuda.value - montoOT;
   const nuevoSaldo = nuevoTotal - totalPagado.value;
 
@@ -407,11 +362,10 @@ const eliminarOTDeuda = async (deudaItem) => {
     return;
   }
 
-  // Eliminar vínculo (deuda_items)
   const { error } = await supabase
-    .from("deuda_items")
-    .delete()
-    .eq("id", deudaItem.id);
+    .from("orden_trabajo")
+    .update({ id_deuda: null })
+    .eq("id", id);
 
   if (error) {
     modalState.value = {
@@ -428,7 +382,7 @@ const eliminarOTDeuda = async (deudaItem) => {
   modalState.value = {
     visible: true,
     titulo: "OT eliminada",
-    mensaje: `La OT #${otId} fue desvinculada correctamente.`,
+    mensaje: `La OT #${id} fue desvinculada correctamente.`,
     exito: true,
   };
 };
@@ -456,12 +410,14 @@ const completarDeuda = async () => {
     .from("deudas")
     .update({
       estado: "completada",
-      notificar_cada: 0,
-      ultima_notificacion: null,
+      notificar_cada: 0
     })
     .eq("id", deuda.value.id);
-
-  if (!error) {
+    const {error: error2} = await supabase
+    .from("orden_trabajo")
+    .update({ pagado: true })
+    .eq("id_deuda", deuda.value.id);
+  if (!error && !error2) {
     await cargarDatos();
     modalState.value = {
       visible: true,
@@ -609,23 +565,23 @@ onMounted(cargarDatos);
             <div v-for="item in otsEnDeuda" :key="item.id"
               class="flex items-center justify-between servi-blue py-3 border-b last:border-0 hover:opacity-80 px-2 rounded-xl transition-colors">
               <div class="min-w-0">
-                <span class="font-bold text-white block">OT #{{ item.orden_trabajo.id }}</span>
+                <span class="font-bold text-white block">OT #{{ item.id }}</span>
                 <span class="text-xs text-white block truncate">
-                  {{ item.orden_trabajo.vehiculo.modelo }} - {{ item.orden_trabajo.vehiculo.patente }}
+                  {{ item.vehiculo?.modelo }} - {{ item.vehiculo?.patente }}
                 </span>
-                <span class="text-xs text-white">Ingreso: {{ formatearFecha(item.orden_trabajo.created_at) }}</span>
+                <span class="text-xs text-white">Ingreso: {{ formatearFecha(item.created_at) }}</span>
               </div>
               <div class="flex items-center gap-3">
                 <span class="p-4 text-right font-bold servi-grey-font">
                   {{
                     formatearDinero(
-                      (item.orden_trabajo.presupuesto?.total_final || 0) +
-                      calcularEstacionamientoOT(item.orden_trabajo)
+                      (item.presupuesto?.total_final || 0) +
+                      calcularEstacionamientoOT(item)
                     )
                   }}
                 </span>
 
-                <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: item.orden_trabajo.id } }"
+                <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: item.id } }"
                   class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
                   aria-label="Ver OT">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"

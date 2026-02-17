@@ -1,16 +1,38 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import newNotification from '../varios/newNotification.vue';
 import emptyNotification from '../varios/emptyNotification.vue';
 import notificacionesModal from './notificacionesModal.vue';
 import { useNotifications } from '@/stores/notificaciones.js'
+import { useDeudas } from '@/stores/deudas.js'
 import { useUserStore } from '@/stores/user';
 
 const userStore = useUserStore()
 const { notifications, markAsRead, markAllAsRead } = useNotifications(userStore.user.id)
-
-const hasNotifications = computed(() => notifications.value.filter(n => !n.leido).length > 0)
+const { Deudas, markAsReadDeuda, markAllAsReadDeuda } = useDeudas()
 const mostrarModal = ref(false)
+const notificacionesLista = ref([])
+
+const hasNotifications = computed(() => notificacionesLista.value.filter(n => !n.leido).length > 0)
+
+const handleJuntarNotis = () => {
+    if (userStore.isSoporte) {
+     const ListaNotificaciones = notifications.value.concat(Deudas.value)
+     const notificacionesOrdenadas = ListaNotificaciones.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+     notificacionesLista.value = notificacionesOrdenadas
+    }
+    else {
+        notificacionesLista.value = notifications.value
+    }
+}
+
+watch([notifications, Deudas], () => {
+  handleJuntarNotis()
+}, { immediate: true, deep: true })
+
+const handleMostrarNotificaciones = () => {
+  mostrarModal.value = !mostrarModal.value
+}
 
 defineProps({
     titulo: String,
@@ -19,16 +41,12 @@ defineProps({
     notificaciones: String
 })
 
-const handleMostrarNotificaciones = () => {
-  mostrarModal.value = !mostrarModal.value
-}
 
 const emit = defineEmits(['buscar'])
 
 const onInput = (event) => {
   emit('buscar', event.target.value.toUpperCase())
 }
-
 </script>
 <template>
 <nav>
@@ -55,10 +73,12 @@ const onInput = (event) => {
   <!-- Modal de Notificaciones -->
   <notificacionesModal
     v-if="mostrarModal"
-    :notifications="notifications"
+    :notifications="notificacionesLista"
     @cerrar="mostrarModal = false"
-    @marcarLeida="markAsRead"
+    @marcarLeidaNotificacion="markAsRead"
     @marcarTodasLeidas="markAllAsRead"
+    @marcarTodasLeidasDeuda="markAllAsReadDeuda"
+    @marcarLeidaDeuda="markAsReadDeuda"
   />
 </nav>
 </template>
