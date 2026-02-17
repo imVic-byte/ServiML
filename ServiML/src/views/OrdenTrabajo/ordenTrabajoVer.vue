@@ -1,243 +1,73 @@
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
+import cargando from "../../components/componentes/cargando.vue";
+import subirFotos from "../../components/componentes/subir-fotos.vue";
 import modal from "../../components/componentes/modal.vue";
-import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
-import {subirFotos} from "../../js/subirFotos.js";
-import { useInterfaz } from "@/stores/interfaz.js";
-import { useUserStore } from "../../stores/user.js";
 
-const userStore = useUserStore();
-const soloLectura = computed(() => {
-  const empleadoId = orden.value.id_empleado;
-  if (!empleadoId) return true;
-  return empleadoId !== userStore.user?.id;
-});
-
-const hoy = new Date()
-  .toLocaleString('sv-SE')
-  .replace('T', ' ');
-
-const formatearFecha = (fechaStr) => {
-  if (!fechaStr) return '';
-  const fecha = new Date(fechaStr.replace(' ', 'T'));
-  if (isNaN(fecha)) return 'Fecha inválida';
-  return fecha.toLocaleString('es-CL', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
-};
-
-const fechaToDatetimeLocal = (fechaStr) => {
-  if (!fechaStr) return '';
-  const fecha = new Date(fechaStr.replace(' ', 'T'));
-  if (isNaN(fecha)) return '';
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${fecha.getFullYear()}-${pad(fecha.getMonth() + 1)}-${pad(fecha.getDate())}T${pad(fecha.getHours())}:${pad(fecha.getMinutes())}`;
-};
-
-const isCerrado = ref(false);
-const sinEmpleado = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
-const redirigir = () => { modalState.value.visible = false; };
-const interfaz = useInterfaz();
+const redirigir = () => {
+  modalState.value.visible = false;
+};
 const route = useRoute();
-const router = useRouter();
 const orden = ref({});
-const loading = ref(true)
+const loading = ref(true);
 const listaFotos = ref([]);
 const estados = ref([]);
 const showModal = ref(false);
-const showSecondModal = ref(false);
-const showThirdModal = ref(false);
 const selectedEstado = ref(null);
 const observaciones = ref([]);
-const fechaIngreso = ref(null);
-const nivelCombustible = ref(0);
-const fotosRecepcion = ref([]);
-const talleres = ref([]);
-
-const activarInput = (index, tipo) => {
-  const id = tipo === 'camara' ? `input-camara-${index}` : `input-galeria-${index}`;
-  const inputElement = document.getElementById(id);
-  if (inputElement) inputElement.click();
-};
-
-const activarInputRecepcion = (tipo) => {
-  const id = tipo === 'camara' ? 'input-camara-recepcion' : 'input-galeria-recepcion';
-  const inputElement = document.getElementById(id);
-  if (inputElement) inputElement.click();
-};
-
-const procesarFotos = (event, index) => {
-  const files = event.target.files;
-  if (!files.length) return;
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const previewUrl = URL.createObjectURL(file);
-    observaciones.value[index].fotos.push({
-      file: file,
-      url: previewUrl,
-      nombre: file.name
-    });
-  }
-  event.target.value = '';
-};
-
-const removerFotoObservacion = (obsIndex, fotoIndex) => {
-  if (verificarEstadoCerrado()) return;
-  observaciones.value[obsIndex].fotos.splice(fotoIndex, 1);
-};
-
-const procesarFotosRecepcion = (event) => {
-  const files = event.target.files;
-  if (!files.length) return;
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    fotosRecepcion.value.push({
-      file: file,
-      url: URL.createObjectURL(file),
-      nombre: file.name,
-      isNew: true
-    });
-  }
-  event.target.value = '';
-};
-
-const removerFotoRecepcion = (index) => {
-  if (verificarEstadoCerrado()) return;
-  fotosRecepcion.value.splice(index, 1);
-};
-
-const redirigirInformeFinal = () => {
-  router.push({ name: 'ver-informe-final', params: { id: orden.value.id } });
-};
 
 const manejarBloqueo = (estado) => {
   loading.value = estado;
 };
 
-const verificarEstadoCerrado = () => {
-  if (isCerrado.value) {
-    modalState.value = {
-      visible: true,
-      titulo: "Acción no permitida",
-      mensaje: "Orden cerrada. No se permiten cambios.",
-      exito: false,
-    };
-    return true;
-  }
-  if (soloLectura.value) {
-    modalState.value = {
-      visible: true,
-      titulo: "Acción no permitida",
-      mensaje: "No eres el técnico asignado a esta orden. Solo lectura.",
-      exito: false,
-    };
-    return true;
-  }
-}
-
 const agregarObservacion = () => {
-  if (verificarEstadoCerrado()) return;
   observaciones.value.push({
     id: Date.now(),
     texto: "",
     fecha: new Date().toISOString(),
     isNew: true,
-    fotos: []
   });
 };
 
 const eliminarObservacion = (index) => {
-  if (verificarEstadoCerrado()) return;
   observaciones.value.splice(index, 1);
 };
 
 const guardarCambios = async () => {
-  if (verificarEstadoCerrado()) return;
   manejarBloqueo(true);
-  interfaz.showLoadingOverlay();
   const { error } = await supabase
     .from("orden_trabajo")
     .update({
       kilometraje_inicial: orden.value.kilometraje_inicial,
-      combustible_inicial: nivelCombustible.value,
-      fecha_ingreso: fechaIngreso.value || orden.value.fecha_ingreso,
+      combustible_inicial: orden.value.combustible_inicial,
+      fecha_ingreso: orden.value.fecha_ingreso,
       fecha_promesa: orden.value.fecha_promesa,
       prioridad: orden.value.prioridad,
       tipo_trabajo: orden.value.tipo_trabajo,
-      origen_ingreso: orden.value.origen_ingreso,
-      diagnostico: orden.value.diagnostico,
-      trae_documentos: orden.value.trae_documentos,
-      trae_llaves: orden.value.trae_llaves,
-      trae_candado_seguridad: orden.value.trae_candado_seguridad,
-      trae_panel_radio: orden.value.trae_panel_radio,
-      trae_rueda_repuesto: orden.value.trae_rueda_repuesto,
-      trae_encendedor: orden.value.trae_encendedor,
-      id_taller: orden.value.id_taller
+      motivo_ingreso: orden.value.motivo_ingreso,
     })
     .eq("id", route.params.id);
-
-  for (const obs of observaciones.value) {
-    if (obs.isNew) {
-      const { data: obsData, error: obsError } = await supabase
-        .from("OT_bitacora")
-        .insert({
+    for (const obs of observaciones.value) {
+      if (obs.isNew) {
+        const { error: obsError } = await supabase.from("OT_bitacora").insert({
           ot_id: route.params.id,
           tipo_evento: "observacion",
           observacion: obs.texto,
-        })
-        .select()
-        .single();
-      if (obsError) {
-        console.error("Error guardando observación:", obsError);
-        continue; 
-      }
-      if (obs.fotos && obs.fotos.length > 0 && obsData) {
-        const resultado = await subirFotos(obsData.id, orden.value.presupuesto.numero_folio, obs.fotos);
-       if (!resultado.exito) {
-          console.error("Error subiendo fotos:", resultado.error);
+        });
+        if (obsError) {
+          console.error("Error al guardar observación:", obsError);
+          alert("Hubo un error al guardar una observación.");
         }
-        else {
-          console.log("Fotos subidas correctamente");
-        }
-      }
-      else {
-        console.log("No hay fotos para subir");
       }
     }
+  if (error) {
+    console.error("Error al guardar cambios:", error);
+    alert("Hubo un error al guardar los cambios.");
   }
-  const fotosNuevas = fotosRecepcion.value.filter(f => f.isNew);
-  if (fotosNuevas.length > 0) {
-    const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/';
-    const registros = [];
-    for (const foto of fotosNuevas) {
-      const archivoReal = foto.file || foto;
-      const nombreLimpio = archivoReal.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const formData = new FormData();
-      const nombreUnico = `OT-${orden.value.presupuesto.numero_folio}-recepcion-${Date.now()}-${nombreLimpio}`;
-      formData.append('file', archivoReal, nombreUnico);
-      formData.append('numero_folio', orden.value.presupuesto.numero_folio);
-      try {
-        const res = await fetch(WORKER_URL, { method: 'POST', body: formData });
-        if (res.ok) {
-          const data = await res.json();
-          registros.push({ url: data.url, id_OT: route.params.id });
-        }
-      } catch (e) {
-        console.error('Error subiendo foto de recepción:', e);
-      }
-    }
-    if (registros.length > 0) {
-      const { error: errorFotos } = await supabase.from('OT_fotos_ingreso').insert(registros);
-      if (errorFotos) console.error('Error guardando fotos de recepción:', errorFotos);
-    }
-  }
-
   modalState.value = {
     visible: true,
     titulo: error ? "Error" : "¡Éxito!",
@@ -246,15 +76,8 @@ const guardarCambios = async () => {
       : "Los cambios se han guardado correctamente.",
     exito: !error,
   };
-  
-  if(!error) {
-     await traerObservaciones();
-     await traerFotosRecepcion();
-     interfaz.hideLoadingOverlay();
-  }
   manejarBloqueo(false);
 };
-
 const traerObservaciones = async () => {
   const { data } = await supabase
     .from("OT_bitacora")
@@ -268,69 +91,31 @@ const traerObservaciones = async () => {
       texto: obs.observacion,
       fecha: obs.created_at,
       isNew: false,
-      fotos: []
-    }));
-    for (const obs of observaciones.value) {
-      const { data } = await supabase
-        .from("OT_Fotos")
-        .select("*")
-        .eq("id_OT_bitacora", obs.id);
-      if (data) {
-        obs.fotos = data;
-      }
-    }
-  }
-  interfaz.hideLoading();
-};
-
-const traerFotosRecepcion = async () => {
-  const { data } = await supabase
-    .from('OT_fotos_ingreso')
-    .select('*')
-    .eq('id_OT', route.params.id);
-  if (data) {
-    fotosRecepcion.value = data.map(f => ({
-      url: f.url,
-      isNew: false
     }));
   }
 };
 
-const handleIsCerrado = async (estado_actual_id) => {
+const obtenerFotos = async () => {
   const { data } = await supabase
-    .from('tabla_estados')
-    .select('*')
-    .eq('id', estado_actual_id);
-  if (data && data.length > 0) {
-    isCerrado.value = data[0].finaliza;
-  }
-}
-
-const obtenerTalleres = async () => {
-  const { data } = await supabase
-    .from('serviml_taller')
-    .select('*')
-    .order('id', { ascending: true });
-  if (data) talleres.value = data;
+    .from("imagenes")
+    .select("*")
+    .eq("id_orden_trabajo", route.params.id);
+  listaFotos.value = data;
 };
 
 const obtenerOrden = async () => {
   manejarBloqueo(true);
   const { data } = await supabase
     .from("orden_trabajo")
-    .select("*, presupuesto(*), vehiculo(*), cliente(*), trabajadores(*)")
+    .select("*, presupuesto(*), vehiculo(*), cliente(*)")
     .eq("id", route.params.id)
     .single();
   if (data) {
     orden.value = data;
-    fechaIngreso.value = fechaToDatetimeLocal(data.fecha_ingreso);
-    nivelCombustible.value = data.combustible_inicial ?? 0;
-    if (!data.id_taller && talleres.value.length > 0) {
-      orden.value.id_taller = talleres.value[0].id;
-    }
+    await obtenerFotos();
   }
   manejarBloqueo(false);
-  await handleIsCerrado(orden.value.estado_actual_id);
+  console.log(orden.value);
 };
 
 const obtenerEstados = async () => {
@@ -342,6 +127,18 @@ const obtenerEstados = async () => {
     estados.value = data;
   }
 };
+
+const borrarFoto = async (id) => {
+  manejarBloqueo(true);
+  const { error } = await supabase.from("imagenes").delete("*").eq("id", id);
+  if (error) {
+    console.error("Error al borrar foto:", error);
+    alert("Hubo un error al borrar la foto.");
+  }
+  await obtenerFotos();
+  manejarBloqueo(false);
+};
+
 const openModal = (estado) => {
   selectedEstado.value = estado;
   showModal.value = true;
@@ -349,377 +146,146 @@ const openModal = (estado) => {
 
 const closeModal = () => {
   showModal.value = false;
-  showSecondModal.value = false;
-  showThirdModal.value = false;
   selectedEstado.value = null;
 };
 
-const verificarCambioEstado = (estado_id) => {
-  if (estado_id === orden.value.estado_actual_id) return false;
-  if (estado_id === 1) return false;
-  if (estado_id === 11 && orden.value.fecha_ingreso !== null) return false;
-  if (verificarEstadoCerrado()) return false;
-  const estado_actual = estados.value.find((estado) => estado.id === orden.value.estado_actual_id);
-  const estado_nuevo = estados.value.find((estado) => estado.id === estado_id);
-  if (estado_nuevo.orden < estado_actual.orden) return false;
-  return true;
-}
-
-const confirmarCambioEstado = () => {
-  if (!verificarCambioEstado(selectedEstado.value.id)) return;
+const confirmarCambioEstado = async () => {
   if (selectedEstado.value) {
-    if (selectedEstado.value.id === 7 || selectedEstado.value.id === 8) {
-      showModal.value = false;
-      showSecondModal.value = true;
-      return;
+    manejarBloqueo(true);
+    const { error } = await supabase.from("OT_bitacora").insert({
+      ot_id: route.params.id,
+      nuevo_estado_id: selectedEstado.value.id,
+      tipo_evento: "cambio_estado",
+    });
+
+    if (error) {
+      console.error("Error al actualizar estado:", error);
+      alert("Hubo un error al actualizar el estado.");
+    } else {
+      orden.value.estado_actual_id = selectedEstado.value.id;
+      console.log("Estado actualizado:", selectedEstado.value.estado);
     }
-    if (selectedEstado.value.id === 6) {
-      showThirdModal.value = true;
-      return;
-    }
-    ejecutarCambioReal();
+
+    closeModal();
+    manejarBloqueo(false);
   }
 };
 
-const handleGenerarInformeFinal = async () => {
-  const d = new Date();
-  const fechaActual = new Date(
-    d.getTime() - d.getTimezoneOffset() * 60000
-  )
-    .toISOString()
-    .slice(0, 19);
-  const { data, error } = await supabase.from("informe_final").insert({
-    ot_id: orden.value.id,
-    created_at: fechaActual
-  }).select().single();
-  if (error) return;
-  router.push({
-    name: 'ver-informe-final',
-    params: { id: orden.value.id },
-    query: { enviar: 'true' }
-  });
-};
-
-const handleGenerarInformeEstacionamiento = async () => {
-  if (!orden.value.fecha_estacionamiento) {
-    return;
-  }
-  const d = new Date();
-  const fechaActual = new Date(
-    d.getTime() - d.getTimezoneOffset() * 60000
-  )
-    .toISOString()
-    .slice(0, 19);
-  if (!orden.value.fecha_termino_estacionamiento) {
-    const {data,error} = await supabase.from('orden_trabajo').update({
-      fecha_termino_estacionamiento: fechaActual
-    }).eq('id',orden.value.id);
-    if(error) return;
-  }
-  router.push({
-    name: 'ver-informe-final',
-    params: { id: orden.value.id },
-    query: { enviar: 'true' }
-  });
-}
-
-const ejecutarCambioReal = async () => {
-  manejarBloqueo(true);
-  
-  let updateData = {
-    estado_actual_id: selectedEstado.value.id
-  };
-
-  const d = new Date();
-  const fechaActual = new Date(
-    d.getTime() - d.getTimezoneOffset() * 60000
-  )
-    .toISOString()
-    .slice(0, 19);
-
-  if (selectedEstado.value.id === 9) { 
-    updateData.fecha_estacionamiento = fechaActual;
-    updateData.fecha_termino_estacionamiento = null;
-  } 
-
-  else if (orden.value.fecha_estacionamiento && !orden.value.fecha_termino_estacionamiento) {
-    updateData.fecha_termino_estacionamiento = fechaActual;
-  }
-
-  const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
-    ot_id: route.params.id,
-    nuevo_estado_id: selectedEstado.value.id,
-    tipo_evento: "cambio_estado",
-  });
-
-  if (errorBitacora) {
-    console.error(error);
-  } else {
-    orden.value.estado_actual_id = selectedEstado.value.id;
-    const { error: errorUpdate } = await supabase
-    .from("orden_trabajo")
-    .update(updateData)
-    .eq("id", route.params.id);
-    if (errorUpdate) {
-    console.error("Error al actualizar estado en OT:", errorUpdate);
-    alert("Hubo un error al actualizar el estado de la orden.");
-    return;
-    }
-    if (updateData.fecha_estacionamiento) {
-        orden.value.fecha_estacionamiento = updateData.fecha_estacionamiento;
-    }
-    if (updateData.fecha_termino_estacionamiento) {
-        orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
-    }
-    await handleIsCerrado(selectedEstado.value.id);
-
-    if (selectedEstado.value.id === 7) {
-      await handleGenerarInformeEstacionamiento();
-    }
-    
-    if (selectedEstado.value.id === 6) {
-      await handleGenerarInformeFinal();
-    }
-    if (selectedEstado.value.id == 11) {
-      fechaIngreso.value = fechaToDatetimeLocal(hoy);
-      await supabase.from('orden_trabajo').update({ 'fecha_ingreso': hoy }).eq('id', route.params.id);
-    }
-  }
-  closeModal();
-  manejarBloqueo(false);
-}
-
-
-onMounted(async () => {
-  interfaz.showLoading();
-  await obtenerTalleres();
-  await obtenerOrden();
+onMounted(() => {
+  obtenerOrden();
   obtenerEstados();
   traerObservaciones();
-  traerFotosRecepcion();
 });
 </script>
 
 <template>
-  <div class="min-h-screen servi-white pb-12">
-    <navbar titulo="ServiML" :subtitulo="'OT # ' + orden.id" class="sticky top-0 z-40" searchInput="false" />
-    
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-15">
-      
-      <div v-if="isCerrado" class="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 text-blue-800 rounded shadow-sm flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <p class="font-bold">La orden de trabajo está cerrada. Modo solo lectura.</p>
-      </div>
+  <navbar
+    titulo="ServiML"
+    :subtitulo="'OT No. ' + orden.presupuesto?.numero_folio"
+    class="navbar"
+    searchInput="false"
+  />
 
-      <div v-if="soloLectura && !isCerrado" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded shadow-sm flex items-center gap-3">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-        <p class="font-bold">No eres el técnico asignado. Modo solo lectura.</p>
-      </div>
-
-      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
-        <div class="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 min-w-max md:min-w-0">
-          <div v-for="estado in estados" :key="estado.id" class="flex flex-col items-center group">
-            <div v-if="estado.id !== 1" @click="verificarCambioEstado(estado.id) ? openModal(estado) : null"
-              class="relative px-6 py-2 cursor-pointer transition-transform hover:scale-105 active:scale-95"
-              :class="{ 'opacity-50 hover:opacity-100': estado.id !== orden.estado_actual_id }">
-              <div class="absolute inset-0 transform -skew-x-12 rounded shadow-sm" :style="{ backgroundColor: estado.color }"></div>
-              <span class="relative z-10 font-bold text-white text-sm whitespace-nowrap">{{ estado.estado }}</span>
-            </div>
-            <div v-if="estado.id === orden.estado_actual_id" class="mt-2 text-blue-600 animate-bounce">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-              </svg>
-            </div>
-          </div>
+  <div
+    v-if="loading"
+    class="flex justify-center items-center h-screen w-full fixed top-0 left-0 bg-white z-50"
+  >
+    <cargando />
+  </div>
+  <div
+    class="w-full bg-gray-100 p-4 rounded-lg shadow-inner justify-center items-center flex"
+  >
+  
+    <div class="flex overflow-x-auto snap-x cursor-grab active:cursor-grabbing">
+      <div
+        v-for="estado in estados"
+        :key="estado.id"
+        class="flex flex-col items-center"
+      >
+        <div
+          v-if="estado.id !== 1"
+          @click="openModal(estado)"
+          class="w-48 h-10 text-end pl-4 p-2 flex items-center justify-center font-bold text-sm"
+          :style="{
+            clipPath:
+              'polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%, 15% 50%)',
+            backgroundColor: estado.color,
+          }"
+        >
+          <p class="font-bold text-gray-800 truncate">{{ estado.estado }}</p>
         </div>
+        <svg
+          v-if="estado.id === orden.estado_actual_id"
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-6 w-6 text-blue-600 mb-1 animate-bounce"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 15l7-7 7 7"
+          />
+        </svg>
       </div>
+    </div>
+  </div>
+  
+  <div
+    v-if="showModal"
+    class="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none bg-black/60 backdrop-blur-sm"
+  >
+    <div
+      class="servi-blue rounded-lg p-6 max-w-sm w-full shadow-xl pointer-events-auto"
+    >
+      <h3 class="text-xl font-bold servi-yellow-font mb-2">Confirmar cambio</h3>
+      <p class="servi-yellow-font text-sm mb-6">
+        ¿Confirmas que el nuevo estado es "{{ selectedEstado?.estado }}"?
+      </p>
+      <div class="flex justify-end gap-3">
+        <button
+          @click="closeModal()"
+          class="px-4 py-2 servi-yellow-font rounded-md"
+        >
+          Cancelar
+        </button>
+        <button
+          @click="confirmarCambioEstado()"
+          class="px-4 py-2 servi-yellow servi-blue-font rounded-md"
+        >
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+  
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <div class="lg:col-span-2 space-y-6">
-          
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="servi-blue px-6 py-4 flex justify-between items-center">
-              <h1 class="servi-yellow-font font-bold text-lg tracking-wide">INFORMACIÓN GENERAL</h1>
-            </div>
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Patente</label><p class="servi-grey-font">{{ orden.vehiculo?.patente }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Modelo</label><p class="servi-grey-font">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Cliente</label><p class="servi-grey-font">{{ orden.cliente?.nombre + ' ' + orden.cliente?.apellido }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Teléfono</label><p class="servi-grey-font">+{{ orden.cliente?.codigo_pais }} {{ orden.cliente?.telefono }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Email</label><p class="servi-grey-font">{{ orden.cliente?.email || 'No registrado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p class="servi-grey-font">{{ orden.motivo_ingreso }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><p class="servi-grey-font">{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p class="servi-grey-font">{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
-            </div>
-          </div>
-
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="servi-blue px-6 py-4 flex justify-between items-center">
-              <h1 class="servi-yellow-font font-bold text-lg tracking-wide">DATOS DE RECEPCIÓN</h1>
-            </div>
-
-            <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div class="flex flex-col gap-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div class="space-y-1">
-                    <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label>
-                    <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
-                  </div>
-                  <div class="space-y-1">
-                    <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Prioridad</label>
-                    <select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad" :disabled="soloLectura || isCerrado">
-                      <option value="1">Alta (Urgencia)</option>
-                      <option value="2">Media (Normal)</option>
-                      <option value="3">Baja (Proyecto)</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
-                  <div class="space-y-1">
-                    <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Origen Ingreso</label>
-                    <select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso" :disabled="soloLectura || isCerrado">
-                      <option value="cliente">Conducido por Cliente</option>
-                      <option value="grua">Grúa / Remolque</option>
-                      <option value="tercero">Chofer / Tercero</option>
-                    </select>
-                  </div>
-                  <div class="space-y-1">
-                    <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Tipo de Trabajo</label>
-                    <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" :disabled="soloLectura || isCerrado" />
-                  </div>
-                </div>
-                <div class="space-y-1">
-                  <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Kilometraje Actual</label>
-                  <div class="relative">
-                    <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium pl-4" type="number" v-model="orden.kilometraje_inicial" :disabled="soloLectura || isCerrado" />
-                    <span class="absolute right-4 top-2.5 servi-grey-font text-sm font-bold">KM</span>
-                  </div>
-                </div>
-                <div class="space-y-1 flex-row">
-                  <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Diagnóstico Inicial</label>
-                  <textarea class="w-full h-32 servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico" :disabled="soloLectura || isCerrado"></textarea>
-                </div>
-              </div>
-
-              <div class="flex flex-col gap-6">
-                <div class="space-y-2 servi-adapt-bg p-4 rounded-xl border border-gray-100">
-                  <label class="text-xs font-bold servi-grey-font uppercase tracking-wider flex justify-between">
-                    <span>Nivel de Combustible</span>
-                  </label>
-                  <medidorCombustible v-model="nivelCombustible" />
-                </div>
-                <div class="servi-adapt-bg p-4 rounded-xl border border-gray-100">
-                  <label class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-3 block">Inventario Rápido</label>
-                  <div class="grid grid-cols-2 gap-3">
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_documentos" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-grey-font">Documentos</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_llaves" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-grey-font">Llaves</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_candado_seguridad" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-xs font-medium servi-grey-font">Tuerca Seguridad</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_panel_radio" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-grey-font">Panel Radio</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_rueda_repuesto" class="w-4 h-4 text-blue-600 rounded-full focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-grey-font">Rueda Repuesto</span>
-                    </label>
-                    <label class="flex items-center space-x-2 cursor-pointer p-2 servi-adapt-bg rounded-lg border hover:border-blue-400 transition-colors">
-                      <input type="checkbox" v-model="orden.trae_encendedor" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" :disabled="soloLectura || isCerrado">
-                      <span class="text-sm font-medium servi-grey-font">Encendedor</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOTOS DE RECEPCIÓN -->
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="servi-blue px-6 py-4 flex justify-between items-center">
-              <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Fotos de Recepción</h3>
-            </div>
-
-            <div class="p-6">
-              <!-- Upload buttons -->
-              <div v-if="!soloLectura && !isCerrado" class="flex gap-3 mb-5">
-                <input 
-                  type="file" 
-                  id="input-camara-recepcion" 
-                  class="hidden" 
-                  accept="image/*" 
-                  capture="environment"
-                  @change="(e) => procesarFotosRecepcion(e)"
-                />
-                <input 
-                  type="file" 
-                  id="input-galeria-recepcion" 
-                  class="hidden" 
-                  accept="image/*" 
-                  multiple
-                  @change="(e) => procesarFotosRecepcion(e)"
-                />
-
-                <button 
-                  @click="activarInputRecepcion('camara')"
-                  class="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-lg transition-colors border border-blue-200 cursor-pointer"
-                  title="Tomar foto ahora"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Cámara
-                </button>
-
-                <button 
-                  @click="activarInputRecepcion('galeria')"
-                  class="flex items-center gap-2 text-sm font-bold servi-grey-font servi-adapt-bg hover:opacity-80 px-4 py-2.5 rounded-lg transition-colors border border-gray-100 cursor-pointer"
-                  title="Seleccionar de galería"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Galería
-                </button>
-              </div>
-
-              <!-- Photo grid -->
-              <div v-if="fotosRecepcion && fotosRecepcion.length > 0" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                <div v-for="(foto, fIndex) in fotosRecepcion" :key="fIndex" class="relative aspect-square rounded-xl overflow-hidden border border-gray-100 group shadow-sm hover:shadow-md transition-shadow">
-                  <img :src="foto.url" class="w-full h-full object-cover" />
-                  <button @click="removerFotoRecepcion(fIndex)" class="absolute top-1.5 right-1.5 bg-red-500 hover:bg-red-600 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Empty state -->
-              <div v-else class="flex flex-col items-center justify-center py-10 servi-grey-font servi-adapt-bg rounded-xl border border-dashed border-gray-100">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p class="text-sm font-medium">No hay fotos de recepción</p>
-                <p class="text-xs mt-1">Use los botones de arriba para agregar fotos</p>
-              </div>
-            </div>
-          </div>
+  <div
+    v-show="!loading"
+    class="mx-5 servi-blue servi-white-font rounded-xl shadow-sm p-4"
+  >
+    <div class="flex justify-between items-center mb-2">
+      <h1 class="servi-yellow-font text-sm font-bold">INFORMACIÓN GENERAL</h1>
+      <button
+        @click="guardarCambios()"
+        class="servi-yellow servi-blue-font px-2 py-1 rounded-xl text-sm font-bold"
+      >
+        Guardar Cambios
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1" for="kilometraje_inicial"
+          >Kilometraje Inicial</label
+        >
+        <input
+          class="servi-white text-black rounded-xl py-1 px-2"
+          type="number"
+          v-model="orden.kilometraje_inicial"
+        />
+      </div>
 
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
@@ -738,163 +304,181 @@ onMounted(async () => {
                 </svg>
                 <p class="text-sm">No hay hallazgos registrados</p>
               </div>
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1" for="combustible_inicial"
+          >Combustible Inicial</label
+        >
+        <input
+          class="servi-white text-black rounded-xl py-1 px-2"
+          type="number"
+          v-model="orden.combustible_inicial"
+        />
+      </div>
 
-              <div class="space-y-4">
-                <div v-for="(observacion, index) in observaciones" :key="observacion.id" class="flex gap-4 group">
-                  <div class="flex-shrink-0 mt-1">
-                    <div class="w-8 h-8 rounded-full servi-blue flex items-center justify-center text-yellow-400 font-bold text-xs">
-                      {{ index + 1 }}
-                    </div>
-                  </div>
-                  <div class="flex-grow">
-                    <div class="relative servi-adapt-bg border border-gray-100 p-4 rounded-tr-xl rounded-br-xl rounded-bl-xl shadow-sm hover:shadow-md transition-shadow">
-                      <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs servi-grey-font font-semibold">{{ new Date(observacion.fecha).toLocaleDateString() }}</span>
-                        <button v-if="observacion.isNew" @click="eliminarObservacion(index)" class="text-red-400 hover:text-red-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                      <textarea v-model="observacion.texto" placeholder="Escriba los detalles aquí..." class="w-full servi-grey-font bg-transparent border-0 p-0 focus:ring-0 resize-none text-sm leading-relaxed mb-3" rows="2"></textarea>
-                      
-                      <div class="flex flex-col gap-3 mt-2 border-t pt-2 border-gray-100">
-                        <div v-if="observacion.fotos && observacion.fotos.length > 0" class="flex flex-wrap gap-2">
-                          <div v-for="(foto, fIndex) in observacion.fotos" :key="fIndex" class="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-100 group/foto">
-                            <img :src="foto.url" class="w-full h-full object-cover" />
-                            <button @click="removerFotoObservacion(index, fIndex)" class="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl-lg opacity-0 group-hover/foto:opacity-100 transition-opacity">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1" for="fecha_ingreso"
+          >Fecha de Ingreso</label
+        >
+        <input
+          class="servi-white text-black rounded-xl py-1 px-2"
+          type="datetime-local"
+          v-model="orden.fecha_ingreso"
+        />
+  </div>
 
-                        <div v-if="observacion.isNew" class="flex gap-2 mt-2">
-  
-  <input 
-    type="file" 
-    :id="`input-camara-${index}`" 
-    class="hidden" 
-    accept="image/*" 
-    capture="environment"
-    @change="(e) => procesarFotos(e, index)"
-  />
-  
-  <input 
-    type="file" 
-    :id="`input-galeria-${index}`" 
-    class="hidden" 
-    accept="image/*" 
-    multiple
-    @change="(e) => procesarFotos(e, index)"
-  />
-  
-  <button 
-    @click="activarInput(index, 'camara')"
-    class="flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors border border-blue-200"
-    title="Tomar foto ahora"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-    Cámara
-  </button>
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1" for="fecha_promesa"
+          >Fecha Promesa</label
+        >
+        <input
+          class="servi-white text-black rounded-xl py-1 px-2"
+          type="date"
+          v-model="orden.fecha_promesa"
+        />
+      </div>
 
-  <button 
-    @click="activarInput(index, 'galeria')"
-    class="flex items-center gap-2 text-xs font-bold servi-grey-font servi-adapt-bg hover:opacity-80 px-3 py-2 rounded-lg transition-colors border border-gray-100"
-    title="Seleccionar de galería"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-    Galería
-  </button>
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1" for="prioridad">Prioridad</label>
+        <select
+          class="servi-white text-black rounded-xl py-2 px-2"
+          name="prioridad"
+          id="prioridad"
+          v-model="orden.prioridad"
+        >
+          <option value="1">Alta</option>
+          <option value="2">Media</option>
+          <option value="3">Baja</option>
+        </select>
+      </div>
 
-</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <div class="flex flex-col">
+        <label class="font-semibold mb-1" for="tipo_trabajo"
+          >Tipo de Trabajo</label
+        >
+        <input
+          class="servi-white text-black rounded-xl py-1 px-2"
+          type="text"
+          v-model="orden.tipo_trabajo"
+        />
+      </div>
+
+      <div class="flex flex-col md:col-span-2 lg:col-span-3">
+        <label class="font-semibold mb-1" for="motivo_ingreso"
+          >Motivo de Ingreso</label
+        >
+        <textarea
+          class="servi-white text-black rounded-xl py-1 px-2 h-24"
+          v-model="orden.motivo_ingreso"
+        ></textarea>
+      </div>
+    </div>
+  </div>
+   <div class="mb-3 servi-blue p-5 rounded-xl servi-yellow-font mx-5 mt-5">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-sm font-bold uppercase tracking-wider">
+            Hallazgos
+          </h3>
+          <button 
+            @click="agregarObservacion"
+            class="flex items-center gap-2 servi-yellow servi-blue-font font-semibold p-2 rounded-full shadow-md transition-all duration-200 transform hover:scale-105 active:scale-95"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
+
+        <div v-if="observaciones.length === 0" class="col-span-full py-8 text-center rounded-xl servi-yellow-font opacity-60">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p>No hay hallazgos registrados</p>
+        </div>
+
+        <div class="space-y-3">
+          <div 
+            v-for="(observacion, index) in observaciones" 
+            :key="observacion.id"
+            class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4 border border-yellow-400/30 shadow-sm transition-all duration-200 hover:shadow-md hover:border-yellow-400/50"
+          >
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-xs servi-blue-font font-semibold">
+                Hallazgo #{{ index + 1 }}
+              </span>
+              <button v-if="observacion.isNew"
+                @click="eliminarObservacion(index)"
+                class="text-red-400 hover:text-red-300 transition-colors p-1 rounded-full hover:bg-red-500/20"
+                title="Eliminar hallazgo"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </div>
+            <textarea 
+              v-model="observacion.texto"
+              placeholder="Escribe aquí el hallazgo..."
+              class="w-full bg-white text-gray-900 rounded-lg p-3 resize-y focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-shadow"
+            ></textarea>
           </div>
         </div>
+      </div>
+      
+  <div v-show="!loading" class="pb-24">
+    <div class="flex flex-col m-5">
+      <div class="mb-3 servi-blue p-5 rounded-xl servi-yellow-font">
+        <h3 class="text-sm font-bold uppercase tracking-wider mb-3">
+          Evidencia Fotográfica
+        </h3>
 
-        <div class="space-y-6">
-          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4">
-            <h3 class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
-            <div class="flex flex-col gap-3">
-              <button v-if="!soloLectura && !isCerrado" @click="guardarCambios()" class="w-full servi-yellow servi-grey-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-                Guardar Todo
-              </button>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="fotos">
+          <div
+            v-if="!listaFotos || listaFotos.length === 0"
+            class="col-span-full py-8 text-center rounded-xl servi-yellow-font"
+          >
+            <p>No hay fotos registradas</p>
+          </div>
 
-              <button v-if="!loading" @click="redirigirInformeFinal" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold shadow-sm hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Ver Informe Final
-              </button>
-
-              <div v-if="soloLectura" class="text-center py-3 text-sm servi-grey-font font-medium">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Solo lectura
-              </div>
-            </div>
+          <div
+            v-for="imagen in listaFotos"
+            :key="imagen.id"
+            class="relative group aspect-square servi-yellow-font"
+          >
+            <img
+              :src="imagen.url"
+              alt="Evidencia ServiML"
+              class="w-full h-full object-cover rounded-xl border-3 servi-yellow-border shadow-sm"
+            />
+            <button
+              @click="borrarFoto(imagen.id)"
+              class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-110 active:scale-95 servi-white-font"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </div>
         </div>
-
-      </div>
-    </div>
-
-    <div v-if="showModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm">
-      <div class="servi-adapt-bg servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
-        <h3 class="text-xl font-bold servi-grey-font mb-2">Confirmar cambio</h3>
-        <p class="servi-grey-font text-sm mb-6">¿Confirmas cambiar el estado a <span class="font-bold servi-grey-font">"{{ selectedEstado?.estado }}"</span>?</p>
-        <div class="flex justify-end gap-3">
-          <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
-          <button @click="confirmarCambioEstado()" class="px-4 py-2 servi-blue text-white rounded-md font-bold hover:bg-blue-700">Confirmar</button>
+        <div>
+          <h2
+            class="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2"
+          ></h2>
+          <subirFotos @loading="manejarBloqueo" @recargarFotos="obtenerFotos" />
         </div>
       </div>
     </div>
-
-    <div v-if="showSecondModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-md">
-      <div class="servi-adapt-bg rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-          <h3 class="text-xl font-bold servi-grey-font">Finalizar Orden</h3>
-        </div>
-        <p class="servi-grey-font text-sm mb-6">Estás a punto de cerrar esta orden permanentemente.</p>
-        <div class="flex justify-end gap-3">
-          <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
-          <button @click="ejecutarCambioReal()" class="px-4 py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700">Sí, Finalizar</button>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="showThirdModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-md">
-      <div class="servi-adapt-bg servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
-        <div class="flex items-center gap-2 mb-4">
-           <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-          <h3 class="text-xl font-bold servi-grey-font">Generar Informe</h3>
-        </div>
-        <p class="servi-grey-font text-sm mb-6">Esto cambiará el estado a "{{ selectedEstado?.estado }}", generará el PDF y lo enviará al cliente.</p>
-        <div class="flex justify-end gap-3">
-          <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
-          <button @click="ejecutarCambioReal()" class="px-4 py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700">Sí, Generar</button>
-        </div>
-      </div>
-    </div>
-
     <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
-
 
   </div>
 </template>
