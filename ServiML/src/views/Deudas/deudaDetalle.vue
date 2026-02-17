@@ -270,12 +270,12 @@ const agregarOTsMasivas = async () => {
 
 // --- GESTIÓN DE ABONOS ---
 const registrarAbono = async () => {
-  interfaz.showLoadingOverlay();
+  // Validaciones antes de mostrar overlay
   if (otsEnDeuda.value.length === 0) {
     modalState.value = {
       visible: true,
       titulo: "No se puede abonar",
-      mensaje: "No hay OT’s asignadas a esta deuda.",
+      mensaje: "No hay OT's asignadas a esta deuda.",
       exito: false,
     };
     return;
@@ -291,17 +291,29 @@ const registrarAbono = async () => {
     return;
   }
 
-  if (!nuevoAbono.value || Number(nuevoAbono.value) <= 0) {
+  const monto = Number(nuevoAbono.value);
+
+  if (!nuevoAbono.value || isNaN(monto) || monto <= 0) {
     modalState.value = {
       visible: true,
       titulo: "Monto inválido",
-      mensaje: "Debes ingresar un monto mayor a 0.",
+      mensaje: "Debes ingresar un monto numérico mayor a 0.",
       exito: false,
     };
     return;
   }
 
-  if (Number(nuevoAbono.value) > saldoPendiente.value) {
+  if (!Number.isInteger(monto)) {
+    modalState.value = {
+      visible: true,
+      titulo: "Monto inválido",
+      mensaje: "El monto no puede tener decimales.",
+      exito: false,
+    };
+    return;
+  }
+
+  if (monto > saldoPendiente.value) {
     modalState.value = {
       visible: true,
       titulo: "Monto inválido",
@@ -311,14 +323,27 @@ const registrarAbono = async () => {
     return;
   }
 
+  if (archivoAbono.value && archivoAbono.value.size > 10 * 1024 * 1024) {
+    modalState.value = {
+      visible: true,
+      titulo: "Archivo muy grande",
+      mensaje: "El comprobante no puede superar los 10 MB.",
+      exito: false,
+    };
+    return;
+  }
+
+  // Todas las validaciones pasaron
+  interfaz.showLoadingOverlay();
 
   const {data, error } = await supabase.from("abonos").insert({
     deuda_id: deudaId,
-    monto: Number(nuevoAbono.value),
+    monto: monto,
     observacion: abonoObs.value,
   }).select().single();
 
   if (error) {
+    interfaz.hideLoadingOverlay();
     modalState.value = {
       visible: true,
       titulo: "Error",
@@ -332,10 +357,11 @@ const registrarAbono = async () => {
     if (archivoAbono.value) {
       const {exito: exitoUpload, error: errorUpload } = await subirAbonos(deudaId, abonoId, archivoAbono.value);
       if (!exitoUpload) {
+        interfaz.hideLoadingOverlay();
         modalState.value = {
           visible: true,
           titulo: "Error",
-          mensaje: errorUpload.message,
+          mensaje: errorUpload,
           exito: false,
         };
         return;
