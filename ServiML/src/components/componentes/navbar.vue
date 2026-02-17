@@ -16,7 +16,7 @@ const notificacionesLista = ref([])
 const hasNotifications = computed(() => notificacionesLista.value.filter(n => !n.leido).length > 0)
 
 const handleJuntarNotis = () => {
-    if (userStore.isSoporte) {
+    if (userStore.isGerente) {
      const ListaNotificaciones = notifications.value.concat(Deudas.value)
      const notificacionesOrdenadas = ListaNotificaciones.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
      notificacionesLista.value = notificacionesOrdenadas
