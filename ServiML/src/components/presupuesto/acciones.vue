@@ -31,15 +31,15 @@ const showButtons = computed(() => {
 
 <template>
   <div class="flex gap-4 justify-center">
-    <button v-if="showButtons" @click="confirm = true" class="servi-blue px-4 py-2 rounded-lg servi-white-font cursor-pointer hover:scale-105 transition-all">
+    <button v-if="showButtons" @click="confirm = true" class="servi-blue px-4 py-2 rounded-lg text-white cursor-pointer hover:scale-105 transition-all">
       Confirmar
     </button>
 
-    <button v-if="showButtons" @click="discard = true" class="bg-red-800 px-4 py-2 rounded-lg servi-white-font cursor-pointer hover:scale-105 transition-all">
+    <button v-if="showButtons" @click="discard = true" class="bg-red-800 px-4 py-2 rounded-lg text-white cursor-pointer hover:scale-105 transition-all">
       Descartar
     </button>
 
-    <button @click="ejecutarPdf" class="servi-yellow px-4 py-2 rounded-lg servi-grey-font cursor-pointer hover:scale-105 transition-all">
+    <button @click="ejecutarPdf" class="servi-yellow px-4 py-2 rounded-lg text-white cursor-pointer hover:scale-105 transition-all">
       PDF
     </button>
   </div>
@@ -48,10 +48,10 @@ const showButtons = computed(() => {
     <div class="relative w-full max-w-md servi-adapt-bg rounded-lg shadow p-6 text-center">
       <h3 class="mb-5 text-lg font-normal servi-grey-font">¿Estás seguro de confirmar el presupuesto?</h3>
       <div class="flex justify-center gap-3">
-        <button @click="ejecutarConfirmacion" class="servi-blue px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
+        <button @click="ejecutarConfirmacion" class="servi-blue px-4 py-2 rounded text-white cursor-pointer hover:scale-105 transition-all">
           Sí, confirmar
         </button>
-        <button @click="confirm = false" class="bg-gray-500 px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
+        <button @click="confirm = false" class="bg-gray-500 px-4 py-2 rounded text-white cursor-pointer hover:scale-105 transition-all">
           Cancelar
         </button>
       </div>
@@ -62,10 +62,10 @@ const showButtons = computed(() => {
     <div class="relative w-full max-w-md servi-adapt-bg rounded-lg shadow p-6 text-center">
       <h3 class="mb-5 text-lg font-normal servi-grey-font">¿Estás seguro de descartar el presupuesto?</h3>
       <div class="flex justify-center gap-3">
-        <button @click="ejecutarDescarte" class="bg-red-800 px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
+        <button @click="ejecutarDescarte" class="bg-red-800 px-4 py-2 rounded text-white cursor-pointer hover:scale-105 transition-all">
           Sí, descartar
         </button>
-        <button @click="discard = false" class="bg-gray-500 px-4 py-2 rounded servi-white-font cursor-pointer hover:scale-105 transition-all">
+        <button @click="discard = false" class="bg-gray-500 px-4 py-2 rounded text-white cursor-pointer hover:scale-105 transition-all">
           Cancelar
         </button>
       </div>

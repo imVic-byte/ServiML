@@ -5,6 +5,8 @@ import { supabase } from "../../lib/supabaseClient.js";
 import navbar from "../../components/componentes/navbar.vue";
 import modal from "../../components/componentes/modal.vue";
 import {useInterfaz} from '../../stores/interfaz'
+import { subirAbonos } from '../../js/subirAbonos'
+
 const route = useRoute();
 const router = useRouter();
 const deudaId = route.params.id;
@@ -25,6 +27,34 @@ const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true })
 
 const nuevoAbono = ref(0);
 const abonoObs = ref("");
+const archivoAbono = ref(null);
+
+const seleccionarArchivoAbono = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
+  if (!tiposPermitidos.includes(file.type)) {
+    modalState.value = {
+      visible: true,
+      titulo: "Archivo no válido",
+      mensaje: "Solo se permiten archivos PDF o imágenes (JPG, PNG, WEBP, GIF).",
+      exito: false,
+    };
+    event.target.value = '';
+    return;
+  }
+  archivoAbono.value = file;
+  event.target.value = '';
+};
+
+const removerArchivoAbono = () => {
+  archivoAbono.value = null;
+};
+
+const activarInputAbono = () => {
+  const el = document.getElementById('input-archivo-abono');
+  if (el) el.click();
+};
 const diasNotificacion = ref(0);
 const procesandoNotificacion = ref(false);
 
@@ -208,18 +238,19 @@ const toggleSeleccionOT = (otId) => {
 
 const agregarOTsMasivas = async () => {
   if (otsSeleccionadas.value.length === 0) return;
-
+  interfaz.showLoadingOverlay()
   const itemsInsertar = otsSeleccionadas.value.map((otId) => ({
     deuda_id: deudaId,
     ot_id: otId,
   }));
 
   const { error } = await supabase.from("orden_trabajo").update({ id_deuda: deudaId }).in('id', otsSeleccionadas.value);
-
+  
   if (!error) {
     await cargarDatos();
     showModalOT.value = false;
     otsSeleccionadas.value = [];
+    interfaz.hideLoadingOverlay()
     modalState.value = {
       visible: true,
       titulo: "OTs Agregadas",
@@ -227,6 +258,7 @@ const agregarOTsMasivas = async () => {
       exito: true,
     };
   } else {
+    interfaz.hideLoadingOverlay()
     modalState.value = {
       visible: true,
       titulo: "Error",
@@ -238,12 +270,12 @@ const agregarOTsMasivas = async () => {
 
 // --- GESTIÓN DE ABONOS ---
 const registrarAbono = async () => {
-  interfaz.showLoadingOverlay();
+  // Validaciones antes de mostrar overlay
   if (otsEnDeuda.value.length === 0) {
     modalState.value = {
       visible: true,
       titulo: "No se puede abonar",
-      mensaje: "No hay OT’s asignadas a esta deuda.",
+      mensaje: "No hay OT's asignadas a esta deuda.",
       exito: false,
     };
     return;
@@ -259,17 +291,29 @@ const registrarAbono = async () => {
     return;
   }
 
-  if (!nuevoAbono.value || Number(nuevoAbono.value) <= 0) {
+  const monto = Number(nuevoAbono.value);
+
+  if (!nuevoAbono.value || isNaN(monto) || monto <= 0) {
     modalState.value = {
       visible: true,
       titulo: "Monto inválido",
-      mensaje: "Debes ingresar un monto mayor a 0.",
+      mensaje: "Debes ingresar un monto numérico mayor a 0.",
       exito: false,
     };
     return;
   }
 
-  if (Number(nuevoAbono.value) > saldoPendiente.value) {
+  if (!Number.isInteger(monto)) {
+    modalState.value = {
+      visible: true,
+      titulo: "Monto inválido",
+      mensaje: "El monto no puede tener decimales.",
+      exito: false,
+    };
+    return;
+  }
+
+  if (monto > saldoPendiente.value) {
     modalState.value = {
       visible: true,
       titulo: "Monto inválido",
@@ -279,14 +323,27 @@ const registrarAbono = async () => {
     return;
   }
 
+  if (archivoAbono.value && archivoAbono.value.size > 10 * 1024 * 1024) {
+    modalState.value = {
+      visible: true,
+      titulo: "Archivo muy grande",
+      mensaje: "El comprobante no puede superar los 10 MB.",
+      exito: false,
+    };
+    return;
+  }
 
-  const { error } = await supabase.from("abonos").insert({
+  // Todas las validaciones pasaron
+  interfaz.showLoadingOverlay();
+
+  const {data, error } = await supabase.from("abonos").insert({
     deuda_id: deudaId,
-    monto: Number(nuevoAbono.value),
+    monto: monto,
     observacion: abonoObs.value,
-  });
+  }).select().single();
 
   if (error) {
+    interfaz.hideLoadingOverlay();
     modalState.value = {
       visible: true,
       titulo: "Error",
@@ -295,12 +352,29 @@ const registrarAbono = async () => {
     };
     return;
   }
+  if (data) {
+    const abonoId = data.id;
+    if (archivoAbono.value) {
+      const {exito: exitoUpload, error: errorUpload } = await subirAbonos(deudaId, abonoId, archivoAbono.value);
+      if (!exitoUpload) {
+        interfaz.hideLoadingOverlay();
+        modalState.value = {
+          visible: true,
+          titulo: "Error",
+          mensaje: errorUpload,
+          exito: false,
+        };
+        return;
+      }
+    }
+  }
 
   await cargarDatos();
   showModalAbono.value = false;
   interfaz.hideLoadingOverlay();
   nuevoAbono.value = 0;
   abonoObs.value = "";
+  archivoAbono.value = null;
 
   modalState.value = {
     visible: true,
@@ -622,7 +696,16 @@ onMounted(cargarDatos);
                 <span class="text-sm text-white italic block truncate">{{ abono.observacion || 'Abono' }}</span>
               </div>
 
-              <span class="font-bold text-white">{{ formatearDinero(abono.monto) }}</span>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white">{{ formatearDinero(abono.monto) }}</span>
+                <a v-if="abono.url" :href="abono.url" target="_blank" rel="noopener noreferrer"
+                  class="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
+                  title="Ver comprobante">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -711,6 +794,36 @@ onMounted(cargarDatos);
             <input v-model="abonoObs" type="text"
               class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg text-white font-bold outline-none"
               placeholder="Ej: Transferencia, efectivo, etc." />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-white/80 uppercase mb-1">Comprobante (PDF o Imagen)</label>
+            <input type="file" id="input-archivo-abono" class="hidden" accept="image/*,.pdf" @change="seleccionarArchivoAbono" />
+            
+            <div v-if="!archivoAbono" class="flex gap-2">
+              <button type="button" @click="activarInputAbono"
+                class="flex items-center gap-2 text-sm font-bold text-white servi-adapt-bg hover:opacity-80 px-4 py-2.5 rounded-lg transition-colors border border-white/20 cursor-pointer w-full justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Adjuntar archivo
+              </button>
+            </div>
+
+            <div v-else class="flex items-center gap-3 servi-adapt-bg rounded-lg px-3 py-2.5 border border-white/20">
+              <svg v-if="archivoAbono.type === 'application/pdf'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span class="text-sm text-white truncate flex-1">{{ archivoAbono.name }}</span>
+              <button type="button" @click="removerArchivoAbono" class="text-red-400 hover:text-red-300 p-1 rounded-full hover:bg-red-500/20 transition-colors flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 

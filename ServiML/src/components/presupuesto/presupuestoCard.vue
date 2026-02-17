@@ -91,7 +91,7 @@ const handleEstados = (estado) => {
       </div>
     </div>
     
-    <div class="card-footer">
+    <div class="card-footer servi-grey-font">
       <small v-if="data.estado===1">Vence el: {{ formatearFecha(data.vencimiento) }}</small>
       <small v-if="data.estado===4">Vencido el: {{ formatearFecha(data.vencimiento) }}</small>
     </div>
@@ -169,7 +169,7 @@ const handleEstados = (estado) => {
   font-size: 0.65rem;
   padding: 0.25rem 0.5rem;
   background: #ffc800a5;
-  color: #5c5c5c;
+  color: #292929;
   border-radius: 4px;
   text-transform: uppercase;
 }

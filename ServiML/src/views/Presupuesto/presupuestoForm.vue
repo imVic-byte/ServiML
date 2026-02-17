@@ -70,10 +70,8 @@ const esEmailValido = (email) => {
 };
 
 const validarFormulario = () => {
-  //Patente: 6 caracteres alfanuméricos, sin espacios ni guiones
-  const patenteLimpia = patente.value.replace(/[^a-zA-Z0-9]/g, '');
-  if (!patenteLimpia || patenteLimpia.length !== 6) {
-    modalState.value = { visible: true, titulo: "Patente inválida", mensaje: "La patente debe tener 6 caracteres alfanuméricos.", exito: false };
+  if (!patente.value || patente.value.length !== 6 || patente.value.trim().length !== 6 || patente.value.trim().length > 7) {
+    modalState.value = { visible: true, titulo: "Patente inválida", mensaje: "Ingresa una patente válida.", exito: false };
     return false;
   }
 

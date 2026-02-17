@@ -38,7 +38,7 @@ const alternarEstado = async (id, estadoActual) => {
       return;
     }
   }
-  useInterfaz.showLoadingOverlay();
+  interfaz.showLoadingOverlay();
   try {
     const { error } = await supabase
       .from('trabajadores')
@@ -54,12 +54,12 @@ const alternarEstado = async (id, estadoActual) => {
   } catch (error) {
     alert('Error al actualizar estado: ' + error.message);
   } finally {
-    useInterfaz.hideLoadingOverlay();
+    interfaz.hideLoadingOverlay();
   }
 };
 
 const RecuperarContraseña = async (id) => {
-  useInterfaz.showLoadingOverlay();
+  interfaz.showLoadingOverlay();
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(trabajadores.value.find(t => t.id === id).email,{
       redirectTo: 'http://app.serviml.cl/crear-contrasena'
@@ -69,7 +69,7 @@ const RecuperarContraseña = async (id) => {
   } catch (error) {
     alert('Error al restablecer la contraseña: ' + error.message);
   } finally {
-    useInterfaz.hideLoadingOverlay();
+    interfaz.hideLoadingOverlay();
   }
 }
 

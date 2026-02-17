@@ -260,8 +260,8 @@ onMounted(async () => {
                 </div>
 
                 <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 servi-adapt-bg">
-                        <h3 class="servi-grey-font font-bold">Servicios Solicitados</h3>
+                    <div class="px-6 py-4 border-b border-gray-100 servi-blue">
+                        <h3 class="text-white font-bold">Servicios Solicitados</h3>
                     </div>
                     <div class="divide-y divide-gray-800">
                         <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:opacity-80 transition-colors">
@@ -273,10 +273,10 @@ onMounted(async () => {
             </div>
 
             <div class="lg:w-1/3 space-y-6">
-                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h3 class="text-sm font-bold servi-grey-font mb-4 pb-2 border-b border-gray-100">Resumen Financiero</h3>
+                <div v-if="presupuesto.detalle_presupuesto.length > 0" class="servi-blue rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-sm font-bold text-white p-3 flex justify-between items-center">Resumen Financiero</h3>
                     
-                    <div class="space-y-3">
+                    <div class="space-y-3 servi-adapt-bg p-6 rounded-b-xl">
                         <div class="flex justify-between items-center text-sm servi-grey-font">
                             <span>Subtotal</span>
                             <span class="font-medium">{{ formatearNumero(presupuesto.subtotal || 0) }}</span>
@@ -301,15 +301,15 @@ onMounted(async () => {
                     </div>
                 </div>
 
-                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-4">Acciones</h3>
+                <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-xs rounded-t-xl font-semibold uppercase servi-blue p-3 flex justify-between items-center text-white tracking-wider mb-4">Acciones</h3>
                     
                     <!-- Selector de cuenta bancaria -->
-                    <div v-if="cuentasBancarias.length > 0" class="mb-4">
+                    <div v-if="cuentasBancarias.length > 0" class="mb-4 servi-adapt-bg py-2 px-2">
                       <label class="block text-xs font-semibold servi-grey-font uppercase tracking-wider mb-2">Cuenta para PDF</label>
                       <select
                         v-model="cuentaSeleccionada"
-                        class="w-full rounded-lg servi-blue text-white border border-gray-100 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full rounded-lg servi-blue text-white border border-gray-100 px-2 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         <option v-for="cuenta in cuentasBancarias" :key="cuenta.id" :value="cuenta">
                           {{ cuenta.banco }} - {{ cuenta.tipo_cuenta }}
@@ -317,7 +317,7 @@ onMounted(async () => {
                       </select>
                     </div>
 
-                    <div>
+                    <div class="py-2 px-2">
                         <acciones
                             :estado="presupuesto.estado"
                             @confirmar="manejarConfirmacion"

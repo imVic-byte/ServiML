@@ -52,14 +52,14 @@ const redirigir = (id) => {
                     @click="vehiculo.orden_trabajo && redirigir(vehiculo.orden_trabajo.id)"
                 >
                     <td class="p-4">
-                        <span class="servi-adapt-bg servi-white-font px-2 py-1 rounded text-xs font-bold uppercase">
+                        <span class="servi-adapt-bg servi-grey-font px-2 py-1 rounded text-xs font-bold uppercase">
                             {{ vehiculo.patente }}
                         </span>
                     </td>
                     <td class="p-4 text-sm servi-grey-font">
                         {{ [vehiculo.marca, vehiculo.modelo, vehiculo.anio].filter(Boolean).join(' ') || '—' }}
                     </td>
-                    <td class="p-4 text-sm servi-white-font">
+                    <td class="p-4 text-sm servi-grey-font">
                         <template v-if="vehiculo.orden_trabajo?.cliente">
                             <p class="font-medium">{{ vehiculo.orden_trabajo.cliente.nombre }} {{ vehiculo.orden_trabajo.cliente.apellido }}</p>
                             <p v-if="vehiculo.orden_trabajo.cliente.telefono" class="text-xs servi-grey-font">{{ vehiculo.orden_trabajo.cliente.telefono }}</p>
