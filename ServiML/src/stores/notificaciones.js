@@ -17,8 +17,6 @@ export function useNotifications(currentUserId) {
 
   const handleNewNotification = (payload) => {
     notifications.value.unshift(payload.new)
-    
-    // Aquí puedes disparar una alerta visual tipo Toast si usas alguna librería
     console.log('Alerta visual:', payload.new.titulo)
   }
 

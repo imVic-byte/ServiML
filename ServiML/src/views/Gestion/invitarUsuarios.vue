@@ -93,6 +93,12 @@ const validarEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
+const filtrarTelefono = (event) => {
+  const valorLimpio = event.target.value.replace(/\D/g, '').slice(0, 9);
+  formulario.telefono = valorLimpio;
+  errores.telefono = '';
+};
+
 const validarFormulario = () => {
   let valido = true;
   Object.keys(errores).forEach(k => errores[k] = '');
@@ -186,106 +192,97 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen servi-white pb-25">
     <navbar class="navbar" titulo="Invitar Trabajador" subtitulo="Creación y gestión de usuarios"></navbar>
-    
+
     <div class="max-w-2xl mx-auto mt-6 px-4 sm:px-0 sm:mt-10">
-      
-      <button 
-        @click="volver"
-        class="mb-6 flex items-center text-sm font-bold servi-grey-font hover:text-[#D8B462] transition-colors py-2 group"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 mr-2 transition-transform group-hover:-translate-x-1">
+
+      <button @click="volver"
+        class="mb-6 flex items-center text-sm font-bold servi-grey-font hover:text-[#D8B462] transition-colors py-2 group">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"
+          class="size-4 mr-2 transition-transform group-hover:-translate-x-1">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
         </svg>
         Volver a la lista
       </button>
 
       <div class="servi-adapt-bg rounded-2xl shadow-2xl overflow-hidden">
-        
+
         <div class="servi-blue p-8 sm:p-10 text-center relative border-b-4 border-[#D8B462]">
-          <h2 class="text-2xl sm:text-3xl font-extrabold servi-yellow-font tracking-tight">Registrar Nuevo Trabajador</h2>
+          <h2 class="text-2xl sm:text-3xl font-extrabold servi-yellow-font tracking-tight">Registrar Nuevo Trabajador
+          </h2>
           <p class="text-white opacity-90 text-base mt-3 max-w-lg mx-auto leading-relaxed">
             Completa los datos a continuación para enviar una invitación oficial al sistema.
           </p>
-          <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D8B462] to-transparent opacity-50"></div>
+          <div
+            class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#D8B462] to-transparent opacity-50">
+          </div>
         </div>
-        
+
         <form @submit.prevent="gestionarInvitacion" class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 sm:p-10">
-          
+
           <!-- Nombre -->
           <div class="space-y-2 group">
-            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Nombre</label>
-            <input 
-              v-model="formulario.nombre" 
-              type="text" 
+            <label
+              class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Nombre</label>
+            <input v-model="formulario.nombre" type="text"
               class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all  text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.nombre ? 'border-red-400' : 'border-gray-100'"
-            />
+              :class="errores.nombre ? 'border-red-400' : 'border-gray-100'" />
             <p v-if="errores.nombre" class="text-red-500 text-xs font-medium">{{ errores.nombre }}</p>
           </div>
 
           <!-- Apellido -->
           <div class="space-y-2 group">
-            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Apellido</label>
-            <input 
-              v-model="formulario.apellido" 
-              type="text" 
+            <label
+              class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Apellido</label>
+            <input v-model="formulario.apellido" type="text"
               class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.apellido ? 'border-red-400' : 'border-gray-100'"
-            />
+              :class="errores.apellido ? 'border-red-400' : 'border-gray-100'" />
             <p v-if="errores.apellido" class="text-red-500 text-xs font-medium">{{ errores.apellido }}</p>
           </div>
 
           <!-- RUT -->
           <div class="space-y-2 group">
-            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">RUT</label>
-            <input 
-              v-model="formulario.rut" 
-              @input="onRutInput"
-              type="text" 
-              placeholder="12.345.678-9"
-              maxlength="12"
+            <label
+              class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">RUT</label>
+            <input v-model="formulario.rut" @input="onRutInput" type="text" placeholder="12.345.678-9" maxlength="12"
               class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.rut ? 'border-red-400' : 'border-gray-100'"
-            />
+              :class="errores.rut ? 'border-red-400' : 'border-gray-100'" />
             <p v-if="errores.rut" class="text-red-500 text-xs font-medium">{{ errores.rut }}</p>
             <label class="flex items-center gap-2 mt-1 cursor-pointer select-none">
-              <input type="checkbox" v-model="validarRut" class="w-4 h-4 rounded border-gray-300 text-[#1f3d64] focus:ring-[#D8B462] cursor-pointer accent-[#162f50]" />
+              <input type="checkbox" v-model="validarRut"
+                class="w-4 h-4 rounded border-gray-300 text-[#1f3d64] focus:ring-[#D8B462] cursor-pointer accent-[#162f50]" />
               <span class="text-xs servi-grey-font">Validar dígito verificador</span>
             </label>
           </div>
 
           <!-- Teléfono -->
           <div class="space-y-2 group">
-            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Teléfono</label>
-            <input 
-              v-model="formulario.telefono" 
-              type="tel" 
+            <label
+              class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Teléfono</label>
+            <input :value="formulario.telefono" @input="filtrarTelefono" type="text" inputmode="numeric"
+              placeholder="912345678"
               class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.telefono ? 'border-red-400' : 'border-gray-100'"
-            />
+              :class="errores.telefono ? 'border-red-400' : 'border-gray-100'" />
             <p v-if="errores.telefono" class="text-red-500 text-xs font-medium">{{ errores.telefono }}</p>
           </div>
 
           <!-- Email -->
           <div class="md:col-span-2 space-y-2 group">
-            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Email</label>
-            <input 
-              v-model="formulario.email" 
-              type="email" 
+            <label
+              class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Email</label>
+            <input v-model="formulario.email" type="email"
               class="w-full border-2 border-gray-100 rounded-xl p-3.5 focus:border-[#D8B462] focus:ring-0 transition-all outline-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              :class="errores.email ? 'border-red-400' : 'border-gray-100'"
-            />
+              :class="errores.email ? 'border-red-400' : 'border-gray-100'" />
             <p v-if="errores.email" class="text-red-500 text-xs font-medium">{{ errores.email }}</p>
           </div>
 
           <!-- Rol -->
           <div class="md:col-span-2 space-y-2 group">
-            <label class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Rol asignado</label>
+            <label
+              class="block text-sm font-bold servi-grey-font transition-colors group-focus-within:text-[#1f3d64]">Rol
+              asignado</label>
             <div class="relative">
-              <select 
-                v-model="formulario.rol" 
-                class="w-full border-2 border-gray-100 rounded-xl p-3.5 servi-adapt-bg focus:border-[#D8B462] focus:ring-0 transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium servi-grey-font"
-              >
+              <select v-model="formulario.rol"
+                class="w-full border-2 border-gray-100 rounded-xl p-3.5 servi-adapt-bg focus:border-[#D8B462] focus:ring-0 transition-all outline-none cursor-pointer appearance-none text-base text-[#1f3d64] font-medium servi-grey-font">
                 <option value="Trabajador">Trabajador</option>
                 <option value="Administrador">Administrador</option>
                 <option value="Gerente">Gerente</option>
@@ -300,14 +297,14 @@ onMounted(async () => {
 
           <!-- Submit -->
           <div class="md:col-span-2 mt-6">
-            <button 
-              type="submit" 
-              :disabled="estado.cargando"
-              class="w-full servi-blue servi-yellow-font font-extrabold py-4 rounded-xl hover:bg-[#152a45] hover:shadow-lg transform active:scale-98 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex justify-center items-center gap-3 text-lg cursor-pointer"
-            >
-              <svg v-if="estado.cargando" class="animate-spin h-6 w-6 text-[#D8B462]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <button type="submit" :disabled="estado.cargando"
+              class="w-full servi-blue servi-yellow-font font-extrabold py-4 rounded-xl hover:bg-[#152a45] hover:shadow-lg transform active:scale-98 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none flex justify-center items-center gap-3 text-lg cursor-pointer">
+              <svg v-if="estado.cargando" class="animate-spin h-6 w-6 text-[#D8B462]" xmlns="http://www.w3.org/2000/svg"
+                fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path class="opacity-75" fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
               </svg>
               <span>{{ estado.cargando ? 'Procesando Invitación...' : 'Registrar e Invitar Ahora' }}</span>
             </button>
@@ -317,18 +314,19 @@ onMounted(async () => {
     </div>
 
     <!-- Modal resultado -->
-    <div v-if="mostrarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div v-if="mostrarModal"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div class="servi-adapt-bg rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden">
         <div class="p-6 text-center">
           <!-- Icono -->
-          <div 
-            class="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
-            :class="estado.tipo === 'success' ? 'bg-green-100' : 'bg-red-100'"
-          >
-            <svg v-if="estado.tipo === 'success'" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <div class="mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4"
+            :class="estado.tipo === 'success' ? 'bg-green-100' : 'bg-red-100'">
+            <svg v-if="estado.tipo === 'success'" class="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
-            <svg v-else class="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg v-else class="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+              stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
@@ -338,10 +336,8 @@ onMounted(async () => {
           <p class="text-sm servi-grey-font leading-relaxed">{{ estado.mensaje }}</p>
         </div>
         <div class="p-4 flex justify-center border-t border-gray-100">
-          <button 
-            @click="cerrarModal"
-            class="w-full py-3 rounded-xl font-bold transition-transform active:scale-95 servi-blue servi-yellow-font cursor-pointer"
-          >
+          <button @click="cerrarModal"
+            class="w-full py-3 rounded-xl font-bold transition-transform active:scale-95 servi-blue servi-yellow-font cursor-pointer">
             {{ estado.tipo === 'success' ? 'Volver a la lista' : 'Cerrar' }}
           </button>
         </div>

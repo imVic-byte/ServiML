@@ -615,7 +615,7 @@ onMounted( async () => {
                  </div>
                  <div class="flex-1 border border-l-4 border-l-[#1f3d64] border-gray-100 p-2 rounded shadow-sm">
                     <div class="flex justify-between items-start mb-1">
-                       <p class="text-[11px] font-bold text-gray-800 uppercase">Observación</p>
+                       <p class="text-[11px] font-bold text-gray-800 uppercase">Hallazgo</p>
                        <span class="text-[9px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded">{{ formatoFecha(item.created_at) }}</span>
                     </div>
                     <p class="text-[11px] text-gray-600 leading-snug mb-2">{{ item.observacion }}</p>
@@ -628,7 +628,7 @@ onMounted( async () => {
            </div>
            
            <div v-else class="text-center py-6 bg-slate-50 rounded border border-slate-100">
-              <p class="text-xs text-slate-400">No se registraron observaciones adicionales.</p>
+              <p class="text-xs text-slate-400">No se registraron hallazgos adicionales.</p>
            </div>
         </div>
 

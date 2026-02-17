@@ -82,7 +82,7 @@ const crearDeuda = async () => {
     showModalCrear.value = false;
     form.value.nombre = '';
     await cargarDeudas();
-    router.push({ name: 'ver-deuda', params: { id: data.id } });
+    router.push({ name: 'listado-deudas', params: { id: data.id } });
   }
 };
 
@@ -149,33 +149,23 @@ onMounted(() => {
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <!-- Filtros Estado -->
-          <div class="inline-flex self-start w-fit rounded-xl border border-gray-100 servi-adapt-bg shadow-sm overflow-hidden">
-            <button
-              type="button"
-              @click="filtroEstado = 'todas'"
-              class="px-4 py-2 text-sm font-bold transition-colors"
-              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'"
-            >
+          <div
+            class="inline-flex self-start w-fit rounded-xl border border-gray-100 servi-adapt-bg shadow-sm overflow-hidden">
+            <button type="button" @click="filtroEstado = 'todas'" class="px-4 py-2 text-sm font-bold transition-colors"
+              :class="filtroEstado === 'todas' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'">
               Todas
-              <span
-                class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
-                :class="filtroEstado === 'todas' ? 'servi-adapt-bg/20 text-white' : 'servi-adapt-bg servi-grey-font'"
-              >
+              <span class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
+                :class="filtroEstado === 'todas' ? 'servi-adapt-bg/20 text-white' : 'servi-adapt-bg servi-grey-font'">
                 {{ deudas.length }}
               </span>
             </button>
 
-            <button
-              type="button"
-              @click="filtroEstado = 'pendiente'"
+            <button type="button" @click="filtroEstado = 'pendiente'"
               class="px-4 py-2 text-sm font-bold transition-colors border-l border-gray-100"
-              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'"
-            >
+              :class="filtroEstado === 'pendiente' ? 'servi-blue servi-yellow-font' : 'servi-adapt-bg servi-grey-font hover:opacity-80'">
               Pendientes
-              <span
-                class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
-                :class="filtroEstado === 'pendiente' ? 'servi-adapt-bg/20 text-white' : 'bg-red-50 text-red-600'"
-              >
+              <span class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
+                :class="filtroEstado === 'pendiente' ? 'servi-adapt-bg/20 text-white' : 'bg-red-50 text-red-600'">
                 {{ cantidadPendientes }}
               </span>
             </button>
@@ -236,6 +226,7 @@ onMounted(() => {
               <span class="text-xl leading-none">+</span>
               Nueva Deuda
             </button>
+
           </div>
         </div>
       </div>
@@ -289,11 +280,9 @@ onMounted(() => {
           >
             Limpiar filtros
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path
-                fill-rule="evenodd"
+              <path fill-rule="evenodd"
                 d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                clip-rule="evenodd"
-              />
+                clip-rule="evenodd" />
             </svg>
           </button>
         </div>
@@ -325,19 +314,15 @@ onMounted(() => {
                   </td>
 
                   <td class="p-4">
-                    <span
-                      :style="{ backgroundColor: estadoUI(item).bg, color: estadoUI(item).fg }"
-                      class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm"
-                    >
+                    <span :style="{ backgroundColor: estadoUI(item).bg, color: estadoUI(item).fg }"
+                      class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
                       {{ estadoUI(item).label }}
                     </span>
                   </td>
 
                   <td class="p-4 text-center">
-                    <span
-                      v-if="(item.estado || '').toLowerCase() === 'pendiente' && item.notificar_cada > 0"
-                      class="text-sm font-semibold"
-                    >
+                    <span v-if="(item.estado || '').toLowerCase() === 'pendiente' && item.notificar_cada > 0"
+                      class="text-sm font-semibold">
                       🔔 Cada {{ item.notificar_cada }} días
                     </span>
                     <span v-else class="servi-grey-font">—</span>
@@ -386,10 +371,8 @@ onMounted(() => {
                   <span class="text-xs servi-grey-font">Creada: {{ formatearFecha(item.created_at) }}</span>
                 </div>
 
-                <span
-                  :style="{ backgroundColor: estadoUI(item).bg, color: estadoUI(item).fg }"
-                  class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm"
-                >
+                <span :style="{ backgroundColor: estadoUI(item).bg, color: estadoUI(item).fg }"
+                  class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
                   {{ estadoUI(item).label }}
                 </span>
               </div>
@@ -431,8 +414,10 @@ onMounted(() => {
       </template>
     </div>
 
-    <div v-if="showModalCrear" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div v-if="showModalCrear"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div
+        class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         <div class="px-6 py-4 border-b border-white/10">
           <h2 class="text-lg font-bold servi-yellow-font">Abrir Nueva Deuda</h2>
           <p class="text-sm text-white/80">Crea una deuda para agrupar OTs y registrar abonos.</p>
