@@ -110,7 +110,7 @@ const router = createRouter({
       component: () => import('../views/dashboardCosas/vehiculosEnTaller.vue'),
       meta: { 
         requiresAuth: true,
-        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte','Trabajador']
       }
     },
     {
@@ -128,7 +128,7 @@ const router = createRouter({
       component: () => import('../views/dashboardCosas/OTporEntregar.vue'),
       meta: { 
         requiresAuth: true,
-        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte','Trabajador']
       }
     },
     {
@@ -153,13 +153,19 @@ const router = createRouter({
       path: '/deudas',
       name: 'listado-deudas',
       component: () => import('../views/Deudas/deudaVer.vue'),
-      meta: { requiresAuth: true }
+      meta: { 
+        requiresAuth: true,
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+       }
     },
     {
       path: '/deuda/:id',
       name: 'ver-deuda',
       component: () => import('../views/Deudas/deudaDetalle.vue'),
-      meta: { requiresAuth: true }
+      meta: { 
+        requiresAuth: true,
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+       }
     },
     {
       path: '/invitar-usuarios',

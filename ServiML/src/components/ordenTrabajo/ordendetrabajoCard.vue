@@ -85,11 +85,11 @@ const formatearFecha = (fechaString) => {
 }
 </script>
 <template>
-  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-white mx-2 servi-blue-font card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
+  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-adapt-bg servi-grey-font mx-2 card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
     
     <div class="flex justify-between items-start border-b border-gray-100 pb-2">
       <div class="flex flex-col">
-        <span class="font-bold text-xl">#{{ orden.id || '---' }}</span>
+        <span class="font-bold servi-grey-font text-xl">#{{ orden.id || '---' }}</span>
       </div>
       <span :style="{ backgroundColor: estado.color, color: estado.texto }" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
         {{ estado.estado }}
@@ -98,34 +98,34 @@ const formatearFecha = (fechaString) => {
 
     <div class="flex flex-col gap-1 text-sm">
       <div class="flex justify-between items-center">
-        <span class="text-gray-500">Cliente:</span>
-        <span class="font-semibold text-right truncate w-40">{{ orden.cliente?.nombre || 'Sin Cliente' }}</span>
+        <span class="servi-grey-font">Cliente:</span>
+        <span class="font-semibold servi-grey-font text-right truncate w-40">{{ orden.cliente?.nombre || 'Sin Cliente' }}</span>
       </div>
       
       <div class="flex justify-between items-center">
-        <span class="text-gray-500">Vehículo:</span>
+        <span class="servi-grey-font">Vehículo:</span>
         <div class="text-right">
-          <span class="font-bold block text-base">{{ orden.vehiculo?.patente || 'S/P' }}</span>
+          <span class="font-bold block servi-grey-font text-base">{{ orden.vehiculo?.patente || 'S/P' }}</span>
         </div>
       </div>
       
-      <div class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600 italic line-clamp-2">
+      <div class="mt-2 servi-adapt-bg p-2 rounded text-xs servi-grey-font italic line-clamp-2">
         "{{ orden.motivo_ingreso }}"
       </div>
       <div class="info-row" v-if="orden.fecha_ingreso">
-        <span class="label text-gray-500">Fecha Ingreso: </span>
-        <span class="valor text-gray-500"> {{ formatearFecha(orden.fecha_ingreso) }}</span>
+        <span class="label servi-grey-font">Fecha Ingreso: </span>
+        <span class="valor servi-grey-font"> {{ formatearFecha(orden.fecha_ingreso) }}</span>
       </div>
     </div>
 
     <div class="flex mt-2 pt-2 border-t border-gray-100 items-center justify-between">
       
       <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: orden.id } }" class="servi-blue servi-white-font p-2 rounded-lg w-full text-center transition-transform hover:scale-110 shadow-sm">
-        <span class="servi-white-font text-sm">Ver Detalles</span>
+        <span class="text-white text-sm">Ver Detalles</span>
       </RouterLink>
     </div>
 
-    <button v-if="!empleadoAsignado" @click="abrirModalAsignar" class="mt-2 flex rounded-lg servi-yellow servi-blue-font justify-center items-center px-3 py-2 w-full mx-auto transition-colors hover:bg-yellow-400">
+    <button v-if="!empleadoAsignado" @click="abrirModalAsignar" class="mt-2 flex rounded-lg servi-yellow servi-grey-font justify-center items-center px-3 py-2 w-full mx-auto transition-colors hover:bg-yellow-400">
       <span class="font-bold text-sm mr-2">Asignar Técnico</span>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
@@ -143,7 +143,7 @@ const formatearFecha = (fechaString) => {
 
       <div class="p-6">
         <label class="block text-sm font-medium mb-2">Seleccione un técnico</label>
-        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold">
+        <select v-model="empleadoSeleccionado" class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-grey-font font-bold">
           <option value="" disabled>-- Seleccionar --</option>
           <option v-for="emple in empleados" :key="emple.id" :value="emple.id">
             {{ emple.nombre }} {{ emple.apellido }}
@@ -152,13 +152,13 @@ const formatearFecha = (fechaString) => {
       </div>
 
       <div class="px-6 py-4 flex justify-end gap-3">
-        <button @click="modalAsignar = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-blue-font rounded-lg">
+        <button @click="modalAsignar = false" class="px-4 py-2 text-sm font-medium servi-yellow servi-grey-font rounded-lg">
           Cancelar
         </button>
         <button 
           @click="asignarOrden" 
           :disabled="!empleadoSeleccionado || cargando"
-          class="px-4 py-2 text-s servi-yellow servi-blue-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-4 py-2 text-s servi-yellow servi-grey-font rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <span v-if="cargando">Guardando...</span>
           <span v-else>Confirmar</span>
@@ -172,6 +172,5 @@ const formatearFecha = (fechaString) => {
 .card-shadow {
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  background-color: white;
 }
 </style>

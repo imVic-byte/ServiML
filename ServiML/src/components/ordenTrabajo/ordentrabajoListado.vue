@@ -30,10 +30,10 @@ watch(() => props.ordenes, (nuevoValor) => {
 })
 </script>
 <template>
-    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm  overflow-hidden">
         <table class="w-full text-left border-collapse">
             <thead>
-                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
+                <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider">
                     <th class="p-4 font-semibold">Nro.</th>
                     <th class="p-4 font-semibold">Vehículo</th>
                     <th class="p-4 font-semibold">Diágnostico inicial</th>
@@ -43,7 +43,7 @@ watch(() => props.ordenes, (nuevoValor) => {
                     <th class="p-4 font-semibold text-center">Acción</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100">
+            <tbody>
                 <Fila 
                     v-for="orden in ordenesListado" 
                     :key="orden.id" 
@@ -53,10 +53,10 @@ watch(() => props.ordenes, (nuevoValor) => {
                 />
             </tbody>
         </table>
-        <div v-if="ordenesListado.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
-        <div class="text-gray-400 mb-2">
-          <p class="text-gray-500 text-lg">No se encontraron ordenes de trabajo</p>
-          <p class="text-sm text-gray-400">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>
+        <div v-if="ordenesListado.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
+        <div class="servi-grey-font mb-2">
+          <p class="servi-grey-font text-lg">No se encontraron ordenes de trabajo</p>
+          <p class="text-sm servi-grey-font">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>

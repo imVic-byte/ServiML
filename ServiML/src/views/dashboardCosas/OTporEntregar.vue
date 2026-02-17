@@ -23,14 +23,15 @@ const handleEstados = (id) => {
 const obtenerOrdenes = async () => {
   const { data, error } = await supabase
     .from("orden_trabajo")
-    .select("*,vehiculo(*),cliente(*),presupuesto(*)")
-    .eq('estado_actual_id', 6)
+    .select("*,vehiculo(*),cliente(*),presupuesto(*),trabajadores(*)")
+    .in('estado_actual_id', [6,9])
     .order("id", { ascending: false });
   if (error) {
     console.error(error);
     return;
   }
   if (data) {
+    console.log(data)
     ordenes.value = data;
   }
   uiStore.hideLoading()
@@ -44,7 +45,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg-gray-50 min-h-screen pb-15">
+  <div class="servi-white min-h-screen pb-15">
     <navbar
       titulo="ServiML"
       subtitulo="OT Por Entregar"
@@ -55,8 +56,8 @@ onMounted(async () => {
 
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h2 class="text-xl font-bold servi-blue-font">OT Por Entregar</h2>
-          <p class="text-sm text-gray-500">Órdenes de trabajo listas para entregar al cliente</p>
+          <h2 class="text-xl font-bold servi-grey-font">OT Por Entregar</h2>
+          <p class="text-sm servi-grey-font">Órdenes de trabajo listas para entregar al cliente</p>
         </div>
       </div>
 
@@ -70,10 +71,10 @@ onMounted(async () => {
           :estado="handleEstados(item.estado_actual_id)"
           @asignacion-exitosa="obtenerOrdenes"
         />
-        <div v-if="ordenes.length === 0" class="bg-white rounded-xl p-10 text-center shadow-sm border border-gray-100">
-        <div class="text-gray-400 mb-2">
-          <p class="text-gray-500 text-lg">No hay órdenes por entregar</p>
-          <p class="text-sm text-gray-400">Todas las órdenes han sido entregadas.</p>
+        <div v-if="ordenes.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
+        <div class="servi-grey-font mb-2">
+          <p class="servi-grey-font text-lg">No hay órdenes por entregar</p>
+          <p class="text-sm servi-grey-font">Todas las órdenes han sido entregadas.</p>
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mt-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>

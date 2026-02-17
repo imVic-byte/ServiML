@@ -483,7 +483,7 @@ onMounted(cargarDatos);
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 pb-12 font-sans servi-blue-font">
+  <div class="min-h-screen servi-white pb-12 font-sans text-white">
     <navbar titulo="Gestión de Deuda" :subtitulo="deuda?.nombre || 'Detalle'" class="navbar" />
 
     <div v-if="loading" class="flex justify-center mt-10">
@@ -491,10 +491,10 @@ onMounted(cargarDatos);
     </div>
 
     <div v-else class="max-w-7xl mx-auto px-4 py-8">
-      <div class="servi-white card-shadow border border-gray-100 overflow-hidden mb-8">
-        <div class="p-6 md:p-8 flex justify-between items-start flex-wrap gap-4">
+      <div class="servi-adapt-bg card-shadow border border-gray-100 overflow-hidden mb-8">
+        <div class="p-6 md:p-8 flex justify-between items-start flex-wrap gap-4 servi-blue">
           <div class="flex flex-col gap-2">
-            <h1 class="text-2xl font-bold text-gray-900">{{ deuda.nombre }}</h1>
+            <h1 class="text-2xl font-bold text-white">{{ deuda.nombre }}</h1>
 
             <div class="flex items-center gap-2 flex-wrap">
               <span :style="{ backgroundColor: estadoDeudaUI.bg, color: estadoDeudaUI.fg }"
@@ -503,55 +503,55 @@ onMounted(cargarDatos);
               </span>
 
               <span v-if="deuda.estado === 'pendiente' && deuda.notificar_cada > 0"
-                class="text-xs text-gray-500 flex items-center gap-1">
+                class="text-xs text-white flex items-center gap-1">
                 🔔 Cada {{ deuda.notificar_cada }} días
               </span>
             </div>
           </div>
 
           <div class="text-right">
-            <p class="text-xs text-gray-500 uppercase">Saldo Pendiente</p>
-            <p class="text-4xl font-extrabold text-gray-900">{{ formatearDinero(saldoPendiente) }}</p>
+            <p class="text-xs text-white uppercase">Saldo Pendiente</p>
+            <p class="text-4xl font-extrabold text-white">{{ formatearDinero(saldoPendiente) }}</p>
           </div>
         </div>
 
         <div class="px-6 pb-6">
-          <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-            <div class="servi-blue h-3 rounded-full transition-all duration-700"
+          <div class="w-full servi-adapt-bg mt-2 rounded-full h-3 overflow-hidden">
+            <div class="bg-green-500 h-3 rounded-full transition-all duration-700"
               :style="{ width: `${porcentajePagado}%` }"></div>
           </div>
 
           <div class="flex justify-between items-center mt-2">
-            <span class="text-xs font-bold text-gray-600">{{ formatearDinero(totalPagado) }} / {{
+            <span class="text-xs font-bold servi-grey-font">{{ formatearDinero(totalPagado) }} / {{
               formatearDinero(totalDeuda) }}</span>
             <span class="text-xs font-bold">{{ porcentajePagado }}% Pagado</span>
           </div>
 
           <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
-              <div class="text-xs text-gray-500 uppercase">OTs</div>
-              <div class="font-bold text-gray-900">{{ otsEnDeuda.length }}</div>
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
+              <div class="text-xs text-white uppercase">OTs</div>
+              <div class="font-bold text-white">{{ otsEnDeuda.length }}</div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
-              <div class="text-xs text-gray-500 uppercase">Total deuda</div>
-              <div class="font-bold text-gray-900">{{ formatearDinero(totalDeuda) }}</div>
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
+              <div class="text-xs text-white uppercase">Total deuda</div>
+              <div class="font-bold text-white">{{ formatearDinero(totalDeuda) }}</div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
-              <div class="text-xs text-gray-500 uppercase">Pagado</div>
-              <div class="font-bold text-gray-900">{{ formatearDinero(totalPagado) }}</div>
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
+              <div class="text-xs text-white uppercase">Pagado</div>
+              <div class="font-bold text-white">{{ formatearDinero(totalPagado) }}</div>
             </div>
-            <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
-              <div class="text-xs text-gray-500 uppercase">Saldo</div>
-              <div class="font-bold text-gray-900">{{ formatearDinero(saldoPendiente) }}</div>
+            <div class="servi-blue rounded-lg p-3 border border-gray-100">
+              <div class="text-xs text-white uppercase">Saldo</div>
+              <div class="font-bold text-white">{{ formatearDinero(saldoPendiente) }}</div>
             </div>
           </div>
         </div>
 
         <!-- Acciones -->
         <div v-if="!esCompletada"
-          class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 items-center">
+          class="servi-adapt-bg px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 items-center">
           <button @click="buscarOTsDisponibles"
-            class="w-full sm:w-auto servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
+            class="flex rounded-lg servi-yellow text-white justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition">
             <span class="text-xl leading-none mb-1">+ Agregar OT</span>
             <span class="hidden sm:inline"></span>
           </button>
@@ -570,7 +570,7 @@ onMounted(cargarDatos);
 
 
           <button @click="showConfig = !showConfig"
-            class="w-full sm:w-auto servi-yellow servi-blue-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
+            class="flex rounded-lg servi-yellow text-white justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition">
             <span class="text-xl leading-none mb-1">⚙ Configurar</span>
             <span class="hidden sm:inline"></span>
           </button>
@@ -580,8 +580,7 @@ onMounted(cargarDatos);
         <!-- Config recordatorios -->
         <div v-if="showConfig" class="servi-blue p-4 border-t border-white/10 flex items-center gap-4 animate-fadeIn">
           <span class="servi-yellow-font font-bold text-sm">Recordarme cobrar cada:</span>
-          <select v-model="diasNotificacion"
-            class="rounded-lg px-3 py-2 servi-yellow servi-blue-font font-bold text-sm">
+          <select v-model="diasNotificacion" class="rounded-lg px-3 py-2 servi-yellow text-white font-bold text-sm">
             <option :value="0">Nunca</option>
             <option :value="5">5 días</option>
             <option :value="10">10 días</option>
@@ -589,7 +588,7 @@ onMounted(cargarDatos);
             <option :value="30">30 días</option>
           </select>
           <button @click="guardarConfigNotificacion"
-            class="px-4 py-2 text-sm font-bold servi-yellow servi-blue-font rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            class="px-4 py-2 text-sm font-bold servi-yellow text-white rounded-lg shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             :disabled="procesandoNotificacion">
             {{ procesandoNotificacion ? 'Guardando...' : 'Guardar' }}
           </button>
@@ -599,86 +598,75 @@ onMounted(cargarDatos);
       <!-- Listados -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Órdenes -->
-        <div class="card-shadow overflow-hidden border border-gray-200 bg-white">
+        <div class="card-shadow overflow-hidden border border-gray-100 servi-adapt-bg">
           <div class="servi-blue servi-yellow-font px-4 py-3 flex items-center justify-between">
             <h3 class="font-bold text-xs uppercase tracking-wider">Órdenes ({{ otsEnDeuda.length }})</h3>
           </div>
 
           <div class="p-4">
-            <div v-if="otsEnDeuda.length === 0" class="text-gray-400 text-center py-8">Sin OTs vinculadas</div>
+            <div v-if="otsEnDeuda.length === 0" class="text-white text-center py-8">Sin OTs vinculadas</div>
 
             <div v-for="item in otsEnDeuda" :key="item.id"
-              class="flex items-center justify-between py-3 border-b last:border-0 hover:bg-gray-50 px-2 rounded transition-colors">
+              class="flex items-center justify-between servi-blue py-3 border-b last:border-0 hover:opacity-80 px-2 rounded-xl transition-colors">
               <div class="min-w-0">
-                <span class="font-bold text-gray-900 block">OT #{{ item.orden_trabajo.id }}</span>
-                <span class="text-xs text-gray-500 block truncate">
+                <span class="font-bold text-white block">OT #{{ item.orden_trabajo.id }}</span>
+                <span class="text-xs text-white block truncate">
                   {{ item.orden_trabajo.vehiculo.modelo }} - {{ item.orden_trabajo.vehiculo.patente }}
                 </span>
-                <span class="text-xs text-gray-400">Ingreso: {{ formatearFecha(item.orden_trabajo.created_at) }}</span>
+                <span class="text-xs text-white">Ingreso: {{ formatearFecha(item.orden_trabajo.created_at) }}</span>
               </div>
               <div class="flex items-center gap-3">
-  <span class="font-bold text-gray-900">
-    {{
-      formatearDinero(
-        (item.orden_trabajo.presupuesto?.total_final || 0) +
-        calcularEstacionamientoOT(item.orden_trabajo)
-      )
-    }}
-  </span>
+                <span class="p-4 text-right font-bold servi-grey-font">
+                  {{
+                    formatearDinero(
+                      (item.orden_trabajo.presupuesto?.total_final || 0) +
+                      calcularEstacionamientoOT(item.orden_trabajo)
+                    )
+                  }}
+                </span>
 
-  <RouterLink
-    :to="{ name: 'ver-orden-de-trabajo', params: { id: item.orden_trabajo.id } }"
-    class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
-    aria-label="Ver OT"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-      stroke-width="2" stroke="currentColor" class="size-5">
-      <path stroke-linecap="round" stroke-linejoin="round"
-        d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-    </svg>
-  </RouterLink>
+                <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: item.orden_trabajo.id } }"
+                  class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
+                  aria-label="Ver OT">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </RouterLink>
 
-  <!-- Botón eliminar ahora a la derecha -->
-  <button
-    type="button"
-    @click.stop="eliminarOTDeuda(item)"
-    class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
-           hover:bg-red-50 hover:border-red-200 transition"
-    title="Eliminar OT"
-    aria-label="Eliminar OT"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg"
-      class="h-4 w-4 text-red-600"
-      viewBox="0 0 20 20"
-      fill="currentColor">
-      <path fill-rule="evenodd"
-        d="M9 2a1 1 0 00-1 1v1H5a1 1 0 000 2h.293l.853 10.243A2 2 0 008.14 18h3.72a2 2 0 001.994-1.757L14.707 6H15a1 1 0 100-2h-3V3a1 1 0 00-1-1H9zm1 4a1 1 0 10-2 0v9a1 1 0 102 0V6zm4 0a1 1 0 10-2 0v9a1 1 0 102 0V6z"
-        clip-rule="evenodd" />
-    </svg>
-  </button>
-</div>
+                <!-- Botón eliminar ahora a la derecha -->
+                <button type="button" @click.stop="eliminarOTDeuda(item)" class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
+           hover:bg-red-50 hover:border-red-200 transition" title="Eliminar OT" aria-label="Eliminar OT">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600" viewBox="0 0 20 20"
+                    fill="currentColor">
+                    <path fill-rule="evenodd"
+                      d="M9 2a1 1 0 00-1 1v1H5a1 1 0 000 2h.293l.853 10.243A2 2 0 008.14 18h3.72a2 2 0 001.994-1.757L14.707 6H15a1 1 0 100-2h-3V3a1 1 0 00-1-1H9zm1 4a1 1 0 10-2 0v9a1 1 0 102 0V6zm4 0a1 1 0 10-2 0v9a1 1 0 102 0V6z"
+                      clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
 
             </div>
           </div>
         </div>
 
         <!-- Abonos -->
-        <div class="card-shadow overflow-hidden border border-gray-200 bg-white">
+        <div class="card-shadow overflow-hidden border border-gray-100 servi-adapt-bg">
           <div class="servi-blue servi-yellow-font px-4 py-3 flex items-center justify-between">
             <h3 class="font-bold text-xs uppercase tracking-wider">Abonos Realizados</h3>
           </div>
 
           <div class="p-4">
-            <div v-if="abonos.length === 0" class="text-gray-400 text-center py-8">Sin pagos registrados</div>
+            <div v-if="abonos.length === 0" class="text-white text-center py-8">Sin pagos registrados</div>
 
             <div v-for="abono in abonos" :key="abono.id"
-              class="flex justify-between py-3 border-b last:border-0 hover:bg-gray-50 px-2 rounded transition-colors">
+              class="flex justify-between py-3 servi-blue border-b last:border-0 hover:opacity-80 px-2 rounded-xl transition-colors">
               <div class="min-w-0">
-                <span class="text-xs text-gray-400 block">{{ formatearFecha(abono.created_at) }}</span>
-                <span class="text-sm text-gray-700 italic block truncate">{{ abono.observacion || 'Abono' }}</span>
+                <span class="text-xs text-white block">{{ formatearFecha(abono.created_at) }}</span>
+                <span class="text-sm text-white italic block truncate">{{ abono.observacion || 'Abono' }}</span>
               </div>
 
-              <span class="font-bold text-gray-900"> {{ formatearDinero(abono.monto) }}</span>
+              <span class="font-bold text-white">{{ formatearDinero(abono.monto) }}</span>
             </div>
           </div>
         </div>
@@ -717,17 +705,17 @@ onMounted(cargarDatos);
 
               <div class="min-w-0">
                 <span class="font-bold block truncate"
-                  :class="otsSeleccionadas.includes(ot.id) ? 'text-white' : 'text-gray-900'">
+                  :class="otsSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
                   OT #{{ ot.id }}
                 </span>
                 <div class="text-xs truncate"
-                  :class="otsSeleccionadas.includes(ot.id) ? 'text-white/80' : 'text-gray-600'">
+                  :class="otsSeleccionadas.includes(ot.id) ? 'text-white/80' : 'text-white'">
                   {{ ot.vehiculo?.modelo }} - {{ ot.vehiculo?.patente }}
                 </div>
               </div>
             </div>
 
-            <span class="font-bold" :class="otsSeleccionadas.includes(ot.id) ? 'text-white' : 'text-gray-900'">
+            <span class="font-bold" :class="otsSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
               {{ formatearDinero(ot.presupuesto?.total_final) }}
             </span>
           </button>
@@ -735,7 +723,7 @@ onMounted(cargarDatos);
 
         <div class="px-6 py-4 border-t border-white/10">
           <button @click="agregarOTsMasivas" :disabled="otsSeleccionadas.length === 0"
-            class="w-full servi-yellow servi-blue-font font-bold py-3 rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition">
+            class="w-full servi-yellow text-white font-bold py-3 rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition">
             Agregar {{ otsSeleccionadas.length }} OTs Seleccionadas
           </button>
 
@@ -759,30 +747,24 @@ onMounted(cargarDatos);
           <div>
             <label class="block text-xs font-bold text-white/80 uppercase mb-1">Monto</label>
             <input v-model="nuevoAbono" type="number"
-              class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
-              placeholder="0" />
+              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg text-white font-bold outline-none" placeholder="0" />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-white/80 uppercase mb-1">Observación</label>
             <input v-model="abonoObs" type="text"
-              class="w-full rounded-lg px-3 py-2.5 servi-yellow servi-blue-font font-bold outline-none"
+              class="w-full rounded-lg px-3 py-2.5 servi-adapt-bg text-white font-bold outline-none"
               placeholder="Ej: Transferencia, efectivo, etc." />
           </div>
         </div>
 
         <div class="px-6 py-4 flex justify-end gap-3">
-          <button type="button" @click="showModalAbono = false"
-            class="px-4 py-2.5 rounded-xl font-bold border border-white/20 text-white/90 hover:bg-white/10 transition active:scale-[0.98]">
-            Cancelar
-          </button>
+          <button @click="showModalAbono = false"
+            class="px-4 py-2 text-sm font-medium servi-yellow text-white rounded-lg">Cancelar</button>
 
-          <button type="button" @click="registrarAbono"
-            :disabled="nuevoAbono <= 0 || otsEnDeuda.length === 0 || saldoPendiente <= 0" class="px-4 py-2.5 rounded-xl font-extrabold servi-yellow servi-blue-font shadow-sm
-               transition-all duration-200
-               hover:opacity-95 hover:shadow-md hover:-translate-y-[1px]
-               active:translate-y-0 active:shadow-sm
-               disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+          <button @click="registrarAbono"
+            class="px-4 py-2 text-sm font-bold servi-yellow text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            :disabled="nuevoAbono <= 0">
             Confirmar
           </button>
         </div>
@@ -815,6 +797,5 @@ onMounted(cargarDatos);
 .card-shadow {
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  background-color: white;
 }
 </style>
