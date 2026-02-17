@@ -159,6 +159,49 @@ const eliminarObservacion = (index) => {
 
 const guardarCambios = async () => {
   if (verificarEstadoCerrado()) return;
+
+  // Validaciones
+  const errores = [];
+
+  if (orden.value.kilometraje_inicial !== null && orden.value.kilometraje_inicial !== undefined && orden.value.kilometraje_inicial < 0) {
+    errores.push("El kilometraje no puede ser negativo.");
+  }
+
+  if (nivelCombustible.value < 0 || nivelCombustible.value > 100) {
+    errores.push("El nivel de combustible debe estar entre 0 y 100.");
+  }
+
+  if (!orden.value.fecha_promesa) {
+    errores.push("La fecha de promesa es obligatoria.");
+  }
+
+  if (!orden.value.prioridad || ![1, 2, 3, '1', '2', '3'].includes(orden.value.prioridad)) {
+    errores.push("Seleccione una prioridad válida.");
+  }
+
+  if (!orden.value.tipo_trabajo || orden.value.tipo_trabajo.trim() === '') {
+    errores.push("El tipo de trabajo es obligatorio.");
+  }
+
+  if (!orden.value.id_taller) {
+    errores.push("Debe seleccionar un taller.");
+  }
+
+  const obsNuevasVacias = observaciones.value.filter(o => o.isNew && (!o.texto || o.texto.trim() === ''));
+  if (obsNuevasVacias.length > 0) {
+    errores.push("Hay observaciones nuevas sin texto. Complételas o elimínelas.");
+  }
+
+  if (errores.length > 0) {
+    modalState.value = {
+      visible: true,
+      titulo: "Campos incompletos",
+      mensaje: errores.join("\n"),
+      exito: false,
+    };
+    return;
+  }
+
   manejarBloqueo(true);
   interfaz.showLoadingOverlay();
   const { error } = await supabase
