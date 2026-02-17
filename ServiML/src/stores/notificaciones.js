@@ -13,12 +13,11 @@ export function useNotifications(currentUserId) {
       .limit(10)
     
     if (data) notifications.value = data
+    console.log(notifications.value)
   }
 
   const handleNewNotification = (payload) => {
     notifications.value.unshift(payload.new)
-    
-    // Aquí puedes disparar una alerta visual tipo Toast si usas alguna librería
     console.log('Alerta visual:', payload.new.titulo)
   }
 

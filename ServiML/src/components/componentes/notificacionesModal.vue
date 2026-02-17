@@ -7,7 +7,7 @@ const props = defineProps({
   notifications: Array,
 })
 
-const emit = defineEmits(['cerrar', 'marcarLeida', 'marcarTodasLeidas'])
+const emit = defineEmits(['cerrar', 'marcarLeidaNotificacion', 'marcarLeidaDeuda', 'marcarTodasLeidas', 'marcarTodasLeidasDeuda'])
 
 const notificacionesNoLeidas = computed(() =>
   props.notifications.filter(n => !n.leido).length
@@ -28,10 +28,16 @@ const tiempoRelativo = (fecha) => {
   return creada.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })
 }
 
-const handleIrAOT = (id) => {
-  emit('marcarLeida', id)
+const handleIrAOT = (notifId, resourceId) => {
+  emit('marcarLeidaNotificacion', notifId)
   emit('cerrar')
-  router.push({ name: 'ver-orden-de-trabajo', params: { id } })
+  router.push({ name: 'ver-orden-de-trabajo', params: { id: resourceId } })
+}
+
+const handleIrADeuda = (notifId, deudaId) => {
+  emit('marcarLeidaDeuda', notifId)
+  emit('cerrar')
+  router.push({ name: 'ver-deuda', params: { id: deudaId } })
 }
 </script>
 
@@ -56,7 +62,7 @@ const handleIrAOT = (id) => {
 
         <!-- Marcar todas como leídas -->
         <div v-if="notificacionesNoLeidas > 0" class="mark-all-bar servi-adapt-bg">
-          <button @click="emit('marcarTodasLeidas')" class="btn-mark-all servi-yellow servi-grey-font">
+          <button @click="emit('marcarTodasLeidas'), emit('marcarTodasLeidasDeuda')" class="btn-mark-all servi-yellow servi-grey-font">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-check-all">
               <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd" />
             </svg>
@@ -71,7 +77,6 @@ const handleIrAOT = (id) => {
             :key="notif.id"
             class="notification-item servi-adapt-bg servi-grey-font"
             :class="{ 'notification-unread': !notif.leido }"
-            @click="!notif.leido && emit('marcarLeida', notif.id)"
           >
             <div class="notification-dot-col">
               <span v-if="!notif.leido" class="notification-dot"></span>
@@ -81,7 +86,10 @@ const handleIrAOT = (id) => {
               <p v-if="notif.contenido" class="notification-body">{{ notif.contenido }}</p>
               <p class="notification-time">{{ tiempoRelativo(notif.created_at) }}</p>
             </div>
-            <button class="servi-blue servi-yellow-font rounded-full px-4 py-2" @click="handleIrAOT(notif.id_resource)">
+            <button v-if="notif.tipo==='notificacion'" class="servi-blue servi-yellow-font rounded-full px-4 py-2" @click="handleIrAOT(notif.id, notif.id_resource)">
+                Ver
+            </button>
+            <button v-if="notif.tipo==='deuda'" class="servi-blue servi-yellow-font rounded-full px-4 py-2" @click="handleIrADeuda(notif.id, notif.deuda)">
                 Ver
             </button>
           </div>
