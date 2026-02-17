@@ -495,13 +495,13 @@ onMounted(async () => {
               </div>
               <div>
                 <h2 class="text-lg font-bold servi-yellow-font">Datos de la Empresa</h2>
-                <p class="servi-grey-font text-sm">Información general y contacto</p>
+                <p class="text-white text-sm">Información general y contacto</p>
               </div>
             </div>
             <button
               v-if="!editandoEmpresa"
               @click="iniciarEdicionEmpresa"
-              class="px-4 py-2 servi-yellow servi-grey-font rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
+              class="px-4 py-2 servi-yellow text-white rounded-lg text-sm font-semibold cursor-pointer hover:opacity-90 transition-opacity"
             >
               Editar
             </button>
@@ -525,10 +525,10 @@ onMounted(async () => {
                     v-if="editandoEmpresa"
                     v-model="empresa[key]"
                     type="text"
-                    class="mt-1 block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue servi-grey-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    class="mt-1 block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     :placeholder="campo"
                   />
-                  <p v-else class="mt-1 servi-grey-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
+                  <p v-else class="mt-1 text-white font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                     {{ empresa[key] || '—' }}
                   </p>
                 </label>
@@ -539,7 +539,7 @@ onMounted(async () => {
             <div class="mt-6 pt-5 border-t border-gray-100">
               <div class="flex justify-between items-center mb-3">
                 <span class="text-xs servi-grey-font uppercase font-bold tracking-wide">Teléfonos de Contacto</span>
-                <button v-if="editandoEmpresa" @click="agregarTelefono" class="text-xs servi-grey-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
+                <button v-if="editandoEmpresa" @click="agregarTelefono" class="text-xs text-white font-semibold hover:underline cursor-pointer flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                   Agregar
                 </button>
@@ -561,17 +561,17 @@ onMounted(async () => {
                       v-if="editandoEmpresa"
                       v-model="tel.valor"
                       type="tel"
-                      class="block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue servi-grey-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      class="block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="+56 9 1234 5678"
                     />
-                    <p v-else class="servi-grey-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
+                    <p v-else class="text-white font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                       {{ tel.valor || '—' }}
                     </p>
                   </div>
                   <span v-if="!editandoEmpresa && tel.prioritario" class="text-xs font-semibold servi-yellow servi-grey-font px-2 py-0.5 rounded-full whitespace-nowrap">Principal</span>
                   <button v-if="editandoEmpresa && empresa.telefonos.length > 1" @click="eliminarTelefono(index)" class="flex-shrink-0 p-1.5 servi-grey-font hover:text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
+                  </button> 
                 </div>
               </div>
             </div>
@@ -579,8 +579,8 @@ onMounted(async () => {
             <!-- Emails -->
             <div class="mt-6 pt-5 border-t border-gray-100">
               <div class="flex justify-between items-center mb-3">
-                <span class="text-xs servi-grey-font uppercase font-bold tracking-wide">Emails de Contacto</span>
-                <button v-if="editandoEmpresa" @click="agregarEmail" class="text-xs servi-grey-font font-semibold hover:underline cursor-pointer flex items-center gap-1">
+                <span class="text-xs text-white uppercase font-bold tracking-wide">Emails de Contacto</span>
+                <button v-if="editandoEmpresa" @click="agregarEmail" class="text-xs text-white font-semibold hover:underline cursor-pointer flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
                   Agregar
                 </button>
@@ -602,10 +602,10 @@ onMounted(async () => {
                       v-if="editandoEmpresa"
                       v-model="em.valor"
                       type="email"
-                      class="block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue servi-grey-font focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      class="block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       placeholder="contacto@serviml.cl"
                     />
-                    <p v-else class="servi-grey-font font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
+                    <p v-else class="text-white font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
                       {{ em.valor || '—' }}
                     </p>
                   </div>
