@@ -208,18 +208,19 @@ const toggleSeleccionOT = (otId) => {
 
 const agregarOTsMasivas = async () => {
   if (otsSeleccionadas.value.length === 0) return;
-
+  interfaz.showLoadingOverlay()
   const itemsInsertar = otsSeleccionadas.value.map((otId) => ({
     deuda_id: deudaId,
     ot_id: otId,
   }));
 
   const { error } = await supabase.from("orden_trabajo").update({ id_deuda: deudaId }).in('id', otsSeleccionadas.value);
-
+  
   if (!error) {
     await cargarDatos();
     showModalOT.value = false;
     otsSeleccionadas.value = [];
+    interfaz.hideLoadingOverlay()
     modalState.value = {
       visible: true,
       titulo: "OTs Agregadas",
@@ -227,6 +228,7 @@ const agregarOTsMasivas = async () => {
       exito: true,
     };
   } else {
+    interfaz.hideLoadingOverlay()
     modalState.value = {
       visible: true,
       titulo: "Error",

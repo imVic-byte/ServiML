@@ -122,7 +122,9 @@ const handleOT = async () => {
 }
 
 const handleOTSinAsignar = async () => {
-  otSinAsignar.value = listaOT.value.filter(ot => ot.id_empleado === null).length
+  const {data,error} = await supabase.from('orden_trabajo').select('*').is('id_empleado', null)
+  if (error) throw error
+  otSinAsignar.value = data.length
 }
 
 
