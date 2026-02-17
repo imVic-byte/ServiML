@@ -287,6 +287,23 @@ onMounted(() => {
         />
       </div>
 
+          <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="servi-blue px-6 py-4 flex justify-between items-center">
+              <h3 class="servi-yellow-font font-bold text-lg tracking-wide uppercase">Bitácora de hallazgos</h3>
+              <button v-if="!soloLectura && !isCerrado" @click="agregarObservacion" class="servi-yellow text-blue-900 font-bold p-2 rounded-full shadow-md transition-all transform hover:scale-105" title="Agregar hallazgo">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="p-6 servi-adapt-bg min-h-[200px] max-h-[500px] overflow-y-auto">
+              <div v-if="observaciones.length === 0" class="flex flex-col items-center justify-center py-10 servi-grey-font">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p class="text-sm">No hay hallazgos registrados</p>
+              </div>
       <div class="flex flex-col">
         <label class="font-semibold mb-1" for="combustible_inicial"
           >Combustible Inicial</label
@@ -307,7 +324,7 @@ onMounted(() => {
           type="datetime-local"
           v-model="orden.fecha_ingreso"
         />
-      </div>
+  </div>
 
       <div class="flex flex-col">
         <label class="font-semibold mb-1" for="fecha_promesa"

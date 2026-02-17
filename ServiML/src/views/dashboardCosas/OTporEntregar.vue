@@ -31,7 +31,6 @@ const obtenerOrdenes = async () => {
     return;
   }
   if (data) {
-    console.log(data)
     ordenes.value = data;
   }
   uiStore.hideLoading()
