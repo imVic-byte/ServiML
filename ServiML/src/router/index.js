@@ -69,6 +69,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/presupuesto/:id/editar',
+      name: 'editar-presupuesto',
+      component: () => import('../views/Presupuesto/presupuestoEditar.vue'),
+      meta: { 
+        requiresAuth: true,
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+      }
+    },
+    {
       path: '/presupuesto/:id/pdf',
       name: 'pdf-presupuesto',
       component: () => import('../views/Presupuesto/presupuestoPDF.vue'),
