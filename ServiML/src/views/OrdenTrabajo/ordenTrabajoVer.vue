@@ -11,6 +11,7 @@ import { useUserStore } from "../../stores/user.js";
 
 const userStore = useUserStore();
 const soloLectura = computed(() => {
+  if (userStore.havePrivileges) return false;
   const empleadoId = orden.value.id_empleado;
   if (!empleadoId) return true;
   return empleadoId !== userStore.user?.id;
@@ -532,6 +533,49 @@ const ejecutarCambioReal = async () => {
   manejarBloqueo(false);
 }
 
+const trabajadores = ref([])
+const showCambiarTrabajador = ref(false)
+
+const handleTrabajadores = async () => {
+ const {data,error} = await supabase.from('trabajadores').select('*').eq('activo', true)
+ if (data) {
+  trabajadores.value = data
+ }
+ else {
+  trabajadores.value = []
+ } 
+}
+
+const cambiarTrabajador = async (nuevoId) => {
+  interfaz.showLoadingOverlay();
+  const { error } = await supabase
+    .from('orden_trabajo')
+    .update({ id_empleado: nuevoId })
+    .eq('id', route.params.id);
+  if (!error) {
+    await obtenerOrden();
+    actualizarBitacora(nuevoId);
+  }
+  showCambiarTrabajador.value = false;
+  interfaz.hideLoadingOverlay();
+}
+
+const handleBuscarTrabajador = (nuevoId) => {
+  const trabajador = trabajadores.value.find(t => t.id === nuevoId)
+  return trabajador.nombre + ' ' + trabajador.apellido
+}
+
+const actualizarBitacora = async (nuevoId) => {
+  let texto = "cambio a trabajador " + handleBuscarTrabajador(nuevoId)
+  const { error } = await supabase.from('OT_bitacora').insert({
+    ot_id: route.params.id,
+    nuevo_estado_id: orden.value.estado_actual_id,
+    tipo_evento: texto
+  });
+  if (error) {
+    console.error(error);
+  }
+}
 
 onMounted(async () => {
   interfaz.showLoading();
@@ -540,6 +584,7 @@ onMounted(async () => {
   obtenerEstados();
   traerObservaciones();
   traerFotosRecepcion();
+  if (userStore.havePrivileges) handleTrabajadores();
 });
 </script>
 
@@ -596,7 +641,7 @@ onMounted(async () => {
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Teléfono</label><p class="servi-grey-font">+{{ orden.cliente?.codigo_pais }} {{ orden.cliente?.telefono }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Email</label><p class="servi-grey-font">{{ orden.cliente?.email || 'No registrado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p class="servi-grey-font">{{ orden.motivo_ingreso }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><p class="servi-grey-font">{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><div class="flex items-center gap-2"><p class="servi-grey-font">{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p><button v-if="userStore.havePrivileges" @click="showCambiarTrabajador = true" class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors border border-blue-200 cursor-pointer" title="Cambiar trabajador asignado"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> Cambiar</button></div></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p class="servi-grey-font">{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
@@ -932,6 +977,25 @@ onMounted(async () => {
         <div class="flex justify-end gap-3">
           <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
           <button @click="ejecutarCambioReal()" class="px-4 py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700">Sí, Generar</button>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showCambiarTrabajador" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm">
+      <div class="servi-white servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
+        <h3 class="text-xl font-bold servi-grey-font mb-4">Cambiar Responsable</h3>
+        <div class="max-h-64 overflow-y-auto space-y-2">
+          <button v-for="t in trabajadores" :key="t.id" @click="cambiarTrabajador(t.id)" class="w-full text-left px-4 py-3 rounded-lg border border-gray-100 hover:bg-blue-900 hover:border-blue-300 hover:text-white transition-colors flex items-center gap-3 cursor-pointer" :class="{ 'bg-blue-900 border-blue-400 text-white': t.id === orden.id_empleado }">
+            <div class="w-8 h-8 rounded-full servi-blue flex items-center justify-center text-yellow-400 font-bold text-xs">{{ t.nombre?.charAt(0) }}{{ t.apellido?.charAt(0) }}</div>
+            <div>
+              <p class="font-bold text-sm">{{ t.nombre }} {{ t.apellido }}</p>
+              <p class="text-xs opacity-70">{{ t.rol }}</p>
+            </div>
+            <svg v-if="t.id === orden.id_empleado" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-auto text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+          </button>
+        </div>
+        <div class="flex justify-end mt-4">
+          <button @click="showCambiarTrabajador = false" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium cursor-pointer">Cancelar</button>
         </div>
       </div>
     </div>
