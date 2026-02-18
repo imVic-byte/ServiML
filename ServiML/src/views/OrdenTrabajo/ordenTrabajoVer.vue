@@ -506,18 +506,13 @@ const ejecutarCambioReal = async () => {
   }
   if (selectedEstado.value.id === 7) {
     if (!verificarHistorialOT(6)) {
-      const d = new Date();
-      const fechaActual = new Date(
-        d.getTime() - d.getTimezoneOffset() * 60000
-      )
-        .toISOString()
-        .slice(0, 19);
       const { data, error } = await supabase.from("informe_final").insert({
         ot_id: orden.value.id,
         created_at: fechaActual
       }).select().single();
       if (error) return;
-    }}
+    }
+  }
     const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
       ot_id: route.params.id,
       nuevo_estado_id: selectedEstado.value.id,
