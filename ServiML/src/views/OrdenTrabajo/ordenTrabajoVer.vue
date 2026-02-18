@@ -467,7 +467,22 @@ const handleGenerarInformeEstacionamiento = async () => {
   });
 }
 
+const historialOT = ref([]);
+
+const traerHistorialOT = async () => {
+  const {data,error} = await supabase.from('OT_bitacora').select('*').eq('ot_id',route.params.id).order('created_at', { ascending: true });
+  if (error) return;
+  historialOT.value = data;
+}
+
+const verificarHistorialOT = (id_nuevo_estado) => {
+  if (historialOT.value.length === 0) return false;
+  const historial = historialOT.value.find(h => h.nuevo_estado_id === id_nuevo_estado);
+  return historial !== undefined;
+}
+
 const ejecutarCambioReal = async () => {
+  traerHistorialOT();
   manejarBloqueo(true);
   
   let updateData = {
@@ -489,13 +504,20 @@ const ejecutarCambioReal = async () => {
   else if (orden.value.fecha_estacionamiento && !orden.value.fecha_termino_estacionamiento) {
     updateData.fecha_termino_estacionamiento = fechaActual;
   }
-
-  const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
-    ot_id: route.params.id,
-    nuevo_estado_id: selectedEstado.value.id,
-    tipo_evento: "cambio_estado",
-  });
-
+  if (selectedEstado.value.id === 7) {
+    if (!verificarHistorialOT(6)) {
+      const { data, error } = await supabase.from("informe_final").insert({
+        ot_id: orden.value.id,
+        created_at: fechaActual
+      }).select().single();
+      if (error) return;
+    }
+  }
+    const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
+      ot_id: route.params.id,
+      nuevo_estado_id: selectedEstado.value.id,
+      tipo_evento: "cambio_estado",
+    });
   if (errorBitacora) {
     console.error(error);
   } else {
@@ -515,12 +537,10 @@ const ejecutarCambioReal = async () => {
     if (updateData.fecha_termino_estacionamiento) {
         orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
     }
-    await handleIsCerrado(selectedEstado.value.id);
-
     if (selectedEstado.value.id === 7) {
       await handleGenerarInformeEstacionamiento();
     }
-    
+    await handleIsCerrado(selectedEstado.value.id);
     if (selectedEstado.value.id === 6) {
       await handleGenerarInformeFinal();
     }

@@ -21,7 +21,7 @@ const apellido = ref("");
 const codigoPais = ref("+56");
 const telefono = ref("");
 const correo = ref("");
-const items = ref([{ descripcion: "", monto: "" }]);
+const items = ref([{ descripcion: "", monto: "", cantidad: 1 }]);
 const ivaBoolean = ref(true);
 
 const alertaEmail = ref(true);
@@ -48,6 +48,7 @@ const cerrarAutocompletado = () => {
 const seleccionarServicio = (servicio, index) => {
   items.value[index].descripcion = servicio.nombre
   items.value[index].monto = servicio.precio
+  items.value[index].cantidad = items.value[index].cantidad || 1
   autocompletadoActivo.value = -1
 }
 
@@ -60,7 +61,7 @@ const cargarServicios = async () => {
   if (data) serviciosCatalogo.value = data
 }
 
-const agregarItem = () => items.value.push({ descripcion: "", monto: "" });
+const agregarItem = () => items.value.push({ descripcion: "", monto: "", cantidad: 1 });
 const eliminarItem = (index) => items.value.splice(index, 1);
 
 // Validaciones básicas
@@ -122,7 +123,7 @@ const formatearMoneda = (valor) => {
 };
 
 const totales = computed(() => {
-  const subtotal = items.value.reduce((acc, item) => acc + (Number(item.monto) || 0), 0);
+  const subtotal = items.value.reduce((acc, item) => acc + ((Number(item.monto) || 0) * (Number(item.cantidad) || 1)), 0);
   const dsc = descuentoPorcentaje.value || 0;
   const total_neto = subtotal - (subtotal * (dsc / 100));
   const pctIva = ivaBoolean.value ? 19 : 0;
@@ -176,6 +177,8 @@ const enviarFormulario = async () => {
         detalles: items.value.map((item) => ({
           descripcion: item.descripcion.toUpperCase(),
           monto: item.monto,
+          cantidad: item.cantidad || 1,
+          total_linea: (Number(item.monto) || 0) * (Number(item.cantidad) || 1),
         })),
       },
     });
@@ -305,37 +308,51 @@ onMounted(() => {
               Servicios
             </h2>
             <div class="space-y-4 px-3">
-              <div v-for="(item, index) in items" :key="index" class="flex gap-4 items-end animate-fadeIn relative"
+              <div v-for="(item, index) in items" :key="index" class="animate-fadeIn relative"
                 :style="{ zIndex: autocompletadoActivo === index ? 20 : 0 }">
-                <div class="flex-1 group relative">
-                  <input v-model="item.descripcion" type="text"
-                    class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-sm"
-                    placeholder="Buscar servicio..." @focus="abrirAutocompletado(index)" @blur="cerrarAutocompletado()"
-                    @input="abrirAutocompletado(index)" autocomplete="off" />
-                  <!-- Dropdown autocompletado -->
-                  <div v-if="autocompletadoActivo === index && sugerenciasFiltradas.length > 0"
-                    class="absolute z-30 left-0 right-0 top-full mt-1 servi-adapt-bg border border-gray-100 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    <button v-for="servicio in sugerenciasFiltradas" :key="servicio.nombre" type="button"
-                      class="w-full px-3 py-2.5 text-left servi-adapt-bg-100 hover:bg-blue-50 flex justify-between items-center gap-2 text-sm transition-colors cursor-pointer"
-                      @mousedown.prevent="seleccionarServicio(servicio, index)">
-                      <span class="truncate servi-white-font">{{ servicio.nombre }}</span>
-                      <span class="text-xs font-semibold servi-grey-font whitespace-nowrap">{{
-                        formatearMoneda(servicio.precio) }}</span>
-                    </button>
+                <div class="flex gap-4 items-end">
+                  <div class="flex-1 group relative">
+                    <label class="block text-xs servi-grey-font mb-0.5">Descripción</label>
+                    <input v-model="item.descripcion" type="text"
+                      class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-sm"
+                      placeholder="Buscar servicio..." @focus="abrirAutocompletado(index)" @blur="cerrarAutocompletado()"
+                      @input="abrirAutocompletado(index)" autocomplete="off" />
+                    <!-- Dropdown autocompletado -->
+                    <div v-if="autocompletadoActivo === index && sugerenciasFiltradas.length > 0"
+                      class="absolute z-30 left-0 right-0 top-full mt-1 servi-adapt-bg border border-gray-100 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      <button v-for="servicio in sugerenciasFiltradas" :key="servicio.nombre" type="button"
+                        class="w-full px-3 py-2.5 text-left servi-adapt-bg-100 hover:bg-blue-50 flex justify-between items-center gap-2 text-sm transition-colors cursor-pointer"
+                        @mousedown.prevent="seleccionarServicio(servicio, index)">
+                        <span class="truncate servi-white-font">{{ servicio.nombre }}</span>
+                        <span class="text-xs font-semibold servi-grey-font whitespace-nowrap">{{
+                          formatearMoneda(servicio.precio) }}</span>
+                      </button>
+                    </div>
                   </div>
+                  <div class="w-28 group">
+                    <label class="block text-xs servi-grey-font mb-0.5">P. Unit.</label>
+                    <input v-model.number="item.monto" type="number"
+                      class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-sm text-right"
+                      placeholder="$0" />
+                  </div>
+                  <div class="w-16 group">
+                    <label class="block text-xs servi-grey-font mb-0.5">Cant.</label>
+                    <input v-model.number="item.cantidad" type="number" min="1"
+                      class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-sm text-center"
+                      placeholder="1" />
+                  </div>
+                  <div class="w-28 text-right pb-2">
+                    <label class="block text-xs servi-grey-font mb-0.5">Total</label>
+                    <span class="text-sm font-semibold servi-grey-font">{{ formatearMoneda((Number(item.monto) || 0) * (Number(item.cantidad) || 1)) }}</span>
+                  </div>
+                  <button @click="eliminarItem(index)" class="servi-grey-font hover:text-red-500 pb-2 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd"
+                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                        clip-rule="evenodd" />
+                    </svg>
+                  </button>
                 </div>
-                <div class="w-32 group">
-                  <input v-model.number="item.monto" type="number"
-                    class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-sm text-right"
-                    placeholder="$0" />
-                </div>
-                <button @click="eliminarItem(index)" class="servi-grey-font hover:text-red-500 pb-2 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                      clip-rule="evenodd" />
-                  </svg>
-                </button>
               </div>
 
               <button @click="agregarItem"
