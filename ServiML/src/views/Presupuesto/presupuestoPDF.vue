@@ -46,6 +46,9 @@ const totalFinal = computed(() => {
   return baseImponible.value + montoIVA.value;
 });
 
+const TotalItem = (item) => {
+  return formatoPesos(Number(item.monto) * Number(item.cantidad))
+};
 
 const datosEmpresa = ref({})
 
@@ -72,10 +75,10 @@ const traerEmail = async () => {
 const traerTelefono = async () => {
   const {data,error} = await supabase.from('serviml_telefono').select('*').eq('id_serviml', 1).eq('prioritario',true).single()
   if (data) {
-    datosEmpresa.value.telefono = data.telefono
+    datosEmpresa.value.telefono = data.telefono || ''
   }
   if (error) {
-    console.error('Error al traer datos de la empresa:', error)
+    datosEmpresa.value.telefono = ''
   }
 }
 
@@ -161,6 +164,8 @@ onMounted(async () => {
         <thead>
           <tr class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
             <th class="p-3 font-semibold">Descripción del Servicio / Repuesto</th>
+            <th class="p-3 text-right w-28">Precio Unitario</th>
+            <th class="p-3 text-right w-28">Cantidad</th>
             <th class="p-3 text-right w-28">Total</th>
           </tr>
         </thead>
@@ -173,6 +178,8 @@ onMounted(async () => {
           >
             <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
             <td class="p-3 text-right font-bold">{{ formatoPesos(item.monto) }}</td>
+            <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
+            <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
           </tr>
           <tr v-if="!presupuesto.detalle_presupuesto || presupuesto.detalle_presupuesto.length < 5" class="h-24">
             <td colspan="4"></td>
