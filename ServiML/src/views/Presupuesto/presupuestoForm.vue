@@ -205,6 +205,7 @@ const redirigir = () => {
 };
 
 onMounted(() => {
+
   cargarServicios()
 })
 </script>
