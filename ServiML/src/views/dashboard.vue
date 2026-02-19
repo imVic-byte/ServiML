@@ -5,6 +5,7 @@ import { useUserStore } from '../stores/user'
 import { useRouter } from 'vue-router'
 import { useInterfaz } from '@/stores/interfaz'
 import { supabase } from '@/lib/supabaseClient'
+import { fechaInicioSemana, fechaFinSemana, fechaHoy, diaSemana, esFinDeSemana } from '@/js/fechayhora'
 
 const interfaz = useInterfaz()
 const userStore = useUserStore()
@@ -12,31 +13,8 @@ const router = useRouter()
 const nombre = userStore.trabajador?.nombre || ''
 const apellido = userStore.trabajador?.apellido || ''
 const nombreCompleto = computed(() => nombre + ' ' + apellido)
-const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
-const diaSemana = new Date().getDay()
-const formatoLocal = (fecha) => {
-  const y = fecha.getFullYear()
-  const m = String(fecha.getMonth() + 1).padStart(2, '0')
-  const d = String(fecha.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-const fechaInicioSemana = computed(() => {
-  const fecha = new Date()
-  const dia = fecha.getDay()
-  const diferencia = dia === 0 ? -6 : 1 - dia
-  fecha.setDate(fecha.getDate() + diferencia)
-  return formatoLocal(fecha)
-})
-const fechaFinSemana = computed(() => {
-  const fecha = new Date()
-  const dia = fecha.getDay()
-  const diferencia = dia === 0 ? 0 : 7 - dia
-  fecha.setDate(fecha.getDate() + diferencia)
-  return formatoLocal(fecha)
-})
-const esFinDeSemana = computed(() => diaSemana === 0 || diaSemana === 6)
 const vehiculosEnTaller = ref(0)
-const listaOT = ref([])
+
 const listaOTRecientes = ref([])
 const otSinAsignar = ref(0)
 const listaPresupuestos = ref([])
@@ -49,6 +27,8 @@ const talleres = ref([])
 const tallerSeleccionado = ref(null)
 const porcentajeCapacidad = computed(() => (vehiculosEnTaller.value / capacidadMaxima.value) * 100)
 const TruncarPorcentaje = computed(() => Math.trunc(porcentajeCapacidad.value))
+
+const fichas = ref([])
 
 const VehiculosEnTaller = () => {
   router.push({ name: 'vehiculos-en-taller' })
@@ -74,6 +54,13 @@ const verOT = (id) => {
   router.push({ name: 'ver-orden-de-trabajo', params: { id } })
 }
 
+const formatoLocal = (fecha) => {
+  const y = fecha.getFullYear()
+  const m = String(fecha.getMonth() + 1).padStart(2, '0')
+  const d = String(fecha.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 const obtenerTalleres = async () => {
   try {
     const { data, error } = await supabase.from('serviml_taller').select('*').order('id', { ascending: true })
@@ -87,10 +74,7 @@ const obtenerTalleres = async () => {
 
 const handleVehiculos = async () => {
   try {
-    let query = supabase.from('orden_trabajo').select('id, id_taller, vehiculo!inner(en_taller)').eq('vehiculo.en_taller', true)
-    if (tallerSeleccionado.value) {
-      query = query.eq('id_taller', tallerSeleccionado.value)
-    }
+    let query = supabase.from('vehiculo').select('id, en_taller').eq('en_taller', true)
     const { data, error } = await query
     if (error) throw error
     vehiculosEnTaller.value = data.length
@@ -101,69 +85,17 @@ const handleVehiculos = async () => {
 
 const cambiarTaller = async () => {
   await handleVehiculos()
-  await handleOT()
-  handleOTSinAsignar()
-  handlePorEntregar()
-  handleOTRecientes()
+  await traerFichas()
 }
 
-const handleOT = async () => {
+const traerFichas = async () => {
   try {
-    let query = supabase.from('orden_trabajo').select('*, vehiculo(*), cliente(*), presupuesto(*)')
-    if (tallerSeleccionado.value) {
-      query = query.eq('id_taller', tallerSeleccionado.value)
-    }
-    const {data, error} = await query
+    const { data, error } = await supabase.from('ficha_de_trabajo').select('*').eq('estado', 1).eq('id_taller', tallerSeleccionado.value)
     if (error) throw error
-    listaOT.value = data
+    fichas.value = data
   } catch (error) {
-    console.error('Error al obtener OT:', error)
+    console.error('Error al obtener fichas:', error)
   }
-}
-
-const handleOTSinAsignar = async () => {
-  const {data,error} = await supabase.from('orden_trabajo').select('*').is('id_empleado', null)
-  if (error) throw error
-  otSinAsignar.value = data.length
-}
-
-
-const handlePresupuestosSemana = async () => {
-  try {
-    const { data, error } = await supabase.from('presupuesto').select('*').gte('created_at', fechaInicioSemana.value).lte('created_at', fechaFinSemana.value).eq('estado', 2)
-    if (error) throw error
-    listaPresupuestos.value = data
-    presupuestosSemana.value = data.length
-  } catch (error) {
-    console.error('Error al obtener presupuestos:', error)
-  }
-}
-
-const handleAprobadosHoy = () => {
-  const hoy = new Date().toISOString().split('T')[0]
-  aprobadosHoy.value = listaPresupuestos.value.filter(presupuesto => presupuesto.created_at.split('T')[0] === hoy).length
-}
-
-const handlePorEntregar = () => {
-  otPorEntregar.value = listaOT.value.filter(ot => ot.estado_actual_id === 6 || ot.estado_actual_id === 9).length
-}
-
-const handleOTRecientes = () => {
-  listaOTRecientes.value = listaOT.value.filter(ot => ot.created_at >= fechaInicioSemana.value && ot.created_at <= fechaFinSemana.value).slice(0, 5)
-}
-
-const handleEstados = async () => {
-  try {
-    const {data,error} = await supabase.from('tabla_estados').select('*')
-    if (error) throw error
-    listaEstados.value = data
-  } catch (error) {
-    console.error('Error al obtener estados:', error)
-  }
-}
-
-const handleOrdenarEstado = (estado) => {
-  return listaEstados.value.find(e => e.id === estado) || {estado: 'Desconocido', color: 'bg-gray-500'}
 }
 
 const metricas = ref({
@@ -172,24 +104,6 @@ const metricas = ref({
   porcentaje_a_tiempo: 0,
   porcentaje_rechazos: 0
 })
-
-const cargarMetricas = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('vista_dashboard_metricas')
-      .select('*')
-      .single()
-
-    if (error) throw error
-    
-    if (data) {
-      metricas.value = data
-    }
-
-  } catch (error) {
-    console.error('Error al obtener KPIs:', error)
-  }
-}
 
 const formatoMoneda = (valor) => {
   return new Intl.NumberFormat('es-CL', {
@@ -202,15 +116,7 @@ const formatoMoneda = (valor) => {
 onMounted(async () => {
   interfaz.showLoading()
   await obtenerTalleres()
-  await handleVehiculos()
-  await handleOT()
-  await handleOTSinAsignar()
-  await handlePresupuestosSemana()
-  await handleAprobadosHoy()
-  await handlePorEntregar()
-  await handleOTRecientes()
-  await handleEstados()
-  await cargarMetricas()
+  await traerFichas()
   interfaz.hideLoading()
 })
 </script>

@@ -18,20 +18,9 @@ const cargarHistorial = async () => {
         .from('orden_trabajo')
         .select('*')
         .eq('id_empleado', userStore.user.id)
-        .order('fecha_ingreso', { ascending: false })
+        .order('id', { ascending: false })
     if (error) {
         console.error(error)
-    } else {
-        historial.value = data
-        const {data:dataDemas, error:ErrorDemas} = await supabase
-            .from('orden_trabajo')
-            .select('*, cliente(*), vehiculo(*), presupuesto(*)')
-            .in('id', historial.value.map(ot => ot.id))
-        if (ErrorDemas) {
-            console.error(ErrorDemas)
-        } else {
-            historial.value = dataDemas
-        }
     }
     cargando.value = false
 }
