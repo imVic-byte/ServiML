@@ -289,12 +289,9 @@ onMounted(() => {
                   <span class="text-[11px] font-semibold leading-none" :class="obtenerColorEstadoCotizacion(cotizacion.estado)">
                     {{ obtenerTextoEstadoCotizacion(cotizacion.estado) }}
                   </span>
-                  
-                    <template>
-                        <button @click="irAConvertir(cotizacion.id)" class="btn-convertir">
-                            Convertir a Presupuesto
-                        </button>
-                    </template>
+                  <button @click="irAConvertir(cotizacion.id)" class="btn-convertir">
+                      Convertir a Presupuesto
+                  </button>
                 </div>
               </div>
             </div>
