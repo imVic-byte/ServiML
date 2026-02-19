@@ -55,8 +55,51 @@ const cargarServicios = async () => {
   if (data) serviciosCatalogo.value = data
 }
 
+// ── Autocompletado de clientes ──
+const clientesSugeridos = ref([])
+const clienteAutocompletado = ref(false)
+let clienteTimeout = null
+
+const buscarClientes = (e) => {
+  const texto = e.target.value.trim()
+  if (clienteTimeout) clearTimeout(clienteTimeout)
+  if (texto.length < 2) {
+    clientesSugeridos.value = []
+    return
+  }
+  clienteTimeout = setTimeout(async () => {
+    const { data } = await supabase
+      .from('cliente')
+      .select('id, nombre, apellido')
+      .ilike('nombre', `%${texto}%`)
+      .limit(8)
+    if (data) clientesSugeridos.value = data
+  }, 300)
+}
+
+const abrirClienteAutocompletado = () => {
+  clienteAutocompletado.value = true
+}
+const cerrarClienteAutocompletado = () => {
+  setTimeout(() => {
+    clienteAutocompletado.value = false
+  }, 150)
+}
+const seleccionarCliente = (cliente) => {
+  nombre.value = cliente.nombre
+  apellido.value = cliente.apellido
+  clienteAutocompletado.value = false
+  clientesSugeridos.value = []
+}
+
 const agregarItem = () => items.value.push({ descripcion: "", monto: "", cantidad: 1 });
 const eliminarItem = (index) => items.value.splice(index, 1);
+
+// Utilidades
+const toCamelCase = (texto) => {
+  if (!texto) return ''
+  return texto.trim().split(/\s+/).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ')
+}
 
 // Validaciones
 const esEmailValido = (email) => {
@@ -78,17 +121,12 @@ const validarFormulario = () => {
   }
 
   for (const item of items.value) {
-    if (!item.descripcion || !item.monto) {
-      modalState.value = { visible: true, titulo: "Item incompleto", mensaje: "Todos los items deben tener descripción y monto.", exito: false };
+    if (!item.descripcion || !item.monto || Number(item.monto) <= 0) {
+      modalState.value = { visible: true, titulo: "Item incompleto", mensaje: "Todos los items deben tener descripción y un monto válido.", exito: false };
       return false;
     }
   }
   return true;
-};
-
-const filtrarTelefono = (event) => {
-  const valorLimpio = event.target.value.replace(/\D/g, '').slice(0, 9);
-  telefono.value = valorLimpio;
 };
 
 const formatearMoneda = (valor) => {
@@ -110,21 +148,6 @@ const totales = computed(() => {
   return { subtotal, descuento: dsc, total_neto, iva, total_final };
 });
 
-const handleCorreo = () => {
-  if (!correo.value && alertaEmail.value) {
-    modalState.value = { visible: true, titulo: "Advertencia", mensaje: "¿Continuar sin correo del cliente?", exito: false };
-    alertaEmail.value = false;
-    return false;
-  }
-  return true;
-}
-
-const dosSemanasDespues = () => {
-  const fecha = new Date();
-  fecha.setDate(fecha.getDate() + 14);
-  return fecha.toISOString().split("T")[0];
-}
-
 const enviarFormulario = async () => {
   if (!validarFormulario()) return;
   interfaz.showLoadingOverlay()
@@ -135,15 +158,14 @@ const enviarFormulario = async () => {
 
     const { data, error } = await supabase.functions.invoke("crear-cotizacion", {
       body: {
-        nombre: nombre.value.trim().toUpperCase(),
-        apellido: apellido.value.trim().toUpperCase(),
-        diagnostico: diagnostico.value.toUpperCase(),
+        nombre: toCamelCase(nombre.value),
+        apellido: toCamelCase(apellido.value),
+        diagnostico: toCamelCase(diagnostico.value),
         ...totales.value,
         detalles: items.value.map((item) => ({
-          descripcion: item.descripcion.toUpperCase(),
+          descripcion: toCamelCase(item.descripcion),
           monto: item.monto,
           cantidad: item.cantidad || 1,
-          total_linea: (Number(item.monto) || 0) * (Number(item.cantidad) || 1),
         })),
       },
     });
@@ -191,12 +213,28 @@ onMounted(() => {
               Cliente
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 px-3">
-              <div class="group">
+              <div class="group relative">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Nombre</label>
                 <input v-model="nombre" type="text"
                   class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
-                  placeholder="Juan" />
+                  placeholder="Juan" 
+                  @input="buscarClientes"
+                  @focus="abrirClienteAutocompletado"
+                  @blur="cerrarClienteAutocompletado"
+                  autocomplete="off" />
+                <!-- Dropdown autocompletado clientes -->
+                <div v-if="clienteAutocompletado && clientesSugeridos.length > 0"
+                  class="absolute z-30 left-0 right-0 top-full mt-1 servi-adapt-bg border border-gray-100 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  <button v-for="cli in clientesSugeridos" :key="cli.id" type="button"
+                    class="w-full px-3 py-2.5 text-left hover:bg-blue-50 flex items-center gap-2 text-sm transition-colors cursor-pointer"
+                    @mousedown.prevent="seleccionarCliente(cli)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 servi-grey-font opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="servi-grey-font">{{ cli.nombre }} {{ cli.apellido }}</span>
+                  </button>
+                </div>
               </div>
               <div class="group">
                 <label

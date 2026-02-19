@@ -80,7 +80,7 @@ const claseEstadoCard = (estado) => {
 
 const obtenerCotizaciones = async () => {
   try {
-    const {data,error} = await supabase.from("cotizacion").select("*");
+    const {data,error} = await supabase.from("cotizacion").select("*").order('id', { ascending: false });
     if(error){
       throw error;
     }
@@ -112,7 +112,7 @@ onMounted( async () => {
       <!-- Stats Desktop -->
       <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
         <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs servi-grey-font uppercase font-bold">Total Cotizaciones / mes</p>
+            <p class="text-xs servi-grey-font uppercase font-bold">Total / mes</p>
             <p class="text-2xl font-bold servi-grey-font">{{ stats.total }}</p>
         </div>
         <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">

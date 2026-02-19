@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { supabase } from '../../lib/supabaseClient.js'
 import navbar from '../../components/componentes/navbar.vue'
@@ -15,6 +15,12 @@ const router = useRouter()
 const cotizacion = ref(null)
 const n_cotizacion = ref()
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true })
+const confirmada = ref(false)
+// Modal confirmación
+const modalConfirmacion = ref(false)
+const correoCliente = ref('')
+const codigoPais = ref('+56')
+const telefonoCliente = ref('')
 
 const cuentasBancarias = ref([])
 const cuentaSeleccionada = ref(null)
@@ -49,21 +55,55 @@ const irAEditar = () => {
     router.push({ name: "editar-cotizacion", params: { id: route.params.id } });
 }
 
+const mostrarModalConfirmacion = () => {
+    modalConfirmacion.value = true
+}
+
+const cerrarModalConfirmacion = () => {
+    modalConfirmacion.value = false
+    correoCliente.value = ''
+    codigoPais.value = '+56'
+    telefonoCliente.value = ''
+}
+
+// Sanitizar teléfono: solo dígitos
+const sanitizarTelefono = (e) => {
+    telefonoCliente.value = e.target.value.replace(/\D/g, '')
+}
+
+// Validaciones
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const emailValido = computed(() => {
+    if (!correoCliente.value) return true // opcional
+    return emailRegex.test(correoCliente.value)
+})
+
+const telefonoValido = computed(() => {
+    return telefonoCliente.value.length >= 7 && telefonoCliente.value.length <= 15
+})
+
+const formularioValido = computed(() => {
+    return telefonoValido.value && emailValido.value
+})
+
 const generarFicha = async () => {
+    modalConfirmacion.value = false
     interfaz.showLoading();
     const data = {
       cliente:{
         nombre: cotizacion.value.nombre,
-        apellido: cotizacion.value.apellido
+        apellido: cotizacion.value.apellido,
+        email: correoCliente.value || null,
+        codigo_pais: codigoPais.value,
+        telefono: telefonoCliente.value
       },
       ficha_de_trabajo:{
-        motivo_ingreso: cotizacion.value.diagnostico,
-        id_cotizacion: cotizacion.value.id
-      }
+        motivo_ingreso: cotizacion.value.diagnostico
+      },
+      id_cotizacion: cotizacion.value.id
     }
-    const form = new FormData()
-    form.append('data', JSON.stringify(data))
-    const {exito, mensaje} = await generarFichaTrabajo(form)
+    const { exito, ficha_de_trabajo, mensaje } = await generarFichaTrabajo(data);
     if (exito) {
       modalState.value.visible = true;
       modalState.value.titulo = "Exito";
@@ -76,6 +116,7 @@ const generarFicha = async () => {
       modalState.value.exito = false;
     }
     interfaz.hideLoading();
+    cerrarModalConfirmacion();
 }
 
 const generarPDF = () => {
@@ -100,6 +141,7 @@ onMounted(async () => {
     if (data) {
         cotizacion.value = data
         n_cotizacion.value = data.id
+        confirmada.value = data.estado === 2
     } else {
         console.log(error)
     }
@@ -212,7 +254,7 @@ onMounted(async () => {
                     <h3 class="text-xs rounded-t-xl font-semibold uppercase servi-blue p-3 flex justify-between items-center text-white tracking-wider mb-4">Acciones</h3>
                     
                     <!-- Selector de cuenta bancaria -->
-                    <div v-if="cuentasBancarias.length > 0" class="mb-4 servi-adapt-bg py-2 px-3">
+                    <div v-if="cuentasBancarias.length > 0 && !confirmada" class="mb-4 servi-adapt-bg py-2 px-3">
                       <label class="block text-xs font-semibold servi-grey-font uppercase tracking-wider mb-2">Cuenta para PDF</label>
                       <select
                         v-model="cuentaSeleccionada"
@@ -234,6 +276,7 @@ onMounted(async () => {
                           Descargar PDF
                         </button>
                         <button 
+                          v-if="!confirmada"
                           @click="irAEditar"
                           class="servi-blue w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-gray-200 text-white hover:bg-blue-50 transition-colors text-sm font-medium"
                         >
@@ -243,7 +286,8 @@ onMounted(async () => {
                           Editar Cotización
                         </button>
                         <button 
-                          @click="generarFicha"
+                          v-if="!confirmada"
+                          @click="mostrarModalConfirmacion"
                           class="servi-blue w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border border-gray-200 text-white hover:bg-blue-50 transition-colors text-sm font-medium"
                         >
                           Generar Ficha de Trabajo
@@ -265,6 +309,132 @@ onMounted(async () => {
             :exito="modalState.exito" 
             @cerrar="redirigir" 
         />
+
+        <!-- Modal de Confirmación -->
+        <div v-if="modalConfirmacion" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div class="servi-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
+            
+            <!-- Header -->
+            <div class="servi-blue px-6 py-4 flex justify-between items-center">
+              <h2 class="text-white font-bold text-lg">Confirmar Datos</h2>
+              <button @click="cerrarModalConfirmacion" class="text-white/70 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="p-6 space-y-5">
+
+              <!-- Resumen de Cotización -->
+              <div>
+                <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-3">Resumen de la Cotización</h3>
+                <div class="rounded-lg border border-gray-200 overflow-hidden">
+                  <div class="px-4 py-3 space-y-2 text-sm servi-grey-font">
+                    <p class="flex justify-between">
+                      <span class="font-semibold">Cliente</span>
+                      <span>{{ camelCase(cotizacion.nombre) + ' ' + camelCase(cotizacion.apellido) }}</span>
+                    </p>
+                    <p class="flex justify-between">
+                      <span class="font-semibold">Diagnóstico</span>
+                      <span class="text-right max-w-[60%]">{{ camelCase(cotizacion.diagnostico) || '---' }}</span>
+                    </p>
+                  </div>
+                  
+                  <div v-if="cotizacion.detalle_cotizacion && cotizacion.detalle_cotizacion.length > 0" class="border-t border-gray-200">
+                    <div class="px-4 py-2 text-xs font-semibold servi-grey-font uppercase tracking-wider bg-gray-50">Servicios</div>
+                    <div v-for="det in cotizacion.detalle_cotizacion" :key="det.id" class="px-4 py-2 flex justify-between text-sm servi-grey-font border-t border-gray-100">
+                      <span>{{ camelCase(det.descripcion) }}</span>
+                      <span class="font-medium">{{ formatearNumero(det.monto * det.cantidad) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="px-4 py-3 border-t border-gray-200 flex justify-between font-bold servi-grey-font">
+                    <span>Total</span>
+                    <span>{{ formatearNumero(cotizacion.total_final || 0) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Datos de contacto -->
+              <div>
+                <h3 class="text-xs font-semibold servi-grey-font uppercase tracking-wider mb-3">Datos de Contacto del Cliente</h3>
+                <div class="space-y-3">
+                  
+                  <!-- Correo -->
+                  <div>
+                    <label class="block text-xs font-medium servi-grey-font mb-1">Correo electrónico <span class="text-gray-400 text-[10px]">(opcional)</span></label>
+                    <input 
+                      v-model="correoCliente"
+                      type="email" 
+                      placeholder="cliente@ejemplo.com"
+                      :class="[
+                        'w-full rounded-lg border px-3 py-2.5 text-sm servi-grey-font focus:ring-2 focus:border-transparent outline-none transition-all',
+                        correoCliente && !emailValido ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-500'
+                      ]"
+                    />
+                    <p v-if="correoCliente && !emailValido" class="text-red-500 text-xs mt-1">Ingrese un correo válido</p>
+                  </div>
+
+                  <!-- Teléfono con código de país -->
+                  <div>
+                    <label class="block text-xs font-medium servi-grey-font mb-1">Teléfono <span class="text-red-500">*</span></label>
+                    <div class="flex gap-2">
+                      <select 
+                        v-model="codigoPais"
+                        class="rounded-lg border border-gray-300 px-2 py-2.5 text-sm servi-grey-font focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-28"
+                      >
+                        <option value="+56">🇨🇱 +56</option>
+                        <option value="+54">🇦🇷 +54</option>
+                        <option value="+55">🇧🇷 +55</option>
+                        <option value="+57">🇨🇴 +57</option>
+                        <option value="+51">🇵🇪 +51</option>
+                        <option value="+52">🇲🇽 +52</option>
+                        <option value="+58">🇻🇪 +58</option>
+                        <option value="+1">🇺🇸 +1</option>
+                        <option value="+34">🇪🇸 +34</option>
+                      </select>
+                      <input 
+                        :value="telefonoCliente"
+                        @input="sanitizarTelefono"
+                        type="tel" 
+                        maxlength="15"
+                        placeholder="912345678"
+                        :class="[
+                          'flex-1 rounded-lg border px-3 py-2.5 text-sm servi-grey-font focus:ring-2 focus:border-transparent outline-none transition-all',
+                          telefonoCliente && !telefonoValido ? 'border-red-400 focus:ring-red-400' : 'border-gray-300 focus:ring-blue-500'
+                        ]"
+                      />
+                    </div>
+                    <p v-if="telefonoCliente && !telefonoValido" class="text-red-500 text-xs mt-1">Mínimo 7 dígitos</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="px-6 py-4 flex gap-3 border-t border-gray-200">
+              <button 
+                @click="cerrarModalConfirmacion"
+                class="flex-1 py-2.5 rounded-lg border border-gray-300 servi-grey-font font-medium text-sm hover:bg-gray-100 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                @click="generarFicha"
+                :disabled="!formularioValido"
+                :class="[
+                  'flex-1 py-2.5 rounded-lg font-medium text-sm transition-colors',
+                  formularioValido 
+                    ? 'servi-blue text-white hover:opacity-90 cursor-pointer' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ]"
+              >
+                Confirmar y Generar Ficha
+              </button>
+            </div>
+          </div>
+        </div>
     </div>
 </div>
 </template>

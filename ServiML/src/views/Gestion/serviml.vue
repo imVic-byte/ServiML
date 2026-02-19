@@ -507,10 +507,9 @@ onMounted(async () => {
             </button>
           </div>
           <div class="p-6">
-            <!-- Campos simples -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div v-for="(campo, key) in {
-                nombre_fantasia: 'Nombre Comercial',
+                nombre_fantasia: 'Nombre de Fantasía',
                 razon_social: 'Razón Social',
                 rut: 'RUT Empresa',
                 giro: 'Giro',

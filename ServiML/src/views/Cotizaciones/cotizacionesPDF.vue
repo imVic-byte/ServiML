@@ -50,7 +50,7 @@ const traerEmail = async () => {
 }
 
 const traerTelefono = async () => {
-  const {data,error} = await supabase.from('serviml_telefono').select('*').eq('id_serviml', 1).eq('prioritario',true).single()
+  const {data,error} = await supabase.from('serviml_telefono').select('*').eq('id_serviml', 1).eq('prioritario',true).maybeSingle()
   if (data) {
     datosEmpresa.value.telefono = data.telefono || ''
   }
