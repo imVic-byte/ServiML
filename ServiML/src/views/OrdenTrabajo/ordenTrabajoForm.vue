@@ -53,6 +53,9 @@ const confirmarOT = async () => {
 }
 
 onMounted(() => {
+    if (route.query.vehiculoId) {
+    formulario.vehiculo_id = route.query.vehiculoId
+  }
     obtenerTrabajadores()
     id.value = route.params.id
 })
