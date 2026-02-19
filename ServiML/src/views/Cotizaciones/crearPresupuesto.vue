@@ -8,7 +8,12 @@ import { useInterfaz } from '@/stores/interfaz.js'
 const router = useRouter();
 const route = useRoute();
 const interfaz = useInterfaz();
+
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
+
+const patente = ref("");
+const modelo = ref("");
+const marca = ref("");
 const diagnostico = ref("");
 const descuentoPorcentaje = ref('');
 const nombre = ref("");
@@ -20,7 +25,7 @@ const items = ref([{ descripcion: "", monto: "", cantidad: 1 }]);
 const ivaBoolean = ref(true);
 
 const alertaEmail = ref(true);
-const cotizacion_id = ref(null);
+const presupuesto_id = ref(null);
 const loading = ref(false);
 
 // ── Autocompletado de servicios ──
@@ -59,20 +64,36 @@ const cargarServicios = async () => {
 const agregarItem = () => items.value.push({ descripcion: "", monto: "", cantidad: 1 });
 const eliminarItem = (index) => items.value.splice(index, 1);
 
-// Validaciones
+// Validaciones básicas
 const esEmailValido = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 const validarFormulario = () => {
-  if (!nombre.value || !apellido.value) {
+  if (!patente.value || patente.value.length !== 6 || patente.value.trim().length !== 6 || patente.value.trim().length > 7) {
+    modalState.value = { visible: true, titulo: "Patente inválida", mensaje: "Ingresa una patente válida.", exito: false };
+    return false;
+  }
+
+  if (!marca.value || !modelo.value) {
+    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Marca y Modelo son obligatorios.", exito: false };
+    return false;
+  }
+
+  if (!nombre.value || !apellido.value || !telefono.value) {
     modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Completa los datos del cliente.", exito: false };
     return false;
   }
   if (!diagnostico.value) {
-    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "La descripción / diagnóstico es obligatorio.", exito: false };
+    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "El diagnóstico es obligatorio.", exito: false };
     return false;
   }
+
+  if (correo.value && !esEmailValido(correo.value)) {
+    modalState.value = { visible: true, titulo: "Email inválido", mensaje: "El formato del correo electrónico no es correcto.", exito: false };
+    return false;
+  }
+
   if (items.value.length === 0) {
     modalState.value = { visible: true, titulo: "Sin servicios", mensaje: "Agrega al menos un servicio o repuesto.", exito: false };
     return false;
@@ -128,53 +149,46 @@ const dosSemanasDespues = () => {
 
 const enviarFormulario = async () => {
   if (!validarFormulario()) return;
+  if (alertaEmail.value && !correo.value) {
+    handleCorreo();
+    return;
+  }
+
   interfaz.showLoadingOverlay()
   loading.value = true;
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error("Sesión expirada");
 
-    // Actualizar cotización principal
-    const { error: errorCotizacion } = await supabase
-      .from('cotizacion')
-      .update({
+    const { data, error } = await supabase.functions.invoke("crear-presupuesto", {
+      body: {
+        patente: patente.value.trim().toUpperCase(),
+        marca: marca.value.trim().toUpperCase(),
+        modelo: modelo.value.trim().toUpperCase(),
         nombre: nombre.value.trim().toUpperCase(),
         apellido: apellido.value.trim().toUpperCase(),
+        codigoPais: codigoPais.value,
+        telefono: telefono.value,
+        email: correo.value,
+        vencimiento: dosSemanasDespues(),
         diagnostico: diagnostico.value.toUpperCase(),
-        subtotal: totales.value.subtotal,
-        descuento: totales.value.descuento,
-        total_neto: totales.value.total_neto,
-        iva: totales.value.iva,
-        total_final: totales.value.total_final
-      })
-      .eq('id', route.params.id)
+        ...totales.value,
+        detalles: items.value.map((item) => ({
+          descripcion: item.descripcion.toUpperCase(),
+          monto: item.monto,
+          cantidad: item.cantidad || 1,
+          total_linea: (Number(item.monto) || 0) * (Number(item.cantidad) || 1),
+        })),
+      },
+    });
 
-    if (errorCotizacion) throw errorCotizacion;
+    if (error) throw error;
 
-    // Eliminar detalles anteriores y crear nuevos
-    await supabase
-      .from('detalle_cotizacion')
-      .delete()
-      .eq('id_cotizacion', route.params.id)
-
-    const detalles = items.value.map((item) => ({
-      id_cotizacion: route.params.id,
-      descripcion: item.descripcion.toUpperCase(),
-      monto: item.monto,
-      cantidad: item.cantidad || 1
-    }))
-
-    const { error: errorDetalles } = await supabase
-      .from('detalle_cotizacion')
-      .insert(detalles)
-
-    if (errorDetalles) throw errorDetalles;
-
-    cotizacion_id.value = route.params.id;
-    modalState.value = { visible: true, titulo: "¡Éxito!", mensaje: "Cotización actualizada correctamente.", exito: true };
+    presupuesto_id.value = data.data.id;
+    modalState.value = { visible: true, titulo: "¡Éxito!", mensaje: "Presupuesto creado correctamente.", exito: true };
   } catch (err) {
     console.error(err);
-    modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudo actualizar la cotización.", exito: false };
+    modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudo guardar el presupuesto.", exito: false };
   } finally {
     loading.value = false;
     interfaz.hideLoadingOverlay()
@@ -183,12 +197,13 @@ const enviarFormulario = async () => {
 
 const redirigir = () => {
   if (modalState.value.exito) {
-    router.push({ name: "ver-cotizacion", params: { id: cotizacion_id.value } });
+    router.push({ name: "ver-presupuesto", params: { id: presupuesto_id.value } });
   } else {
     modalState.value.visible = false;
   }
 };
 
+// ── Cargar datos de la cotización ──
 const cargarCotizacion = async () => {
   interfaz.showLoading();
   const { data, error } = await supabase
@@ -196,6 +211,7 @@ const cargarCotizacion = async () => {
     .select('*, detalle_cotizacion(*)')
     .eq('id', route.params.id)
     .single()
+
   if (data) {
     nombre.value = data.nombre || '';
     apellido.value = data.apellido || '';
@@ -213,7 +229,6 @@ const cargarCotizacion = async () => {
   } else {
     console.error(error);
   }
-  console.log(items.value)
   interfaz.hideLoading();
 }
 
@@ -225,7 +240,7 @@ onMounted(async () => {
 
 <template>
   <div class="servi-white min-h-screen font-sans">
-    <navbar titulo="ServiML" subtitulo="Editar Cotización" class="navbar" />
+    <navbar titulo="ServiML" subtitulo="Presupuesto desde Cotización" class="navbar" />
 
     <div class="mx-auto p-4 max-w-7xl pb-28 pt-8">
 
@@ -233,10 +248,47 @@ onMounted(async () => {
 
         <div class="lg:col-span-7 space-y-12 servi-adapt-bg rounded-xl">
 
-          <!-- CLIENTE -->
           <section>
             <h2
               class="text-2xl w-full servi-blue servi-yellow-font border-b-2 border-yellow-400 rounded-t-lg p-2 inline-block pb-1 mb-6">
+              Vehículo
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 px-3">
+              <div class="group">
+                <label
+                  class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Patente</label>
+                <input v-model="patente" type="text"
+                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-xl font-medium uppercase transition-colors"
+                  placeholder="AAAA11" @input="patente = patente.toUpperCase()" maxlength="7" />
+              </div>
+              <div class="group">
+                <label
+                  class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Marca</label>
+                <input v-model="marca" type="text"
+                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
+                  placeholder="Ej: Toyota" />
+              </div>
+              <div class="group">
+                <label
+                  class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Modelo</label>
+                <input v-model="modelo" type="text"
+                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
+                  placeholder="Ej: Yaris" />
+              </div>
+              <div class="md:col-span-2 group">
+                <label
+                  class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Diagnóstico
+                  Técnico</label>
+                <textarea v-model="diagnostico" rows="2"
+                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none servi-white-font resize-none transition-colors"
+                  placeholder="Describe el problema del vehículo..."></textarea>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h2
+              class="text-2xl font-light w-full servi-blue servi-yellow-font border-b-2 border-yellow-400 rounded-t-lg p-2 inline-block pb-1 mb-6">
               Cliente
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 px-3">
@@ -254,18 +306,31 @@ onMounted(async () => {
                   class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
                   placeholder="Perez" />
               </div>
-              <div class="md:col-span-2 group">
+              <div class="group">
                 <label
-                  class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Diagnóstico
-                  / Descripción</label>
-                <textarea v-model="diagnostico" rows="2"
-                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none servi-white-font resize-none transition-colors"
-                  placeholder="Describe el trabajo o servicio solicitado..."></textarea>
+                  class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Teléfono</label>
+                <div class="flex items-end gap-2">
+                  <select v-model="codigoPais"
+                    class="w-20 py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-sm">
+                    <option value="+56">+56</option>
+                    <option value="+51">+51</option>
+                  </select>
+                  <input :value="telefono" @input="filtrarTelefono" type="text" inputmode="numeric" maxlength="9"
+                    class="flex-1 py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
+                    placeholder="912345678" />
+                </div>
+              </div>
+              <div class="group">
+                <label
+                  class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Correo
+                  Electrónico</label>
+                <input v-model="correo" type="email"
+                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
+                  placeholder="ejemplo@gmail.com" />
               </div>
             </div>
           </section>
 
-          <!-- SERVICIOS / ITEMS -->
           <section>
             <h2
               class="text-2xl w-full font-light servi-blue servi-yellow-font border-b-2 border-yellow-400 rounded-t-lg p-2 inline-block pb-1 mb-6">
@@ -328,7 +393,6 @@ onMounted(async () => {
 
         </div>
 
-        <!-- RESUMEN / TOTALES -->
         <div class="lg:col-span-5 relative">
           <div class="servi-adapt-bg shadow-xl sticky top-24 rounded-xl">
             <h2
@@ -376,7 +440,7 @@ onMounted(async () => {
               class="w-full servi-blue servi-yellow-font text-sm font-bold py-4 mb-4 px-4 rounded-b-lg hover:bg-blue-800 transition-all flex justify-center items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               :disabled="loading">
               <span v-if="loading">Procesando...</span>
-              <span v-else>GUARDAR CAMBIOS</span>
+              <span v-else>EMITIR PRESUPUESTO</span>
               <svg v-if="!loading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
