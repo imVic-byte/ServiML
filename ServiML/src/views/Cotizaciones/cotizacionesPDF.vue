@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted,computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 
 const props = defineProps({
-  presupuesto: {
+  cotizacion: {
     type: Object,
     required: true
   },
@@ -22,29 +22,6 @@ const formatoFecha = (fecha) => {
   if (!fecha) return new Date().toLocaleDateString('es-CL');
   return new Date(fecha).toLocaleDateString('es-CL');
 };
-
-const subtotalNeto = computed(() => {
-  if (!props.presupuesto.detalle_presupuesto) return 0;
-  return props.presupuesto.detalle_presupuesto.reduce((acc, item) => {
-    return acc + (Number(item.precio_unitario) * Number(item.cantidad));
-  }, 0);
-});
-
-const montoDescuento = computed(() => {
-  return Number(props.presupuesto.descuento) || 0;
-});
-
-const baseImponible = computed(() => {
-  return Math.max(0, subtotalNeto.value - montoDescuento.value);
-});
-
-const montoIVA = computed(() => {
-  return Math.round(baseImponible.value * 0.19);
-});
-
-const totalFinal = computed(() => {
-  return baseImponible.value + montoIVA.value;
-});
 
 const TotalItem = (item) => {
   return formatoPesos(Number(item.monto) * Number(item.cantidad))
@@ -97,6 +74,7 @@ onMounted(async () => {
     style="background-color: #ffffff;"
   >
     
+    <!-- Header -->
     <div class="flex justify-between border-b-4 border-[#1f3d64] pb-4 mb-2">
       
       <div class="flex items-center gap-2">
@@ -110,26 +88,24 @@ onMounted(async () => {
       </div>
 
       <div class="text-right">
-        <h2 class="text-lg font-bold text-[#1f3d64]">PRESUPUESTO</h2>
+        <h2 class="text-lg font-bold text-[#1f3d64]">COTIZACIÓN</h2>
         <p class="text-md font-mono text-[#dc2626] font-bold">
-            N° {{ presupuesto.numero_folio || '---' }}
+            N° {{ cotizacion.id || '---' }}
         </p>
         <p class="text-[#6b7280] mt-1 text-[11px]">
-            Fecha: {{ formatoFecha(presupuesto.created_at) }}
+            Fecha: {{ formatoFecha(cotizacion.created_at) }}
         </p>
-        <div class="mt-2 inline-block bg-[#fee2e2] text-[#991b1b] px-2 py-1 rounded font-bold text-[10px] uppercase border border-[#fecaca]">
-          Validez: 14 Días
-        </div>
       </div>
     </div>
 
+    <!-- Info empresa / cliente -->
     <div class="grid grid-cols-2 gap-10 mb-8">
       <div>
         <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">De: ServiML</h3>
         <ul class="text-[#374151] space-y-1">
           <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa.dirección }}</li>
           <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa.ciudad }}</li>
-          <li><span class="font-bold text-[#111827]">Teléfono:</span>{{ datosEmpresa.telefono }}</li>
+          <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa.telefono }}</li>
           <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa.email }}</li>
         </ul>
       </div>
@@ -139,26 +115,17 @@ onMounted(async () => {
         <ul class="text-[#374151] space-y-1">
           <li>
             <span class="font-bold text-[#111827]">Cliente:</span> 
-            {{ presupuesto.cliente?.nombre + ' ' + presupuesto.cliente?.apellido || 'Sin Nombre' }}
+            {{ cotizacion.nombre + ' ' + cotizacion.apellido || 'Sin Nombre' }}
           </li>
-          <li>
-            <span class="font-bold text-[#111827]">Fono:</span> 
-            +{{ presupuesto.cliente?.codigo_pais + ' ' + presupuesto.cliente?.telefono || 'Sin Teléfono' }}
-          </li>
-          <li>
-            <span class="font-bold text-[#111827]">Correo:</span> 
-            {{ presupuesto.cliente?.email || 'Sin Correo' }}
-          </li>
-          <li>
-            <span class="font-bold text-[#111827]">Vehículo:</span> 
-            <span v-if="presupuesto.vehiculo?.patente" class="ml-2 px-1 bg-[#fef08a] pb-2 mb-2 text-[#854d0e] font-bold rounded">
-                {{ presupuesto.vehiculo.patente }} - {{ presupuesto.vehiculo.marca }} {{ presupuesto.vehiculo.modelo }}
-            </span>
+          <li v-if="cotizacion.diagnostico">
+            <span class="font-bold text-[#111827]">Descripción:</span> 
+            {{ cotizacion.diagnostico }}
           </li>
         </ul>
       </div>
     </div>
 
+    <!-- Tabla de items -->
     <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden">
       <table class="w-full text-left border-collapse">
         <thead>
@@ -172,7 +139,7 @@ onMounted(async () => {
         <tbody class="text-[#1f2937] text-[11px]">
           
           <tr 
-            v-for="(item, index) in presupuesto.detalle_presupuesto" 
+            v-for="(item, index) in cotizacion.detalle_cotizacion" 
             :key="index"
             class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64] "
           >
@@ -181,13 +148,14 @@ onMounted(async () => {
             <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
             <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
           </tr>
-          <tr v-if="!presupuesto.detalle_presupuesto || presupuesto.detalle_presupuesto.length < 5" class="h-24">
+          <tr v-if="!cotizacion.detalle_cotizacion || cotizacion.detalle_cotizacion.length < 5" class="h-24">
             <td colspan="4"></td>
           </tr>
         </tbody>
       </table>
     </div>
 
+    <!-- Totales + cuenta bancaria -->
     <div class="flex justify-between items-start gap-8">
       
       <div v-if="cuentaSeleccionada" class="w-3/5 bg-[#f8fafc] p-4 rounded-lg border border-[#e2e8f0]">
@@ -201,36 +169,36 @@ onMounted(async () => {
           <p><span class="font-bold">RUT:</span> {{ cuentaSeleccionada.rut_titular }}</p>
           <p><span class="font-bold">Titular:</span> {{ cuentaSeleccionada.titular }}</p>
           <p><span class="font-bold">N° Cuenta:</span> {{ cuentaSeleccionada.numero_cuenta }}</p>
-          <p v-if="datosEmpresa.email"><span class="font-bold">Correo:</span> {{ datosEmpresa.email }}</p>
         </div>
       </div>
 
-      <div class="w-2/5">
+      <div :class="cuentaSeleccionada ? 'w-2/5' : 'w-2/5 ml-auto'">
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">Subtotal</span>
-          <span>{{ formatoPesos(presupuesto.subtotal) }}</span>
+          <span>{{ formatoPesos(cotizacion.subtotal) }}</span>
         </div>
         
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
           <span class="font-medium">Descuento</span>
-          <span>- {{ presupuesto.descuento }}%</span>
+          <span>- {{ cotizacion.descuento }}%</span>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">Total Neto</span>
-          <span>{{ formatoPesos(presupuesto.total_neto) }}</span>
+          <span>{{ formatoPesos(cotizacion.total_neto) }}</span>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">IVA 19%</span>
-          <span>{{ formatoPesos(presupuesto.iva) }}</span>
+          <span>{{ formatoPesos(cotizacion.iva) }}</span>
         </div>
 
         <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">
           <span class="font-bold text-md">TOTAL</span>
-          <span class="font-bold text-md">{{ formatoPesos(presupuesto.total_final) }}</span>
+          <span class="font-bold text-md">{{ formatoPesos(cotizacion.total_final) }}</span>
         </div>
       </div>
     </div>
 
+    <!-- Footer -->
     <div class="mt-16 text-center border-t border-[#e5e7eb] pt-4">
       <p class="text-[#9ca3af] text-[9px] uppercase tracking-wide">
         Gracias por su preferencia - ServiML

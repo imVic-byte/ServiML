@@ -122,6 +122,10 @@ const formatoFecha = (fecha) => {
   return new Date(fecha).toLocaleDateString('es-CL');
 };
 
+const totalItem = (item) => {
+  return formatoPesos(Number(item.monto) * Number(item.cantidad))
+};
+
 const obtenerDatos = async () => {
   try {
     const { data: informe, error: errorInforme } = await supabase
@@ -444,6 +448,8 @@ onMounted( async () => {
             <thead>
               <tr class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
                 <th class="p-3 font-semibold">Descripción del Servicio / Repuesto</th>
+                <th class="p-3 w-28 text-right">Precio Unitario</th>
+                <th class="p-3 w-28 text-right">Cantidad</th>
                 <th class="p-3 w-28 text-right">Total</th>
               </tr>
             </thead>
@@ -453,6 +459,12 @@ onMounted( async () => {
                 <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
                 <td class="p-3 text-right font-bold">
                   {{ formatoPesos(item.monto) }}
+                </td>
+                <td class="p-3 text-right font-bold">
+                  {{ item.cantidad }}
+                </td>
+                <td class="p-3 text-right font-bold">
+                  {{ totalItem(item) }}
                 </td>
               </tr>
               <tr v-if="datosEstacionamiento.total > 0" class="bg-yellow-50 shadow-lg border-b border-[#1f3d64]">

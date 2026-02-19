@@ -34,6 +34,51 @@ const redirigir = () => {
     router.push({ name: "listado-presupuestos" });
 }
 
+const irAEditarPresupuesto = () => {
+    router.push({ name: "editar-presupuesto", params: { id: route.params.id } });
+}
+
+const manejarConfirmacionEdit = async () => {
+    const {error} = await supabase
+        .from('presupuesto')
+        .update({ estado: 2 , updated_at: new Date(), id_cuenta: cuentaSeleccionada.value.id, editado: false})
+        .eq('id', route.params.id)
+
+    if (error) {
+        console.error(error)
+        return
+    }
+    presupuesto.value.estado = 2
+    loading.value = false
+    modalState.value = {
+        visible: true,
+        titulo: "¡Éxito!",
+        mensaje: "El presupuesto ha sido confirmado correctamente.",
+        exito: true,
+    };
+}
+
+const manejarDescarteEdit = async () => {
+    const {error} = await supabase
+        .from('presupuesto')
+        .update({ estado: 3, editado: false })
+        .eq('id', route.params.id)
+
+    if (error) {
+        console.error(error)
+        return
+    }
+    presupuesto.value.estado = 3
+    loading.value = false
+    modalState.value = {
+        visible: true,
+        titulo: "¡Éxito!",
+        mensaje: "El presupuesto ha sido descartado correctamente.",
+        exito: true,
+    };
+}
+
+
 const manejarConfirmacion = async () => {
     interfaz.showLoadingOverlay()
     try {
@@ -275,7 +320,7 @@ onMounted(async () => {
                     <div class="divide-y divide-gray-800">
                         <div v-for="detalle in presupuesto.detalle_presupuesto" :key="detalle.id" class="px-6 py-4 flex justify-between items-center hover:opacity-80 transition-colors">
                             <span class="text-sm servi-grey-font font-medium">{{ camelCase(detalle.descripcion) }}</span>
-                            <span class="text-sm font-bold servi-grey-font">{{ formatearNumero(detalle.monto) }}</span>
+                            <span class="text-sm font-bold servi-grey-font">{{ formatearNumero(detalle.monto) }} x {{ detalle.cantidad }} = {{ formatearNumero(detalle.monto * detalle.cantidad) }}</span>
                         </div>
                     </div>
                 </div>
@@ -329,10 +374,14 @@ onMounted(async () => {
                     <div class="py-2 px-2">
                         <acciones
                             :estado="presupuesto.estado"
+                            :editado="presupuesto.editado"
                             @confirmar="manejarConfirmacion"
                             @descartar="manejarDescarte"
                             @pdf="generarPDF"
                             @ir-a-ot="manejarIrAOT"
+                            @editar="irAEditarPresupuesto"
+                            @confirmar-editar="manejarConfirmacionEdit"
+                            @descartar-editar="manejarDescarteEdit"
                         />
                     </div>
                 </div>

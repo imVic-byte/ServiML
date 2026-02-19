@@ -69,6 +69,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/presupuesto/:id/editar',
+      name: 'editar-presupuesto',
+      component: () => import('../views/Presupuesto/presupuestoEditar.vue'),
+      meta: { 
+        requiresAuth: true,
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+      }
+    },
+    {
       path: '/presupuesto/:id/pdf',
       name: 'pdf-presupuesto',
       component: () => import('../views/Presupuesto/presupuestoPDF.vue'),
@@ -241,6 +250,54 @@ const router = createRouter({
       component: () => import('../views/Gestion/serviml.vue'),
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
     },
+    {
+      path:'/cotizacion/crear',
+      name: 'crear-cotizacion',
+      component: () => import('../views/Cotizaciones/cotizacionesForm.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
+    },
+    {
+      path:'/cotizacion/editar/:id',
+      name: 'editar-cotizacion',
+      component: () => import('../views/Cotizaciones/cotizacionesEditar.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
+    },
+    {
+      path:'/cotizacion/ver/:id',
+      name: 'ver-cotizacion',
+      component: () => import('../views/Cotizaciones/cotizacionesVer.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
+    },
+    {
+      path:'/cotizacion/pdf/:id',
+      name: 'pdf-cotizacion',
+      component: () => import('../views/Cotizaciones/cotizacionesPDF.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
+    },
+    {
+      path:'/cotizacion/listado',
+      name: 'listado-cotizaciones',
+      component: () => import('../views/Cotizaciones/cotizacionesListado.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
+    },
+    {
+      path:'/cotizacion/crear-presupuesto/:id',
+      name: 'crear-presupuesto-cotizacion',
+      component: () => import('../views/Cotizaciones/crearPresupuesto.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
+    },
+    {
+      path:'/ficha-de-trabajo/:id',
+      name: 'ficha-de-trabajo',
+      component: () => import('../views/Fichas/fichaDeTrabajo.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path:'/ficha-de-trabajo',
+      name: 'listado-fichas-de-trabajo',
+      component: () => import('../views/Fichas/fichaDeTrabajoListado.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    }
   ],
 })
 
