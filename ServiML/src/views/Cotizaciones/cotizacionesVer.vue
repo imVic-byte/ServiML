@@ -109,6 +109,7 @@ const generarFicha = async () => {
       modalState.value.titulo = "Exito";
       modalState.value.mensaje = mensaje;
       modalState.value.exito = true;
+      id_nueva_ficcion.value = ficha_de_trabajo.id
     } else {
       modalState.value.visible = true;
       modalState.value.titulo = "Error";

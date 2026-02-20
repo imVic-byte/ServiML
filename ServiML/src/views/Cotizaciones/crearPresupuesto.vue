@@ -11,6 +11,7 @@ const interfaz = useInterfaz();
 
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 
+const idFicha = ref(null);
 const patente = ref("");
 const modelo = ref("");
 const marca = ref("");
@@ -185,6 +186,13 @@ const enviarFormulario = async () => {
     if (error) throw error;
 
     presupuesto_id.value = data.data.id;
+    if (idFicha) {
+      await supabase
+        .from('presupuesto')
+        .update({ id_ficha: idFicha.value })
+        .eq('id', presupuesto_id.value)
+    }
+
     modalState.value = { visible: true, titulo: "¡Éxito!", mensaje: "Presupuesto creado correctamente.", exito: true };
   } catch (err) {
     console.error(err);
@@ -208,14 +216,17 @@ const cargarCotizacion = async () => {
   interfaz.showLoading();
   const { data, error } = await supabase
     .from('cotizacion')
-    .select('*, detalle_cotizacion(*)')
+    .select('*, detalle_cotizacion(*),ficha_de_trabajo(cliente(email, telefono))')
     .eq('id', route.params.id)
     .single()
 
-  if (data) {
+if (data) {
+    idFicha.value = data.id_ficha;
     nombre.value = data.nombre || '';
     apellido.value = data.apellido || '';
     diagnostico.value = data.diagnostico || '';
+    correo.value = data.ficha_de_trabajo?.cliente?.email || '';
+    telefono.value = data.ficha_de_trabajo?.cliente?.telefono || '';
     descuentoPorcentaje.value = data.descuento || '';
     ivaBoolean.value = (data.iva && data.iva > 0) ? true : false;
 

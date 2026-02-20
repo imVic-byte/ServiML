@@ -31,12 +31,29 @@ export const generarFichaTrabajo = async (datosEntrada) => {
         return { exito: false, mensaje: 'Error al generar ficha de trabajo' };
     }
 
+    if (datosEntrada.id_cotizacion) {
+        
+        // A. Buscamos el folio más alto que exista actualmente en las cotizaciones
+        const { data: maxFolioData } = await supabase
+            .from('cotizacion')
+            .select('folio_aceptacion')
+            .not('folio_aceptacion', 'is', null)
+            .order('folio_aceptacion', { ascending: false })
+            .limit(1)
+            .single();
+
+        // B. Calculamos el nuevo folio (si no hay ninguno, empezamos en el 1)
+        let nuevoFolio = 1;
+        if (maxFolioData && maxFolioData.folio_aceptacion) {
+            nuevoFolio = maxFolioData.folio_aceptacion + 1;
+        }
+
     // 4. Actualizar el estado de la cotización (Si existe)
     // Esto es vital para que no quede como "pendiente"
     if (datosEntrada.id_cotizacion) {
         await supabase
             .from('cotizacion')
-            .update({ estado: 2 , id_ficha:data.id})
+            .update({ estado: 2, folio_aceptacion: nuevoFolio, id_ficha:data.id })
             .eq('id', datosEntrada.id_cotizacion);
     }
 
@@ -45,4 +62,4 @@ export const generarFichaTrabajo = async (datosEntrada) => {
         ficha_de_trabajo: data, 
         mensaje: 'Ficha de trabajo generada exitosamente' 
     };
-}
+}};

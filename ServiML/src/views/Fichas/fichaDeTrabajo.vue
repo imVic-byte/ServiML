@@ -62,6 +62,7 @@ const formatMoneda = (monto) => {
 
 const obtenerTextoEstadoCotizacion = (estado) => {
   switch (Number(estado)) {
+    case 4: return 'Presupuestada'
     case 2: return 'Aprobada'
     case 3: return 'Rechazada'
     case 1: return 'Pendiente'
@@ -74,6 +75,7 @@ const obtenerColorEstadoCotizacion = (estado) => {
     case 2: return 'text-green-600'
     case 3: return 'text-red-600'
     case 1: return 'text-yellow-600'
+    case 4: return 'text-blue-600'
     default: return 'text-gray-600'
   }
 }
@@ -141,6 +143,7 @@ const cargarDatos = async () => {
           .select('*')
           .ilike('nombre', dataFicha.cliente.nombre)
           .ilike('apellido', dataFicha.cliente.apellido)
+          .in ('estado', [2,4])
           .order('created_at', { ascending: false })
 
         cotizacionesCliente.value = dataCots || []
@@ -152,24 +155,6 @@ const cargarDatos = async () => {
     error.value = "No se pudo cargar la información de la ficha. Revisa la conexión."
   } finally {
     cargando.value = false
-  }
-}
-
-const aprobarCotizacion = async (idCotizacion) => {
-  try {
-    const { error } = await supabase.rpc('aceptar_cotizacion_folio', {
-      id_coti: idCotizacion
-    })
-
-    if (error) throw error
-
-    alert('¡Cotización aprobada! Se le ha asignado su folio correlativo.')
-    
-    await cargarDatos()
-    
-  } catch (err) {
-    console.error('Error al aprobar la cotización:', err)
-    alert('Hubo un error al aprobar la cotización.')
   }
 }
 
@@ -299,7 +284,14 @@ onMounted(() => {
                 @click="irAVerCotizacion(cotizacion.id)"
                 class="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer group">
                 <div>
-                  <p class="font-bold text-gray-800 dark:text-gray-200 text-sm group-hover:text-blue-600 transition-colors">Folio N°{{ cotizacion.id }}</p>
+                  <p class="font-bold text-gray-800 dark:text-gray-200 text-sm group-hover:text-blue-600 transition-colors">
+                    <span v-if="cotizacion.folio_aceptacion" class="text-blue-600 dark:text-blue-400">
+                      Folio N°{{ cotizacion.folio_aceptacion }}
+                    </span>
+                    <span v-else class="text-gray-500">
+                      Cotización #{{ cotizacion.id }}
+                    </span>
+                  </p>
                   <p class="text-xs text-gray-500">{{ formatFecha(cotizacion.created_at) }}</p>
                 </div>
                 <div class="text-right flex flex-col items-end gap-1.5">
