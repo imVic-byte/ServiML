@@ -315,6 +315,12 @@ const router = createRouter({
       name: 'crear-cotizacion-ficha-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoCrearCotizacion.vue'),
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path:'/ficha-de-trabajo/:id/ver-cotizacion',
+      name: 'ver-cotizacion-ficha-de-trabajo',
+      component: () => import('../views/Fichas/fichaDeTrabajoVerCotizacion.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
     }
   ],
 })

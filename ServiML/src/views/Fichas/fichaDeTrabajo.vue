@@ -29,6 +29,12 @@ const otMarcaIngresada = ref('')
 const errorModal = ref('')
 const creandoOT = ref(false)
 
+// Estado para el modal de Aprobación de Cotización
+const mostrarModalCotizacion = ref(false)
+const cotizacionSeleccionada = ref(null)
+const procesandoEstadoCotizacion = ref(false)
+const errorModalCotizacion = ref('')
+
 const goBack = () => {
   router.push({ name: 'listado-fichas-de-trabajo' })
 }
@@ -91,6 +97,11 @@ const handleVehiculos = () => {
 const crearCotizacion = () => {
     router.push({ name: 'crear-cotizacion-ficha-de-trabajo', params: {id: ficha.value.id } })
 }
+
+const irACotizacion = (id) => {
+    router.push({ name: 'ver-cotizacion-ficha-de-trabajo', params: {id} })
+}
+
 
 const confirmarCreacionOT = async () => {
     errorModal.value = ''
@@ -156,13 +167,53 @@ const confirmarCreacionOT = async () => {
     } catch (e) {
         console.error(e)
         errorModal.value = 'Error inesperado al crear la OT.'
-    } finally {
-        creandoOT.value = false
+        } finally {
+            creandoOT.value = false
+        }
     }
-}
-
-
-const irAConvertir = (idCotizacion) => {
+    
+    const abrirModalCotizacion = (cotizacion) => {
+      if (Number(cotizacion.estado) !== 1) {
+        irAVerCotizacion(cotizacion.id)
+        return
+      }
+      cotizacionSeleccionada.value = cotizacion
+      errorModalCotizacion.value = ''
+      mostrarModalCotizacion.value = true
+    }
+    
+    const cerrarModalCotizacion = () => {
+      mostrarModalCotizacion.value = false
+      cotizacionSeleccionada.value = null
+    }
+    
+    const actualizarEstadoCotizacion = async (nuevoEstado) => {
+      if (!cotizacionSeleccionada.value) return
+    
+      procesandoEstadoCotizacion.value = true
+      errorModalCotizacion.value = ''
+      
+      try {
+        const { error } = await supabase
+          .from('cotizaciones_ficha')
+          .update({ estado: nuevoEstado })
+          .eq('id', cotizacionSeleccionada.value.id)
+    
+        if (error) throw error
+    
+        await cargarDatos()
+        cerrarModalCotizacion()
+    
+      } catch (err) {
+        console.error('Error al actualizar estado:', err)
+        errorModalCotizacion.value = 'No se pudo actualizar el estado. Inténtalo de nuevo.'
+      } finally {
+        procesandoEstadoCotizacion.value = false
+      }
+    }
+    
+    
+    const irAConvertir = (idCotizacion) => {
   router.push({ 
     name: 'nuevo-presupuesto', 
     params: { id: idCotizacion } 
@@ -416,17 +467,21 @@ onMounted(async () => {
             </div>
             <div v-if="cotizaciones.length > 0" class="divide-y divide-gray-100 max-h-60 overflow-y-auto custom-scrollbar">
               <div v-for="(cotizacion, i) in cotizaciones" :key="cotizacion.id"
+                @click="irACotizacion(cotizacion.id)"
                 class="p-4 hover:bg-gray-50 transition-colors cursor-pointer group flex justify-between items-center">
                 <div>
                   <p class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">Cotización N°{{ i + 1 }}</p>
                   <p class="text-xs text-gray-500">{{ formatFecha(cotizacion.created_at) }}</p>
                 </div>
-                <div class="text-right flex flex-col items-end gap-1">
-                  <p class="font-bold text-gray-700 text-sm leading-none">{{ formatMoneda(cotizacion.total_final) }}</p>
-                  <span class="text-[10px] font-bold uppercase tracking-wide" :class="obtenerColorEstadoCotizacion(cotizacion.estado)">
-                    {{ obtenerTextoEstadoCotizacion(cotizacion.estado) }}
-                  </span>
+                <div class="text-right flex items-end gap-1 align-center justify-center">
+                  <div class="flex flex-col items-center justify-center align-center">
+                    <p class="font-bold text-gray-700 text-sm leading-none">{{ formatMoneda(cotizacion.total_final) }}</p>
+                    <span class="text-[10px] font-bold uppercase tracking-wide" :class="obtenerColorEstadoCotizacion(cotizacion.estado)">
+                      {{ obtenerTextoEstadoCotizacion(cotizacion.estado) }}
+                    </span>
+                  </div>
                 </div>
+                
               </div>
             </div>
             <p v-else class="text-sm text-gray-500 italic p-6 text-center">No hay cotizaciones previas.</p>
@@ -538,6 +593,41 @@ onMounted(async () => {
 
       </div>
     </div>
+    <!-- Modal de Confirmación de Cotización -->
+<div v-if="mostrarModalCotizacion" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
+  <div class="servi-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
+    
+    <div class="servi-blue px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white">Confirmar Estado de Cotización</h3>
+        <button @click="cerrarModalCotizacion" class="text-white hover:text-gray-600 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <div class="p-6 space-y-4">
+        <p class="text-center servi-grey-font">La cotización N°{{ cotizacionSeleccionada.id }} se encuentra pendiente.</p>
+        <p class="text-center text-sm servi-grey-font">¿Deseas aprobarla o rechazarla?</p>
+        <div v-if="errorModalCotizacion" class="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 flex items-start gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 shrink-0 mt-0.5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>
+            <span>{{ errorModalCotizacion }}</span>
+        </div>
+    </div>
+
+    <div class="servi-blue px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+        <button @click="actualizarEstadoCotizacion(3)" :disabled="procesandoEstadoCotizacion" class="px-4 py-2 text-sm font-bold text-white hover:bg-red-700 rounded-lg transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+            <svg v-if="procesandoEstadoCotizacion" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Rechazar
+        </button>
+        <button @click="actualizarEstadoCotizacion(2)" :disabled="procesandoEstadoCotizacion" class="px-4 py-2 text-sm font-bold servi-yellow text-black hover:bg-green-700 rounded-lg transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+            <svg v-if="procesandoEstadoCotizacion" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Aprobar
+        </button>
+    </div>
+
+  </div>
+</div>
 </template>
 
 <style scoped>
