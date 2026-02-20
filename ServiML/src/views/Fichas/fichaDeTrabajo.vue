@@ -1,5 +1,4 @@
 <script setup>
-<<<<<<< HEAD
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '../../lib/supabaseClient'
@@ -43,7 +42,7 @@ const crearOTDirecta = () => {
 
 const irAConvertir = (idCotizacion) => {
   router.push({ 
-    name: 'nuevo-presupuesto', 
+    name: 'crear-presupuesto-cotizacion', 
     params: { id: idCotizacion } 
   })
 }
@@ -153,6 +152,24 @@ const cargarDatos = async () => {
     error.value = "No se pudo cargar la información de la ficha. Revisa la conexión."
   } finally {
     cargando.value = false
+  }
+}
+
+const aprobarCotizacion = async (idCotizacion) => {
+  try {
+    const { error } = await supabase.rpc('aceptar_cotizacion_folio', {
+      id_coti: idCotizacion
+    })
+
+    if (error) throw error
+
+    alert('¡Cotización aprobada! Se le ha asignado su folio correlativo.')
+    
+    await cargarDatos()
+    
+  } catch (err) {
+    console.error('Error al aprobar la cotización:', err)
+    alert('Hubo un error al aprobar la cotización.')
   }
 }
 
@@ -290,12 +307,12 @@ onMounted(() => {
                   <span class="text-[11px] font-semibold leading-none" :class="obtenerColorEstadoCotizacion(cotizacion.estado)">
                     {{ obtenerTextoEstadoCotizacion(cotizacion.estado) }}
                   </span>
-                  
-                    <template>
-                        <button @click="irAConvertir(cotizacion.id)" class="btn-convertir">
-                            Convertir a Presupuesto
+                    <button v-if="Number(cotizacion.estado) === 2" 
+                          @click.stop="irAConvertir(cotizacion.id)" 
+                          class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3"><path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 003 3.5v13A1.5 1.5 0 004.5 18h11a1.5 1.5 0 001.5-1.5V7.621a1.5 1.5 0 00-.44-1.06l-4.12-4.122A1.5 1.5 0 0011.378 2H4.5zm2.25 8.5a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5zm0 3a.75.75 0 000 1.5h6.5a.75.75 0 000-1.5h-6.5z" clip-rule="evenodd" /></svg>
+                          Generar Presupuesto
                         </button>
-                    </template>
                 </div>
               </div>
             </div>
@@ -325,44 +342,3 @@ onMounted(() => {
   background-color: #374151;
 }
 </style>
-=======
-import {ref,onMounted,computed} from 'vue'
-import {supabase} from '../../lib/supabaseClient.js'
-import navbar from '../../components/componentes/navbar.vue'
-import modal from '../../components/componentes/modal.vue'
-import { useInterfaz } from '@/stores/interfaz.js'
-import { useRouter,useRoute } from 'vue-router'
-
-const router = useRouter()
-const route = useRoute()
-const interfaz = useInterfaz()
-const ficha = ref([])
-
-onMounted(async () => {
-    interfaz.showLoading();
-    const { data, error } = await supabase
-      .from('ficha_de_trabajo')
-      .select('*,cliente(*)')
-      .eq('id', route.params.id)
-      .single()
-    if (data) {
-        ficha.value = data
-    } else {
-        console.log(error)
-    }
-    interfaz.hideLoading();
-})
-</script>
-<template>
-    <div class="flex-1 servi-white">
-        <navbar titulo="ServiML" subtitulo="Ficha de Trabajo" class="navbar"/>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <h2>{{ ficha?.cliente?.nombre }}</h2>
-            <h2>{{ ficha?.cliente?.apellido }}</h2>
-            <h2>{{ ficha?.cliente?.telefono }}</h2>
-            <h2>{{ ficha?.cliente?.email }}</h2>
-            <h2>{{ ficha?.cliente?.telefono }}</h2>
-        </div>
-    </div>
-</template>
->>>>>>> 599d01ea6445b82bad2c5674108405d152e3c12a

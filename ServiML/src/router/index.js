@@ -69,6 +69,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/presupuestos/nuevo7:id',
+      name: 'crear-presupuesto-cotizacion',
+      component: () => import('../views/Presupuesto/crearPresupuestoCotizacion.vue'),
+      meta: { 
+        requiresAuth: true,
+        allowedRoles: ['Administrador', 'Gerente', 'Soporte']
+      }
+    },
+    {
       path: '/presupuesto/:id/editar',
       name: 'editar-presupuesto',
       component: () => import('../views/Presupuesto/presupuestoEditar.vue'),
