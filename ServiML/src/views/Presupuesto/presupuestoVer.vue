@@ -91,6 +91,19 @@ const manejarConfirmacion = async () => {
         console.error(error)
         return
     }
+
+    if (presupuesto.value.id_ficha) {
+            const { error: cotiError } = await supabase
+                .from('cotizacion')
+                .update({ estado: 4 })
+                .eq('id_ficha', presupuesto.value.id_ficha)
+                .eq('estado', 2)
+
+            if (cotiError) {
+                console.error("Error al actualizar el estado de la cotización:", cotiError)
+            }
+        }
+
     const opciones = {
     margin:       0,
     filename:     `Presupuesto_${n_presupuesto.value}.pdf`,
