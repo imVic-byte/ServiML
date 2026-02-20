@@ -7,6 +7,7 @@ import {creacionOT} from '../../js/creacionOT.js'
 import OTcard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import volver from "../../components/componentes/volver.vue";
 import {useInterfaz} from '../../stores/interfaz.js'
+
 const router = useRouter()
 const route = useRoute()
 const interfaz = useInterfaz()
@@ -14,6 +15,7 @@ const fichaId = route.params.id
 const cargando = ref(true)
 const error = ref(null)
 const ficha = ref(null)
+const cotizacionConfirmada = ref(null)
 const vehiculos = ref([])
 
 const ordenesTrabajo = ref([])
@@ -99,9 +101,8 @@ const crearCotizacion = () => {
 }
 
 const irACotizacion = (id) => {
-    router.push({ name: 'ver-cotizacion-ficha-de-trabajo', params: {id} })
+    router.push({ name: 'ver-cotizacion-ficha-de-trabajo', params: {id: ficha.value.id, cotizacion_id: id} })
 }
-
 
 const confirmarCreacionOT = async () => {
     errorModal.value = ''
@@ -237,7 +238,7 @@ const obtenerTextoEstadoCotizacion = (estado) => {
     case 2: return 'Aprobada'
     case 3: return 'Rechazada'
     case 1: return 'Pendiente'
-    default: return 'Cerrada'
+    default: return 'Inicial'
   }
 }
 
@@ -246,7 +247,7 @@ const obtenerColorEstadoCotizacion = (estado) => {
     case 2: return 'text-green-600'
     case 3: return 'text-red-600'
     case 1: return 'text-yellow-600'
-    default: return 'text-gray-600'
+    default: return 'text-purple-600'
   }
 }
 
@@ -279,19 +280,19 @@ const cargarDatos = async () => {
   try {
     const { data: dataFicha, error: errorFicha } = await supabase
       .from('ficha_de_trabajo')
-      .select(`*, cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*))`) 
+      .select(`*, cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
       .eq('id', fichaId)
       .single()
     if (errorFicha) throw errorFicha
     ficha.value = dataFicha
     cotizaciones.value = dataFicha.cotizaciones_ficha
+    cotizacionConfirmada.value = dataFicha.cotizaciones_ficha.find(c => c.estado === 2)
     }
    catch (err) {
     console.error("Error al cargar los datos:", err)
     error.value = "No se pudo cargar la información de la ficha. Revisa la conexión."
   } finally {
     cargando.value = false
-    console.log(ficha.value.orden_trabajo.vehiculo)
   }
 }
 const estados = ref([])
@@ -339,11 +340,29 @@ const guardarFicha = async () => {
   }
 }
 
+const generarPresupuesto = async () => {
+  router.push({name: 'ver-presupuesto-ficha-de-trabajo', params: {id: fichaId}, query: {generar: true}})
+}
+
+const irAPresupuesto = async () => {
+  router.push({name: 'ver-presupuesto-ficha-de-trabajo', params: {id: fichaId}})
+}
+const tienePresupuesto = ref(false)
+
+const handleVerificarPresupuesto = async () => {
+ const{data,error} = await supabase.from('presupuesto').select('*').eq('id_ficha', fichaId) 
+ if(error) throw error
+ if(data.length > 0){
+  tienePresupuesto.value = true
+ }
+}
+
 onMounted(async () => {
   interfaz.showLoading()
   if (fichaId) {
     await cargarDatos()
     await traerEstados()
+    await handleVerificarPresupuesto()
   } else {
     error.value = "ID de ficha no proporcionado."
     cargando.value = false
@@ -400,7 +419,7 @@ onMounted(async () => {
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-3 border-b border-gray-100 flex justify-between items-center">
               <h2 class="text-white font-bold text-lg">Datos de la Ficha</h2>
-              <button @click="guardarFicha" class="servi-yellow text-black px-4 py-2 rounded-lg">Guardar</button>
+              <button @click="guardarFicha" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs uppercase tracking-wider flex items-center gap-1 transition-colors">Guardar</button>
             </div>
             <div class="p-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -442,8 +461,8 @@ onMounted(async () => {
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-3 border-b border-gray-100 flex justify-between items-center">
               <h2 class="text-white font-bold text-lg">Vehículos</h2>
-              <button @click="abrirModalOT" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors">
-                + Agregar Vehículo
+              <button @click="abrirModalOT" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs uppercase tracking-wider flex items-center gap-1 transition-colors">
+                Agregar
               </button>
             </div>
             <div class="p-6">
@@ -463,7 +482,7 @@ onMounted(async () => {
                 Cotizaciones
                 <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{{ cotizaciones.length }}</span>
               </h2>
-              <button @click="crearCotizacion" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors">Crear Cotización</button>
+              <button v-if="!cotizacionConfirmada" @click="crearCotizacion" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs uppercase tracking-wider flex items-center gap-1 transition-colors">Crear</button>
             </div>
             <div v-if="cotizaciones.length > 0" class="divide-y divide-gray-100 max-h-60 overflow-y-auto custom-scrollbar">
               <div v-for="(cotizacion, i) in cotizaciones" :key="cotizacion.id"
@@ -487,24 +506,15 @@ onMounted(async () => {
             <p v-else class="text-sm text-gray-500 italic p-6 text-center">No hay cotizaciones previas.</p>
           </div>
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-             <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <span class="text-sm font-bold text-gray-600 uppercase tracking-wider">Estado Actual</span>
-                <span 
-                  class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide"
-                  :class="obtenerColorEstado(ficha.estado)">
-                  {{ obtenerTextoEstado(ficha.estado) }}
-                </span>
+             <div class="servi-blue px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <span class="text-sm font-bold text-white uppercase tracking-wider">Acciones</span>
              </div>
              <div class="p-4 grid grid-cols-1 gap-3">
-                <button class="w-full py-2.5 px-4 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                  Exportar Ficha
+                <button v-if="tienePresupuesto" @click="irAPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+                  ir al presupuesto
                 </button>
-                <button class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                  Firmar Visualmente
-                </button>
-                <button @click="goBack" class="w-full py-2.5 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors text-sm font-medium">
-                  Volver al Listado
+                <button v-if="cotizacionConfirmada" @click="generarPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+                  Generar presupuesto
                 </button>
              </div>
           </div>
@@ -593,41 +603,6 @@ onMounted(async () => {
 
       </div>
     </div>
-    <!-- Modal de Confirmación de Cotización -->
-<div v-if="mostrarModalCotizacion" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
-  <div class="servi-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-    
-    <div class="servi-blue px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-        <h3 class="text-lg font-bold text-white">Confirmar Estado de Cotización</h3>
-        <button @click="cerrarModalCotizacion" class="text-white hover:text-gray-600 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-    </div>
-
-    <div class="p-6 space-y-4">
-        <p class="text-center servi-grey-font">La cotización N°{{ cotizacionSeleccionada.id }} se encuentra pendiente.</p>
-        <p class="text-center text-sm servi-grey-font">¿Deseas aprobarla o rechazarla?</p>
-        <div v-if="errorModalCotizacion" class="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 flex items-start gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 shrink-0 mt-0.5"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" /></svg>
-            <span>{{ errorModalCotizacion }}</span>
-        </div>
-    </div>
-
-    <div class="servi-blue px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
-        <button @click="actualizarEstadoCotizacion(3)" :disabled="procesandoEstadoCotizacion" class="px-4 py-2 text-sm font-bold text-white hover:bg-red-700 rounded-lg transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-            <svg v-if="procesandoEstadoCotizacion" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            Rechazar
-        </button>
-        <button @click="actualizarEstadoCotizacion(2)" :disabled="procesandoEstadoCotizacion" class="px-4 py-2 text-sm font-bold servi-yellow text-black hover:bg-green-700 rounded-lg transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-            <svg v-if="procesandoEstadoCotizacion" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            Aprobar
-        </button>
-    </div>
-
-  </div>
-</div>
 </template>
 
 <style scoped>

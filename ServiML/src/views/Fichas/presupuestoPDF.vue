@@ -1,25 +1,26 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
+import { useRouter, useRoute } from 'vue-router';
+import { useInterfaz } from '@/stores/interfaz';
 
-const props = defineProps({
-  cotizacion: {
-    type: Object,
-    required: true
-  },
-  cuentaSeleccionada: {
-    type: Object,
-    default: null
-  }
-});
+const route = useRoute()
+const router = useRouter()
+const interfaz = useInterfaz()
+
 
 const formatoPesos = (valor) => {
   if (valor === undefined || valor === null) return '$0';
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor);
 };
 
+const formatoFechaYHora = (fecha) => {
+  if (!fecha) return '---';
+  return new Date(fecha).toLocaleString('es-CL');
+};
+
 const formatoFecha = (fecha) => {
-  if (!fecha) return new Date().toLocaleDateString('es-CL');
+  if (!fecha) return '---';
   return new Date(fecha).toLocaleDateString('es-CL');
 };
 
@@ -59,12 +60,87 @@ const traerTelefono = async () => {
   }
 }
 
+const ficha = ref(null)
+const cotizacion = ref(null)
+
+const generarPresupuesto = async () => {
+  if (handleVerificarPresupuesto()) {
+    return
+  }
+  const {data,error} = await supabase
+    .from('presupuesto')
+    .insert({
+      id_cliente: ficha.value.cliente.id,
+      subtotal: cotizacion.value.subtotal,
+      descuento: cotizacion.value.descuento,
+      iva: cotizacion.value.iva,
+      total_neto:cotizacion.value.total_neto,
+      total_final: cotizacion.value.total_final,
+      id_ficha: ficha.value.id,
+      id_cuenta: cotizacion.value.serviml_cuenta.id,
+    })
+    .select()
+    .single()
+    if (data) {
+      for (const detalle of cotizacion.value.detalle_cotizaciones_ficha) {
+        await supabase.from('detalle_presupuesto').insert({
+          id_presupuesto: data.id,
+          cantidad: detalle.cantidad,
+          monto: detalle.monto,
+          descripcion:detalle.descripcion
+        })
+      }
+    }
+    if (error) {
+      console.error('Error al generar presupuesto:', error)
+    }
+    cargarDatos()
+}
+
+const presupuesto = ref({})
+
+const cargarDatos = async () => {
+    const {data,error} = await supabase
+    .from('ficha_de_trabajo')
+    .select(`*, presupuesto(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
+    .eq('id', route.params.id)
+    .single()
+    if (data) {
+      console.log(data)
+      presupuesto.value = data.presupuesto[0]
+      console.log(presupuesto.value)
+      ficha.value = data
+      cotizacion.value = data.cotizaciones_ficha.find(c => c.estado === 2)
+    }
+    if (error) {
+      console.error('Error al traer datos de la ficha:', error)
+    }
+    console.log(ficha.value)
+}
+
+const handleVerificarPresupuesto = async () => {
+  const {data,error} = await supabase.from('presupuesto').select('*').eq('id_ficha', route.params.id)
+  if (data) {
+    return true
+  }
+  if (error) {
+    console.log(error)
+    return false
+  }
+  return false
+}
+
 onMounted(async () => {
+  interfaz.showLoading()
   await traerDatosEmpresa()
   await traerEmail()
   await traerTelefono()
+  await cargarDatos()
+  if (route.query.generar === 'true') {
+    await generarPresupuesto()
+  }
+  interfaz.hideLoading()
 })
-
 </script>
 
 <template>
@@ -88,25 +164,27 @@ onMounted(async () => {
       </div>
 
       <div class="text-right">
-        <h2 class="text-lg font-bold text-[#1f3d64]">COTIZACIÓN</h2>
+        <h2 class="text-lg font-bold text-[#1f3d64]">Presupuesto</h2>
         <p class="text-md font-mono text-[#dc2626] font-bold">
-            N° {{ cotizacion.id || '---' }}
+            N° {{ presupuesto?.numero_folio || '---' }}
         </p>
         <p class="text-[#6b7280] mt-1 text-[11px]">
-            Fecha: {{ formatoFecha(cotizacion.created_at) }}
+            Fecha: {{ formatoFecha(presupuesto?.created_at) }}
         </p>
       </div>
     </div>
-
-    <!-- Info empresa / cliente -->
-    <div class="grid grid-cols-2 gap-10 mb-8">
+    <div v-if="!cotizacion" class="p-10 text-center border-2 border-dashed border-red-300 rounded-xl my-10">
+      <p class="text-red-500 font-bold">No hay cotización seleccionada para previsualizar.</p>
+      <p class="text-gray-500 text-xs mt-2">Para depurar, asegúrate de pasar una cotización válida.</p>
+    </div>
+    <div v-else class="grid grid-cols-2 gap-10 mb-8">
       <div>
         <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">De: ServiML</h3>
         <ul class="text-[#374151] space-y-1">
-          <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa.dirección }}</li>
-          <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa.ciudad }}</li>
+          <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa.dirección || '...' }}</li>
+          <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa.ciudad || '...' }}</li>
           <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa.telefono || 'Sin Teléfono' }}</li>
-          <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa.email }}</li>
+          <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa.email || '...' }}</li>
         </ul>
       </div>
 
@@ -115,18 +193,37 @@ onMounted(async () => {
         <ul class="text-[#374151] space-y-1">
           <li>
             <span class="font-bold text-[#111827]">Cliente:</span> 
-            {{ cotizacion.nombre + ' ' + cotizacion.apellido || 'Sin Nombre' }}
+            {{ ficha.value.cliente ? (ficha.value.cliente.nombre + ' ' + ficha.value.cliente.apellido) : 'Sin Nombre' }}
           </li>
-          <li v-if="cotizacion.diagnostico">
-            <span class="font-bold text-[#111827]">Descripción:</span> 
-            {{ cotizacion.diagnostico }}
+          <li>
+            <span class="font-bold text-[#111827]">Teléfono:</span> 
+            {{ ficha.value.cliente ? ('+' + ficha.value.cliente.codigo_pais + ' ' + ficha.value.cliente.telefono) : 'Sin Teléfono' }}
+          </li>
+          <li>
+            <span class="font-bold text-[#111827]">Email:</span> 
+            {{ ficha.cliente?.email || 'Sin Email' }}
           </li>
         </ul>
       </div>
     </div>
-
-    <!-- Tabla de items -->
-    <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden">
+    <h3 v-if="cotizacion" class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">Resumen</h3>
+    <div v-if="cotizacion" class="mb-4 flex justify-between items-center">
+      <ul class="text-[#374151] flex-row w-full">
+        <li class="w-[53%]">
+          <span class="font-bold text-left align-left text-[#111827] text-start">Motivo Ingreso:</span> 
+          <p>{{ ficha.motivo_ingreso || '---' }}</p>
+        </li>
+        <li>
+          <span class="font-bold text-left align-left text-[#111827] text-start">Fecha Ingreso:</span> 
+          <p>{{ formatoFechaYHora(ficha.fecha_ingreso) }}</p>
+        </li>
+        <li>
+          <span class="font-bold text-left align-left text-[#111827] text-start">Comentarios adicionales:</span> 
+          <p>{{ cotizacion.comentario }}</p>
+        </li>
+      </ul>
+    </div>
+    <div v-if="cotizacion" class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
@@ -139,7 +236,7 @@ onMounted(async () => {
         <tbody class="text-[#1f2937] text-[11px]">
           
           <tr 
-            v-for="(item, index) in cotizacion.detalle_cotizacion" 
+            v-for="(item, index) in cotizacion?.detalle_cotizaciones_ficha || []" 
             :key="index"
             class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64] "
           >
@@ -148,7 +245,7 @@ onMounted(async () => {
             <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
             <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
           </tr>
-          <tr v-if="!cotizacion.detalle_cotizacion || cotizacion.detalle_cotizacion.length < 5" class="h-24">
+          <tr v-if="!cotizacion?.detalle_cotizaciones_ficha || cotizacion.detalle_cotizaciones_ficha.length < 5" class="h-24">
             <td colspan="4"></td>
           </tr>
         </tbody>
@@ -156,7 +253,7 @@ onMounted(async () => {
     </div>
 
     <!-- Totales + cuenta bancaria -->
-    <div class="flex justify-between items-start gap-8">
+    <div v-if="cotizacion" class="flex justify-between items-start gap-8">
       
       <div v-if="cuentaSeleccionada" class="w-3/5 bg-[#f8fafc] p-4 rounded-lg border border-[#e2e8f0]">
         <h4 class="font-bold text-[#1f3d64] uppercase text-[10px] mb-2 flex items-center gap-2">
@@ -175,25 +272,25 @@ onMounted(async () => {
       <div :class="cuentaSeleccionada ? 'w-2/5' : 'w-2/5 ml-auto'">
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">Subtotal</span>
-          <span>{{ formatoPesos(cotizacion.subtotal) }}</span>
+          <span>{{ formatoPesos(cotizacion?.subtotal || 0) }}</span>
         </div>
         
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
           <span class="font-medium">Descuento</span>
-          <span>- {{ cotizacion.descuento }}%</span>
+          <span>- {{ cotizacion?.descuento || 0 }}%</span>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">Total Neto</span>
-          <span>{{ formatoPesos(cotizacion.total_neto) }}</span>
+          <span>{{ formatoPesos(cotizacion?.total_neto || 0) }}</span>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">IVA 19%</span>
-          <span>{{ formatoPesos(cotizacion.iva) }}</span>
+          <span>{{ formatoPesos(cotizacion?.iva || 0) }}</span>
         </div>
 
         <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">
           <span class="font-bold text-md">TOTAL</span>
-          <span class="font-bold text-md">{{ formatoPesos(cotizacion.total_final) }}</span>
+          <span class="font-bold text-md">{{ formatoPesos(cotizacion?.total_final || 0) }}</span>
         </div>
       </div>
     </div>
@@ -216,3 +313,5 @@ onMounted(async () => {
   color-adjust: exact !important;
 }
 </style>
+
+

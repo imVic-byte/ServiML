@@ -317,9 +317,15 @@ const router = createRouter({
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
     },
     {
-      path:'/ficha-de-trabajo/:id/ver-cotizacion',
+      path:'/ficha-de-trabajo/:id/ver-cotizacion/:cotizacion_id',
       name: 'ver-cotizacion-ficha-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoVerCotizacion.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path:'/ficha-de-trabajo/:id/presupuesto',
+      name: 'ver-presupuesto-ficha-de-trabajo',
+      component: () => import('../views/Fichas/presupuestoPDF.vue'),
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
     }
   ],

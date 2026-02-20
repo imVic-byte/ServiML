@@ -569,7 +569,7 @@ onMounted(async () => {
                   </div>
                 </div>
                 <div class="space-y-1 flex-row">
-                  <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Diagnóstico Inicial</label>
+                  <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Diagnóstico</label>
                   <textarea class="w-full h-32 servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500 font-medium resize-none" placeholder="Describa el problema encontrado" v-model="orden.diagnostico" :disabled="soloLectura || isCerrado"></textarea>
                 </div>
               </div>

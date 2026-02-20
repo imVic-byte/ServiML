@@ -5,7 +5,7 @@ import { useRouter, useRoute } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import modal from "../../components/componentes/modal.vue";
 import { useInterfaz } from '@/stores/interfaz.js'
-
+import volver from '../../components/componentes/volver.vue'
 const router = useRouter();
 const route = useRoute();
 const interfaz = useInterfaz();
@@ -31,6 +31,10 @@ const sugerenciasFiltradas = computed(() => {
   if (!texto) return serviciosCatalogo.value
   return serviciosCatalogo.value.filter(s => s.nombre.toLowerCase().includes(texto))
 })
+
+const volveraFicha = () => {
+  router.push({ name: "ficha-de-trabajo", params: { id: route.params.id } });
+}
 
 const abrirAutocompletado = (index) => {
   autocompletadoActivo.value = index
@@ -103,6 +107,7 @@ const enviarFormulario = async () => {
     const { data, error } = await supabase.from('cotizaciones_ficha')
     .insert({
       ficha_id: route.params.id,
+      comentario: comentarios.value,
       ...totales.value
     })
     .select('id')
@@ -153,13 +158,13 @@ const cargarDatosFicha = async (id) => {
     modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudieron cargar los datos de la ficha.", exito: false };
   }
 };
-onMounted(() => {
+onMounted(async () => {
   interfaz.showLoading()
   const fichaId = route.params.id;
   if (fichaId) {
-    cargarDatosFicha(fichaId);
+    await cargarDatosFicha(fichaId);
   }
-  cargarServicios();
+  await cargarServicios();
   interfaz.hideLoading()
 });
 </script>
@@ -169,7 +174,7 @@ onMounted(() => {
     <navbar titulo="ServiML" subtitulo="Nueva Cotización" class="navbar sticky top-0 z-50 shadow-sm" />
 
     <div class="mx-auto p-4 max-w-7xl pb-28 pt-8">
-
+      <volver ruta="ficha-de-trabajo" :params="{ id: route.params.id }" />
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 rounded-lg">
 
         <div class="lg:col-span-7 space-y-12 servi-adapt-bg rounded-xl">
@@ -184,18 +189,22 @@ onMounted(() => {
               <div class="group relative">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Nombre</label>
-                <p>{{ nombre }}</p>
+                <p>{{toCamelCase(nombre) }}</p>
               </div>
               <div class="group">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Apellido</label>
-                <p>{{ apellido }}</p>
+                <p>{{toCamelCase(apellido) }}</p>
               </div>
               <div class="md:col-span-2 group">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Diagnóstico
                   / Descripción</label>
                 <p>{{ diagnostico }}</p>
+              </div>
+              <div>
+                <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Comentarios adicionales</label>
+                <input type="text" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-sm" placeholder="Comentarios adicionales" autocomplete="off" />
               </div>
             </div>
             </section>

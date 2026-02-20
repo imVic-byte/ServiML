@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
-
 const props = defineProps({
   cotizacion: {
     type: Object,
@@ -16,6 +15,11 @@ const props = defineProps({
 const formatoPesos = (valor) => {
   if (valor === undefined || valor === null) return '$0';
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor);
+};
+
+const formatoFechaYHora = (fecha) => {
+  if (!fecha) return new Date().toLocaleString('es-CL');
+  return new Date(fecha).toLocaleString('es-CL');
 };
 
 const formatoFecha = (fecha) => {
@@ -63,6 +67,7 @@ onMounted(async () => {
   await traerDatosEmpresa()
   await traerEmail()
   await traerTelefono()
+  console.log(props.cotizacion)
 })
 </script>
 
@@ -104,7 +109,7 @@ onMounted(async () => {
         <ul class="text-[#374151] space-y-1">
           <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa.dirección }}</li>
           <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa.ciudad }}</li>
-          <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa.telefono }}</li>
+          <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa.telefono || 'Sin Teléfono' }}</li>
           <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa.email }}</li>
         </ul>
       </div>
@@ -114,11 +119,19 @@ onMounted(async () => {
         <ul class="text-[#374151] space-y-1">
           <li>
             <span class="font-bold text-[#111827]">Cliente:</span> 
-            {{ cotizacion.nombre + ' ' + cotizacion.apellido || 'Sin Nombre' }}
+            {{ cotizacion.ficha_de_trabajo.cliente.nombre + ' ' + cotizacion.ficha_de_trabajo.cliente.apellido || 'Sin Nombre' }}
           </li>
-          <li v-if="cotizacion.diagnostico">
+          <li>
+            <span class="font-bold text-[#111827]">Teléfono:</span> 
+            +{{ cotizacion.ficha_de_trabajo.cliente.codigo_pais + ' ' + cotizacion.ficha_de_trabajo.cliente.telefono || 'Sin Teléfono' }}
+          </li>
+          <li>
+            <span class="font-bold text-[#111827]">Email:</span> 
+            {{ cotizacion.ficha_de_trabajo.cliente.email || 'Sin Email' }}
+          </li>
+          <li v-if="cotizacion.ficha_de_trabajo.diagnostico">
             <span class="font-bold text-[#111827]">Descripción:</span> 
-            {{ cotizacion.diagnostico }}
+            {{ cotizacion.ficha_de_trabajo.diagnostico }}
           </li>
         </ul>
       </div>
@@ -138,7 +151,7 @@ onMounted(async () => {
         <tbody class="text-[#1f2937] text-[11px]">
           
           <tr 
-            v-for="(item, index) in cotizacion.detalle_cotizacion" 
+            v-for="(item, index) in cotizacion.detalle_cotizaciones_ficha" 
             :key="index"
             class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64] "
           >
@@ -147,7 +160,7 @@ onMounted(async () => {
             <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
             <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
           </tr>
-          <tr v-if="!cotizacion.detalle_cotizacion || cotizacion.detalle_cotizacion.length < 5" class="h-24">
+          <tr v-if="!cotizacion.detalle_cotizaciones_ficha || cotizacion.detalle_cotizaciones_ficha.length < 5" class="h-24">
             <td colspan="4"></td>
           </tr>
         </tbody>

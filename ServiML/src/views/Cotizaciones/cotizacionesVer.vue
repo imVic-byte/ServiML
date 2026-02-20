@@ -56,6 +56,21 @@ const irAEditar = () => {
 }
 
 const mostrarModalConfirmacion = () => {
+    // Intentar encontrar cliente coincidente por nombre y apellido
+    if (clientes.value.length > 0 && cotizacion.value) {
+        const clienteEncontrado = clientes.value.find(c => 
+            c.nombre.trim().toLowerCase() === cotizacion.value.nombre.trim().toLowerCase() &&
+            c.apellido.trim().toLowerCase() === cotizacion.value.apellido.trim().toLowerCase()
+        )
+
+        if (clienteEncontrado) {
+            correoCliente.value = clienteEncontrado.email || ''
+            telefonoCliente.value = clienteEncontrado.telefono || ''
+            // El código de país debe tener el prefijo +
+            const cp = clienteEncontrado.codigo_pais || '56'
+            codigoPais.value = cp.startsWith('+') ? cp : `+${cp}`
+        }
+    }
     modalConfirmacion.value = true
 }
 
@@ -104,7 +119,43 @@ const generarFicha = async () => {
       id_cotizacion: cotizacion.value.id
     }
     const { exito, ficha_de_trabajo, mensaje } = await generarFichaTrabajo(data);
+    
     if (exito) {
+      // Inserción en cotizaciones_ficha (Historial/Cierre)
+      const {data: cotizacionFicha, error: cotizacionError } = await supabase
+        .from('cotizaciones_ficha')
+        .insert({
+          ficha_id: ficha_de_trabajo.id,
+          subtotal: cotizacion.value.subtotal,
+          descuento: cotizacion.value.descuento,
+          total_neto: cotizacion.value.total_neto,
+          iva: cotizacion.value.iva,
+          total_final: cotizacion.value.total_final,
+          id_cuenta: cuentaSeleccionada.value?.id,
+          estado: 4,
+        })
+        .select()
+        .single()
+
+      if (cotizacionError) {
+        console.error('Error al insertar historial de cotización:', cotizacionError)
+      }
+      for (const detalle of cotizacion.value.detalle_cotizacion) {
+        const {data: detalleFicha, error: detalleError } = await supabase
+          .from('detalle_cotizaciones_ficha')
+          .insert({
+            cotizacion_id: cotizacionFicha.id,
+            descripcion:detalle.descripcion,
+            cantidad: detalle.cantidad,
+            monto: detalle.monto,
+          })
+          .select()
+          .single()
+
+        if (detalleError) {
+          console.error('Error al insertar detalle de cotización:', detalleError)
+        }
+      }
       modalState.value.visible = true;
       modalState.value.titulo = "Exito";
       modalState.value.mensaje = mensaje;
@@ -115,8 +166,13 @@ const generarFicha = async () => {
       modalState.value.mensaje = mensaje;
       modalState.value.exito = false;
     }
+
     interfaz.hideLoading();
     cerrarModalConfirmacion();
+    
+    if (exito) {
+      router.push({ name: "ficha-de-trabajo", params: { id: ficha_de_trabajo.id } });
+    }
 }
 
 const generarPDF = () => {
@@ -129,6 +185,19 @@ const generarPDF = () => {
     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
   };
   html2pdf().set(opciones).from(elemento).save();
+}
+
+const clientes = ref([])
+
+const traerClientes = async () => {
+    const { data, error } = await supabase
+      .from('cliente')
+      .select('*')
+    if (data) {
+        clientes.value = data
+    } else {
+        console.log(error)
+    }
 }
 
 onMounted(async () => {
@@ -145,6 +214,7 @@ onMounted(async () => {
     } else {
         console.log(error)
     }
+    await traerClientes()
     interfaz.hideLoading();
 
     const { data: cuentas } = await supabase
