@@ -1,11 +1,13 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import navbar from "../../components/componentes/navbar.vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import modal from "../../components/componentes/modal.vue";
 import { useInterfaz } from '@/stores/interfaz.js'
+
 const router = useRouter();
+const route = useRoute();
 const interfaz = useInterfaz();
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const diagnostico = ref("");
@@ -17,12 +19,9 @@ const telefono = ref("");
 const correo = ref("");
 const items = ref([{ descripcion: "", monto: "", cantidad: 1 }]);
 const ivaBoolean = ref(true);
-
-const alertaEmail = ref(true);
 const cotizacion_id = ref(null);
 const loading = ref(false);
 
-// ── Autocompletado de servicios ──
 const serviciosCatalogo = ref([])
 const autocompletadoActivo = ref(-1)
 
@@ -55,71 +54,19 @@ const cargarServicios = async () => {
   if (data) serviciosCatalogo.value = data
 }
 
-// ── Autocompletado de clientes ──
-const clientesSugeridos = ref([])
-const clienteAutocompletado = ref(false)
-let clienteTimeout = null
-
-const buscarClientes = (e) => {
-  const texto = e.target.value.trim()
-  if (clienteTimeout) clearTimeout(clienteTimeout)
-  if (texto.length < 2) {
-    clientesSugeridos.value = []
-    return
-  }
-  clienteTimeout = setTimeout(async () => {
-    const { data } = await supabase
-      .from('cliente')
-      .select('id, nombre, apellido')
-      .ilike('nombre', `%${texto}%`)
-      .limit(8)
-    if (data) clientesSugeridos.value = data
-  }, 300)
-}
-
-const abrirClienteAutocompletado = () => {
-  clienteAutocompletado.value = true
-}
-const cerrarClienteAutocompletado = () => {
-  setTimeout(() => {
-    clienteAutocompletado.value = false
-  }, 150)
-}
-const seleccionarCliente = (cliente) => {
-  nombre.value = cliente.nombre
-  apellido.value = cliente.apellido
-  clienteAutocompletado.value = false
-  clientesSugeridos.value = []
-}
-
 const agregarItem = () => items.value.push({ descripcion: "", monto: "", cantidad: 1 });
 const eliminarItem = (index) => items.value.splice(index, 1);
 
-// Utilidades
 const toCamelCase = (texto) => {
   if (!texto) return ''
   return texto.trim().split(/\s+/).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ')
 }
 
-// Validaciones
-const esEmailValido = (email) => {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-};
-
 const validarFormulario = () => {
-  if (!nombre.value || !apellido.value) {
-    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Completa los datos del cliente.", exito: false };
-    return false;
-  }
-  if (!diagnostico.value) {
-    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "La descripción / diagnóstico es obligatorio.", exito: false };
-    return false;
-  }
   if (items.value.length === 0) {
     modalState.value = { visible: true, titulo: "Sin servicios", mensaje: "Agrega al menos un servicio o repuesto.", exito: false };
     return false;
   }
-
   for (const item of items.value) {
     if (!item.descripcion || !item.monto || Number(item.monto) <= 0) {
       modalState.value = { visible: true, titulo: "Item incompleto", mensaje: "Todos los items deben tener descripción y un monto válido.", exito: false };
@@ -152,27 +99,23 @@ const enviarFormulario = async () => {
   if (!validarFormulario()) return;
   interfaz.showLoadingOverlay()
   loading.value = true;
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error("Sesión expirada");
-
-    const { data, error } = await supabase.functions.invoke("crear-cotizacion", {
-      body: {
-        nombre: toCamelCase(nombre.value),
-        apellido: toCamelCase(apellido.value),
-        diagnostico: toCamelCase(diagnostico.value),
-        ...totales.value,
-        detalles: items.value.map((item) => ({
-          descripcion: toCamelCase(item.descripcion),
-          monto: item.monto,
-          cantidad: item.cantidad || 1,
-        })),
-      },
-    });
-
+  try {    
+    const { data, error } = await supabase.from('cotizaciones_ficha')
+    .insert({
+      ficha_id: route.params.id,
+      ...totales.value
+    })
+    .select('id')
+    .single();
     if (error) throw error;
-
-    cotizacion_id.value = data.data.id;
+    const {data:detalles,error:detallesError} = await supabase.from('detalle_cotizaciones_ficha')
+    .insert(items.value.map((item) => ({
+      cotizacion_id: data.id,
+      descripcion: item.descripcion,
+      monto: item.monto,
+      cantidad: item.cantidad || 1
+    })))
+    if (detallesError) throw detallesError;
     modalState.value = { visible: true, titulo: "¡Éxito!", mensaje: "Cotización creada correctamente.", exito: true };
   } catch (err) {
     console.error(err);
@@ -185,15 +128,40 @@ const enviarFormulario = async () => {
 
 const redirigir = () => {
   if (modalState.value.exito) {
-    router.push({ name: "ver-cotizacion", params: { id: cotizacion_id.value } });
-  } else {
+    router.push({ name: "ficha-de-trabajo", params: { id: route.params.id } });
+  } else {    
     modalState.value.visible = false;
   }
 };
-
+const cargarDatosFicha = async (id) => {
+  try {
+    const { data, error } = await supabase
+      .from('ficha_de_trabajo')
+      .select('*, cliente(*)')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    if (data) {
+      if (data.cliente) {
+        nombre.value = data.cliente.nombre;
+        apellido.value = data.cliente.apellido;
+      }
+      diagnostico.value = data.motivo_ingreso || '';
+    }
+  } catch (error) {
+    console.error('Error cargando datos de la ficha:', error);
+    modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudieron cargar los datos de la ficha.", exito: false };
+  }
+};
 onMounted(() => {
-  cargarServicios()
-})
+  interfaz.showLoading()
+  const fichaId = route.params.id;
+  if (fichaId) {
+    cargarDatosFicha(fichaId);
+  }
+  cargarServicios();
+  interfaz.hideLoading()
+});
 </script>
 
 <template>
@@ -216,45 +184,21 @@ onMounted(() => {
               <div class="group relative">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Nombre</label>
-                <input v-model="nombre" type="text"
-                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
-                  placeholder="Juan" 
-                  @input="buscarClientes"
-                  @focus="abrirClienteAutocompletado"
-                  @blur="cerrarClienteAutocompletado"
-                  autocomplete="off" />
-                <!-- Dropdown autocompletado clientes -->
-                <div v-if="clienteAutocompletado && clientesSugeridos.length > 0"
-                  class="absolute z-30 left-0 right-0 top-full mt-1 servi-adapt-bg border border-gray-100 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                  <button v-for="cli in clientesSugeridos" :key="cli.id" type="button"
-                    class="w-full px-3 py-2.5 text-left hover:bg-blue-50 flex items-center gap-2 text-sm transition-colors cursor-pointer"
-                    @mousedown.prevent="seleccionarCliente(cli)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 servi-grey-font opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span class="servi-grey-font">{{ cli.nombre }} {{ cli.apellido }}</span>
-                  </button>
-                </div>
+                <p>{{ nombre }}</p>
               </div>
               <div class="group">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Apellido</label>
-                <input v-model="apellido" type="text"
-                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
-                  placeholder="Perez" />
+                <p>{{ apellido }}</p>
               </div>
               <div class="md:col-span-2 group">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Diagnóstico
                   / Descripción</label>
-                <textarea v-model="diagnostico" rows="2"
-                  class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none servi-white-font resize-none transition-colors"
-                  placeholder="Describe el trabajo o servicio solicitado..."></textarea>
+                <p>{{ diagnostico }}</p>
               </div>
             </div>
-          </section>
-
-          <!-- SERVICIOS / ITEMS -->
+            </section>
           <section>
             <h2
               class="text-2xl w-full font-light servi-blue servi-yellow-font border-b-2 border-yellow-400 rounded-t-lg p-2 inline-block pb-1 mb-6">

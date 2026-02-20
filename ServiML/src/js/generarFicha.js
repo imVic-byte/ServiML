@@ -36,7 +36,7 @@ export const generarFichaTrabajo = async (datosEntrada) => {
     if (datosEntrada.id_cotizacion) {
         await supabase
             .from('cotizacion')
-            .update({ estado: 2 , id_ficha:data.id})
+            .update({ estado: 2, id_ficha: data.id})
             .eq('id', datosEntrada.id_cotizacion);
     }
 

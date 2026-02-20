@@ -8,6 +8,7 @@ import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible
 import {subirFotos} from "../../js/subirFotos.js";
 import { useInterfaz } from "@/stores/interfaz.js";
 import { useUserStore } from "../../stores/user.js";
+import volver from "../../components/componentes/volver.vue";
 
 const userStore = useUserStore();
 const soloLectura = computed(() => {
@@ -171,21 +172,12 @@ const guardarCambios = async () => {
   if (nivelCombustible.value < 0 || nivelCombustible.value > 100) {
     errores.push("El nivel de combustible debe estar entre 0 y 100.");
   }
-
-  if (!orden.value.fecha_promesa) {
-    errores.push("La fecha de promesa es obligatoria.");
-  }
-
   if (!orden.value.prioridad || ![1, 2, 3, '1', '2', '3'].includes(orden.value.prioridad)) {
     errores.push("Seleccione una prioridad válida.");
   }
 
   if (!orden.value.tipo_trabajo || orden.value.tipo_trabajo.trim() === '') {
     errores.push("El tipo de trabajo es obligatorio.");
-  }
-
-  if (!orden.value.id_taller) {
-    errores.push("Debe seleccionar un taller.");
   }
 
   const obsNuevasVacias = observaciones.value.filter(o => o.isNew && (!o.texto || o.texto.trim() === ''));
@@ -210,19 +202,15 @@ const guardarCambios = async () => {
     .update({
       kilometraje_inicial: orden.value.kilometraje_inicial,
       combustible_inicial: nivelCombustible.value,
-      fecha_ingreso: fechaIngreso.value || orden.value.fecha_ingreso,
-      fecha_promesa: orden.value.fecha_promesa,
       prioridad: orden.value.prioridad,
       tipo_trabajo: orden.value.tipo_trabajo,
-      origen_ingreso: orden.value.origen_ingreso,
       diagnostico: orden.value.diagnostico,
       trae_documentos: orden.value.trae_documentos,
       trae_llaves: orden.value.trae_llaves,
       trae_candado_seguridad: orden.value.trae_candado_seguridad,
       trae_panel_radio: orden.value.trae_panel_radio,
       trae_rueda_repuesto: orden.value.trae_rueda_repuesto,
-      trae_encendedor: orden.value.trae_encendedor,
-      id_taller: orden.value.id_taller
+      trae_encendedor: orden.value.trae_encendedor
     })
     .eq("id", route.params.id);
 
@@ -242,7 +230,7 @@ const guardarCambios = async () => {
         continue; 
       }
       if (obs.fotos && obs.fotos.length > 0 && obsData) {
-        const resultado = await subirFotos(obsData.id, orden.value.presupuesto.numero_folio, obs.fotos);
+        const resultado = await subirFotos(obsData.id, orden.value.ficha_de_trabajo.id, obs.fotos);
        if (!resultado.exito) {
           console.error("Error subiendo fotos:", resultado.error);
         }
@@ -261,11 +249,11 @@ const guardarCambios = async () => {
     const registros = [];
     for (const foto of fotosNuevas) {
       const archivoReal = foto.file || foto;
-      const nombreLimpio = archivoReal.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const nombreLimpio = archivoReal.name.replace(/[^a-zA-Z0-9.-]/g, '_');  
       const formData = new FormData();
-      const nombreUnico = `OT-${orden.value.presupuesto.numero_folio}-recepcion-${Date.now()}-${nombreLimpio}`;
+      const nombreUnico = `OT-${orden.value.ficha_de_trabajo.id}-recepcion-${Date.now()}-${nombreLimpio}`;
       formData.append('file', archivoReal, nombreUnico);
-      formData.append('numero_folio', orden.value.presupuesto.numero_folio);
+      formData.append('numero_folio', orden.value.ficha_de_trabajo.id);
       try {
         const res = await fetch(WORKER_URL, { method: 'POST', body: formData });
         if (res.ok) {
@@ -281,7 +269,11 @@ const guardarCambios = async () => {
       if (errorFotos) console.error('Error guardando fotos de recepción:', errorFotos);
     }
   }
-
+  if(!error) {
+     await traerObservaciones();
+     await traerFotosRecepcion();
+     interfaz.hideLoadingOverlay();
+  }
   modalState.value = {
     visible: true,
     titulo: error ? "Error" : "¡Éxito!",
@@ -290,12 +282,6 @@ const guardarCambios = async () => {
       : "Los cambios se han guardado correctamente.",
     exito: !error,
   };
-  
-  if(!error) {
-     await traerObservaciones();
-     await traerFotosRecepcion();
-     interfaz.hideLoadingOverlay();
-  }
   manejarBloqueo(false);
 };
 
@@ -360,21 +346,23 @@ const obtenerTalleres = async () => {
 
 const obtenerOrden = async () => {
   manejarBloqueo(true);
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("orden_trabajo")
-    .select("*, presupuesto(*), vehiculo(*), cliente(*), trabajadores(*)")
+    .select("*, vehiculo(*), trabajadores(*), ficha_de_trabajo(*, cliente(*))")
     .eq("id", route.params.id)
     .single();
+  if (error) {
+    console.error("Error obteniendo orden:", error);
+    return;
+  }
   if (data) {
     orden.value = data;
     fechaIngreso.value = fechaToDatetimeLocal(data.fecha_ingreso);
     nivelCombustible.value = data.combustible_inicial ?? 0;
-    if (!data.id_taller && talleres.value.length > 0) {
-      orden.value.id_taller = talleres.value[0].id;
-    }
   }
   manejarBloqueo(false);
   await handleIsCerrado(orden.value.estado_actual_id);
+  console.log(orden.value);
 };
 
 const obtenerEstados = async () => {
@@ -401,16 +389,11 @@ const closeModal = () => {
 const verificarCambioEstado = (estado_id) => {
   if (estado_id === orden.value.estado_actual_id) return false;
   if (estado_id === 1) return false;
-  if (estado_id === 11 && orden.value.fecha_ingreso !== null) return false;
   if (verificarEstadoCerrado()) return false;
-  const estado_actual = estados.value.find((estado) => estado.id === orden.value.estado_actual_id);
-  const estado_nuevo = estados.value.find((estado) => estado.id === estado_id);
-  if (estado_nuevo.orden < estado_actual.orden) return false;
   return true;
 }
 
 const confirmarCambioEstado = () => {
-  if (!verificarCambioEstado(selectedEstado.value.id)) return;
   if (selectedEstado.value) {
     if (selectedEstado.value.id === 7 || selectedEstado.value.id === 8) {
       showModal.value = false;
@@ -425,131 +408,20 @@ const confirmarCambioEstado = () => {
   }
 };
 
-const handleGenerarInformeFinal = async () => {
-  const d = new Date();
-  const fechaActual = new Date(
-    d.getTime() - d.getTimezoneOffset() * 60000
-  )
-    .toISOString()
-    .slice(0, 19);
-  const { data, error } = await supabase.from("informe_final").insert({
-    ot_id: orden.value.id,
-    created_at: fechaActual
-  }).select().single();
-  if (error) return;
-  router.push({
-    name: 'ver-informe-final',
-    params: { id: orden.value.id },
-    query: { enviar: 'true' }
-  });
-};
-
-const handleGenerarInformeEstacionamiento = async () => {
-  if (!orden.value.fecha_estacionamiento) {
-    return;
-  }
-  const d = new Date();
-  const fechaActual = new Date(
-    d.getTime() - d.getTimezoneOffset() * 60000
-  )
-    .toISOString()
-    .slice(0, 19);
-  if (!orden.value.fecha_termino_estacionamiento) {
-    const {data,error} = await supabase.from('orden_trabajo').update({
-      fecha_termino_estacionamiento: fechaActual
-    }).eq('id',orden.value.id);
-    if(error) return;
-  }
-  router.push({
-    name: 'ver-informe-final',
-    params: { id: orden.value.id },
-    query: { enviar: 'true' }
-  });
-}
-
-const historialOT = ref([]);
-
-const traerHistorialOT = async () => {
-  const {data,error} = await supabase.from('OT_bitacora').select('*').eq('ot_id',route.params.id).order('created_at', { ascending: true });
-  if (error) return;
-  historialOT.value = data;
-}
-
-const verificarHistorialOT = (id_nuevo_estado) => {
-  if (historialOT.value.length === 0) return false;
-  const historial = historialOT.value.find(h => h.nuevo_estado_id === id_nuevo_estado);
-  return historial !== undefined;
-}
-
 const ejecutarCambioReal = async () => {
-  traerHistorialOT();
   manejarBloqueo(true);
-  
-  let updateData = {
-    estado_actual_id: selectedEstado.value.id
-  };
-
-  const d = new Date();
-  const fechaActual = new Date(
-    d.getTime() - d.getTimezoneOffset() * 60000
-  )
-    .toISOString()
-    .slice(0, 19);
-
-  if (selectedEstado.value.id === 9) { 
-    updateData.fecha_estacionamiento = fechaActual;
-    updateData.fecha_termino_estacionamiento = null;
-  } 
-
-  else if (orden.value.fecha_estacionamiento && !orden.value.fecha_termino_estacionamiento) {
-    updateData.fecha_termino_estacionamiento = fechaActual;
-  }
-  if (selectedEstado.value.id === 7) {
-    if (!verificarHistorialOT(6)) {
-      const { data, error } = await supabase.from("informe_final").insert({
-        ot_id: orden.value.id,
-        created_at: fechaActual
-      }).select().single();
-      if (error) return;
-    }
-  }
-    const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
-      ot_id: route.params.id,
-      nuevo_estado_id: selectedEstado.value.id,
-      tipo_evento: "cambio_estado",
-    });
+  interfaz.showLoadingOverlay();
+  const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
+    ot_id: route.params.id,
+    nuevo_estado_id: selectedEstado.value.id,
+    tipo_evento: "cambio_estado",
+  });
   if (errorBitacora) {
-    console.error(error);
-  } else {
-    orden.value.estado_actual_id = selectedEstado.value.id;
-    const { error: errorUpdate } = await supabase
-    .from("orden_trabajo")
-    .update(updateData)
-    .eq("id", route.params.id);
-    if (errorUpdate) {
-    console.error("Error al actualizar estado en OT:", errorUpdate);
-    alert("Hubo un error al actualizar el estado de la orden.");
-    return;
-    }
-    if (updateData.fecha_estacionamiento) {
-        orden.value.fecha_estacionamiento = updateData.fecha_estacionamiento;
-    }
-    if (updateData.fecha_termino_estacionamiento) {
-        orden.value.fecha_termino_estacionamiento = updateData.fecha_termino_estacionamiento;
-    }
-    if (selectedEstado.value.id === 7) {
-      await handleGenerarInformeEstacionamiento();
-    }
-    await handleIsCerrado(selectedEstado.value.id);
-    if (selectedEstado.value.id === 6) {
-      await handleGenerarInformeFinal();
-    }
-    if (selectedEstado.value.id == 11) {
-      fechaIngreso.value = fechaToDatetimeLocal(hoy);
-      await supabase.from('orden_trabajo').update({ 'fecha_ingreso': hoy }).eq('id', route.params.id);
-    }
+    console.error(errorBitacora);
   }
   closeModal();
+  await obtenerOrden();
+  interfaz.hideLoadingOverlay();
   manejarBloqueo(false);
 }
 
@@ -610,10 +482,10 @@ onMounted(async () => {
 
 <template>
   <div class="min-h-screen servi-white pb-12">
-    <navbar titulo="ServiML" :subtitulo="'OT # ' + orden.id" class="sticky top-0 z-40" searchInput="false" />
+    <navbar titulo="ServiML" :subtitulo="'OT # ' + orden.id" class="sticky top-0 z-40 navbar" searchInput="false" />
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-15">
-      
+      <volver />
       <div v-if="isCerrado" class="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 text-blue-800 rounded shadow-sm flex items-center gap-3">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -631,7 +503,7 @@ onMounted(async () => {
       <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
         <div class="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 min-w-max md:min-w-0">
           <div v-for="estado in estados" :key="estado.id" class="flex flex-col items-center group">
-            <div v-if="estado.id !== 1" @click="verificarCambioEstado(estado.id) ? openModal(estado) : null"
+            <div v-if="estado.id !== 1 && estado.id !== 8 && estado.id !== 7 && estado.id !== 9 && estado.id !== 11" @click="verificarCambioEstado(estado.id) ? openModal(estado) : null"
               class="relative px-6 py-2 cursor-pointer transition-transform hover:scale-105 active:scale-95"
               :class="{ 'opacity-50 hover:opacity-100': estado.id !== orden.estado_actual_id }">
               <div class="absolute inset-0 transform -skew-x-12 rounded shadow-sm" :style="{ backgroundColor: estado.color }"></div>
@@ -657,14 +529,12 @@ onMounted(async () => {
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Patente</label><p class="servi-grey-font">{{ orden.vehiculo?.patente }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Modelo</label><p class="servi-grey-font">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Cliente</label><p class="servi-grey-font">{{ orden.cliente?.nombre + ' ' + orden.cliente?.apellido }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Teléfono</label><p class="servi-grey-font">+{{ orden.cliente?.codigo_pais }} {{ orden.cliente?.telefono }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Email</label><p class="servi-grey-font">{{ orden.cliente?.email || 'No registrado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p class="servi-grey-font">{{ orden.motivo_ingreso }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Cliente</label><p class="servi-grey-font">{{ orden.ficha_de_trabajo?.cliente?.nombre + ' ' + orden.ficha_de_trabajo?.cliente?.apellido }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Teléfono</label><p class="servi-grey-font">+{{ orden.ficha_de_trabajo?.cliente?.codigo_pais }} {{ orden.ficha_de_trabajo?.cliente?.telefono }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Email</label><p class="servi-grey-font">{{ orden.ficha_de_trabajo?.cliente?.email || 'No registrado' }}</p></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Motivo de Ingreso</label><p class="servi-grey-font">{{ orden.ficha_de_trabajo?.motivo_ingreso }}</p></div>
               <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Responsable</label><div class="flex items-center gap-2"><p class="servi-grey-font">{{ orden.trabajadores?.nombre ? orden.trabajadores?.nombre + ' ' + orden.trabajadores?.apellido : 'No asignado' }}</p><button v-if="userStore.havePrivileges" @click="showCambiarTrabajador = true" class="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-lg transition-colors border border-blue-200 cursor-pointer" title="Cambiar trabajador asignado"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> Cambiar</button></div></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p class="servi-grey-font">{{ fechaIngreso ? formatearFecha(fechaIngreso) : 'No registrado' }}</p></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Promesa</label><input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" type="date" v-model="orden.fecha_promesa"></div>
-              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Taller</label><select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" :disabled="soloLectura || isCerrado" v-model="orden.id_taller"><option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }} - {{ taller.direccion }}</option></select></div>
+              <div class="space-y-1"><label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label><p class="servi-grey-font">{{ formatearFecha(orden.ficha_de_trabajo?.fecha_ingreso)|| 'No registrado' }}</p></div>
             </div>
           </div>
 
@@ -675,11 +545,7 @@ onMounted(async () => {
 
             <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div class="flex flex-col gap-5">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div class="space-y-1">
-                    <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Fecha de Ingreso</label>
-                    <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="datetime-local" v-model="fechaIngreso" :disabled="soloLectura || isCerrado" />
-                  </div>
+                <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Prioridad</label>
                     <select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.prioridad" :disabled="soloLectura || isCerrado">
@@ -690,14 +556,6 @@ onMounted(async () => {
                   </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-4">
-                  <div class="space-y-1">
-                    <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Origen Ingreso</label>
-                    <select class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" v-model="orden.origen_ingreso" :disabled="soloLectura || isCerrado">
-                      <option value="cliente">Conducido por Cliente</option>
-                      <option value="grua">Grúa / Remolque</option>
-                      <option value="tercero">Chofer / Tercero</option>
-                    </select>
-                  </div>
                   <div class="space-y-1">
                     <label class="text-xs font-bold servi-grey-font uppercase tracking-wider">Tipo de Trabajo</label>
                     <input class="w-full servi-adapt-bg border border-gray-100 servi-grey-font rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium" type="text" placeholder="Ej: Mantención 10.000km" v-model="orden.tipo_trabajo" :disabled="soloLectura || isCerrado" />
@@ -940,13 +798,6 @@ onMounted(async () => {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
                 Guardar Todo
-              </button>
-
-              <button v-if="!loading" @click="redirigirInformeFinal" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold shadow-sm hover:bg-blue-700 transition-colors flex justify-center items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Ver Informe Final
               </button>
 
               <div v-if="soloLectura" class="text-center py-3 text-sm servi-grey-font font-medium">

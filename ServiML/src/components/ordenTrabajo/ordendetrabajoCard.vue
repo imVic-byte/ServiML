@@ -95,11 +95,10 @@ const formatearFecha = (fechaString) => {
         {{ estado.estado }}
       </span>
     </div>
-
     <div class="flex flex-col gap-1 text-sm">
       <div class="flex justify-between items-center">
         <span class="servi-grey-font">Cliente:</span>
-        <span class="font-semibold servi-grey-font text-right truncate w-40">{{ orden.cliente?.nombre || 'Sin Cliente' }}</span>
+        <span class="font-semibold servi-grey-font text-right truncate w-40">{{ orden.vehiculo?.cliente?.nombre + ' ' + orden.vehiculo?.cliente?.apellido || 'Sin Cliente' }}</span>
       </div>
       
       <div class="flex justify-between items-center">
@@ -110,7 +109,7 @@ const formatearFecha = (fechaString) => {
       </div>
       
       <div class="mt-2 servi-adapt-bg p-2 rounded text-xs servi-grey-font italic line-clamp-2">
-        "{{ orden.motivo_ingreso }}"
+        "{{ orden.diagnostico }}"
       </div>
       <div class="info-row" v-if="orden.fecha_ingreso">
         <span class="label servi-grey-font">Fecha Ingreso: </span>

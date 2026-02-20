@@ -297,6 +297,24 @@ const router = createRouter({
       name: 'listado-fichas-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoListado.vue'),
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path:'/ficha-de-trabajo/crear',
+      name: 'crear-ficha-de-trabajo',
+      component: () => import('../views/Fichas/fichaDeTrabajoCrear.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path:'/ficha-de-trabajo/:id/crear-ot',
+      name: 'crear-ot-ficha-de-trabajo',
+      component: () => import('../views/Fichas/fichaDeTrabajoCrearOT.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path:'/ficha-de-trabajo/:id/crear-cotizacion',
+      name: 'crear-cotizacion-ficha-de-trabajo',
+      component: () => import('../views/Fichas/fichaDeTrabajoCrearCotizacion.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
     }
   ],
 })

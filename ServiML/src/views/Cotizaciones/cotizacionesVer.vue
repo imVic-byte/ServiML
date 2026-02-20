@@ -342,7 +342,7 @@ onMounted(async () => {
                   </div>
                   
                   <div v-if="cotizacion.detalle_cotizacion && cotizacion.detalle_cotizacion.length > 0" class="border-t border-gray-200">
-                    <div class="px-4 py-2 text-xs font-semibold servi-grey-font uppercase tracking-wider bg-gray-50">Servicios</div>
+                    <div class="px-4 py-2 text-xs font-semibold servi-grey-font uppercase tracking-wider">Servicios</div>
                     <div v-for="det in cotizacion.detalle_cotizacion" :key="det.id" class="px-4 py-2 flex justify-between text-sm servi-grey-font border-t border-gray-100">
                       <span>{{ camelCase(det.descripcion) }}</span>
                       <span class="font-medium">{{ formatearNumero(det.monto * det.cantidad) }}</span>

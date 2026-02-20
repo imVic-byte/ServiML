@@ -32,7 +32,7 @@ export const verificarCliente = async (form) => {
                 const cApe = c.apellido.trim().toUpperCase();
 
                 // Criterio: Teléfono idéntico O (Nombre y Apellido idénticos)
-                return cTel === telefonoLimpio || (cNom === nombreLimpio && cApe === apellidoLimpio);
+                return (cNom === nombreLimpio && cApe === apellidoLimpio);
             });
         }
 
