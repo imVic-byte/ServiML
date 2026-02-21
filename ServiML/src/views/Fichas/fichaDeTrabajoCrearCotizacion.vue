@@ -21,6 +21,7 @@ const items = ref([{ descripcion: "", monto: "", cantidad: 1 }]);
 const ivaBoolean = ref(true);
 const cotizacion_id = ref(null);
 const loading = ref(false);
+const comentarios = ref('');
 
 const serviciosCatalogo = ref([])
 const autocompletadoActivo = ref(-1)
