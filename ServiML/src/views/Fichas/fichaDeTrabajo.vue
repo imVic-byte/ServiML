@@ -251,27 +251,6 @@ const obtenerColorEstadoCotizacion = (estado) => {
   }
 }
 
-// Helpers para el estado de la Ficha
-const obtenerTextoEstado = (estadoNumerico) => {
-  const estados = {
-    1: 'Ingresado',
-    2: 'En Proceso',
-    3: 'Terminado',
-    4: 'Entregado'
-  }
-  return estados[estadoNumerico] || 'Desconocido'
-}
-
-const obtenerColorEstado = (estadoNumerico) => {
-  switch (Number(estadoNumerico)) {
-    case 1: return 'badge-ingresado'
-    case 2: return 'badge-proceso'
-    case 3: return 'badge-terminado'
-    case 4: return 'badge-entregado'
-    default: return 'badge-default'
-  }
-}
-
 const cotizaciones = ref([])
 
 const cargarDatos = async () => {
@@ -285,6 +264,7 @@ const cargarDatos = async () => {
       .single()
     if (errorFicha) throw errorFicha
     ficha.value = dataFicha
+    tallerSeleccionado.value = ficha.value.id_taller
     cotizaciones.value = dataFicha.cotizaciones_ficha
     cotizacionConfirmada.value = dataFicha.cotizaciones_ficha.find(c => c.estado === 2)
     }
@@ -327,7 +307,8 @@ const guardarFicha = async () => {
       .update({
         fecha_ingreso: ficha.value.fecha_ingreso,
         fecha_promesa: ficha.value.fecha_promesa,
-        origen_ingreso: ficha.value.origen_ingreso
+        origen_ingreso: ficha.value.origen_ingreso,
+        id_taller: tallerSeleccionado.value
       })
       .eq('id', fichaId)
     if (error) throw error
@@ -348,11 +329,72 @@ const irAPresupuesto = async () => {
   router.push({name: 'ver-presupuesto-ficha-de-trabajo', params: {id: fichaId}})
 }
 
+const GenerarInforme = async () => {
+  if (ficha.value.estado !== 4){
+    alert('No se puede generar el informe porque la ficha no está completada')
+    return
+  }
+  router.push({name: 'ver-informe-ficha-de-trabajo', params: {id: fichaId}, query: {generar: true}})
+}
+
+const irAInforme = async () => {
+  router.push({name: 'ver-informe-ficha-de-trabajo', params: {id: fichaId}})
+}
+
+const talleres = ref([])
+
+const tallerSeleccionado = ref(null)
+
+const cargarTalleres = async () => {
+  try{
+    const {data,error} = await supabase
+    .from('serviml_taller')
+    .select('*')
+    if(error) throw error
+    talleres.value = data
+  }
+  catch(err){
+    console.error("Error al cargar los talleres:", err)
+  }
+}
+
+const estadosFicha = ref([])
+
+const cargarEstados = async () => {
+  try{
+    const {data,error} = await supabase
+    .from('tabla_estados_ficha')
+    .select('*')
+    if(error) throw error
+    estadosFicha.value = data
+  }
+  catch(err){
+    console.error("Error al cargar los estados:", err)
+  }
+}
+
+
+const cambiarEstadoFicha = async (estado) => {
+  try{
+    const {data,error} = await supabase
+    .from('ficha_de_trabajo')
+    .update({estado: estado})
+    .eq('id', fichaId)
+    if(error) throw error
+    ficha.value.estado = estado
+  }
+  catch(err){
+    console.error("Error al cambiar el estado de la ficha:", err)
+  }
+}
+
 onMounted(async () => {
   interfaz.showLoading()
   if (fichaId) {
     await cargarDatos()
     await traerEstados()
+    await cargarEstados()
+    await cargarTalleres()
   } else {
     error.value = "ID de ficha no proporcionado."
     cargando.value = false
@@ -366,6 +408,24 @@ onMounted(async () => {
     <navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Detalle de ficha de trabajo" class="navbar sticky top-0 z-50 shadow-sm" />
     <div class="mx-auto p-4 max-w-7xl pb-28 pt-8">
       <volver />
+      <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
+        <div class="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 min-w-max md:min-w-0">
+          <div v-for="estado in estadosFicha" :key="estado.id" class="flex flex-col items-center group">
+            <div
+            @click="cambiarEstadoFicha(estado.id)"
+              class="relative px-6 py-2 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+              :class="{ 'opacity-50 hover:opacity-100': estado.id !== ficha.estado }">
+              <div class="absolute inset-0 transform -skew-x-12 rounded shadow-sm" :style="{ backgroundColor: estado.color }"></div>
+              <span class="relative z-10 font-bold text-white text-sm whitespace-nowrap">{{ estado.estado }}</span>
+            </div>
+            <div v-if="estado.id === ficha.estado" class="mt-2 text-blue-600 animate-bounce">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>  
+            </div>
+          </div>
+        </div>
+      </div>
       <div v-if="cargando" class="flex justify-center items-center h-64">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
@@ -375,6 +435,7 @@ onMounted(async () => {
         <span class="block sm:inline">{{ error }}</span>
         <button @click="goBack" class="mt-3 block underline">Volver al listado</button>
       </div>
+      
 
       <div v-else-if="ficha" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -419,6 +480,12 @@ onMounted(async () => {
                       <option value="cliente">Conducido por Cliente</option>
                       <option value="grua">Grúa / Remolque</option>
                       <option value="tercero">Chofer / Tercero</option>
+                    </select>
+                  </div>
+                  <div class="w-full">
+                    <label class="block text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Taller</label>
+                    <select class="servi-grey-font font-medium border border-gray-200 rounded-lg p-2 w-full" v-model="tallerSeleccionado">
+                      <option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }}</option>
                     </select>
                   </div>
                 <div class="w-full">
@@ -505,6 +572,12 @@ onMounted(async () => {
                 </button>
                 <button v-else-if="cotizacionConfirmada" @click="generarPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
                   Generar presupuesto
+                </button>
+                <button v-if="ficha.presupuesto && !ficha.informe_final" @click="GenerarInforme" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+                  Generar informe
+                </button>
+                <button v-else-if="ficha.informe_final" @click="irAInforme" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+                  ir al informe
                 </button>
              </div>
           </div>

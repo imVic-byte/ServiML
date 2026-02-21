@@ -327,6 +327,12 @@ const router = createRouter({
       name: 'ver-presupuesto-ficha-de-trabajo',
       component: () => import('../views/Fichas/presupuestoPDF.vue'),
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path:'/ficha-de-trabajo/:id/informe',
+      name: 'ver-informe-ficha-de-trabajo',
+      component: () => import('../views/Fichas/informeFinalPDF.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
     }
   ],
 })

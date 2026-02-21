@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { useRouter, useRoute } from 'vue-router';
 import { useInterfaz } from '@/stores/interfaz';
 import Navbar from '@/components/componentes/navbar.vue';
+import html2pdf from 'html2pdf.js';
 import Volver from '@/components/componentes/volver.vue';
 const route = useRoute()
 const router = useRouter()
@@ -75,36 +76,21 @@ const generarPresupuesto = async () => {
     return
   }
   const {data, error} = await supabase
-    .from('presupuesto')
+    .from('presupuesto_ficha')
     .insert({
-      id_cliente: ficha.value.cliente.id,
-      subtotal: cotizacion.value.subtotal,
-      descuento: cotizacion.value.descuento,
-      iva: cotizacion.value.iva,
-      total_neto: cotizacion.value.total_neto,
       total_final: cotizacion.value.total_final,
       id_ficha: ficha.value.id,
       id_cuenta: cotizacion.value.serviml_cuenta.id,
+      id_cotizacion: cotizacion.value.id,
     })
     .select()
     .single()
-
-  if (data) {
-    for (const detalle of cotizacion.value.detalle_cotizaciones_ficha) {
-      await supabase.from('detalle_presupuesto').insert({
-        id_presupuesto: data.id,
-        cantidad: detalle.cantidad,
-        monto: detalle.monto,
-        descripcion: detalle.descripcion
-      })
-    }
-    const {error} = await supabase
-      .from('ficha_de_trabajo')
-      .update({presupuesto: true})
-      .eq('id', ficha.value.id)
-  }
   if (error) {
     console.error('Error al generar presupuesto:', error)
+  }
+  const {error:errorPresupuesto} = await supabase.from('ficha_de_trabajo').update({presupuesto:true}).eq('id',ficha.value.id)
+  if (errorPresupuesto) {
+    console.error('Error al generar presupuesto:', errorPresupuesto)
   }
   await cargarDatos()
 }
@@ -116,13 +102,13 @@ const cotizacion = ref(null)
 const cargarDatos = async () => {
     const {data, error} = await supabase
     .from('ficha_de_trabajo')
-    .select(`*, presupuesto(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
+    .select(`*, presupuesto_ficha(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
     .eq('id', route.params.id)
     .single()
 
     if (data) {
       ficha.value = data
-      presupuesto.value = data.presupuesto && data.presupuesto.length > 0 ? data.presupuesto[0] : null
+      presupuesto.value = data.presupuesto_ficha[0]
       cotizacion.value = data.cotizaciones_ficha?.find(c => c.estado === 2) || null
     }
 
@@ -140,6 +126,19 @@ const handleVerificarPresupuesto = async () => {
   return data && data.length > 0
 }
 
+const generarPDF = () => {
+  const elemento = document.getElementById('elemento-a-imprimir');
+  const opciones = {
+    margin:       0,
+    filename:     `Presupuesto_${presupuesto.value.numero_folio}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+  html2pdf().set(opciones).from(elemento).save();
+}
+
+
 onMounted(async () => {
   interfaz.showLoading()
   await traerDatosEmpresa()
@@ -149,6 +148,7 @@ onMounted(async () => {
   if (route.query.generar === 'true') {
     await generarPresupuesto()
   }
+  console.log(presupuesto.value)
   interfaz.hideLoading()
 })
 </script>
@@ -156,9 +156,13 @@ onMounted(async () => {
 <template>
   <div class="servi-white min-h-screen font-sans">
     <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Presupuesto" class="navbar" />
-    <div class="mt-4 flex w-[90%] mx-auto">
+    <div class="mt-4 flex w-[70%] mx-auto justify-between">
       <Volver />
+      <button @click="generarPDF" class="ml-4 px-4 py-2 bg-[#1f3d64] text-white rounded-lg hover:bg-[#1f3d64]/80 transition-colors">
+        Generar PDF
+      </button>
     </div>
+  <div class="border border-green-100 w-[70%] mx-auto mt-10 rounded-md">
   <div 
     id="elemento-a-imprimir" 
     class="bg-[#ffffff] text-[#000000] p-10 max-w-[21cm] min-h-[27.9cm] mx-auto text-xs font-sans leading-normal"
@@ -222,7 +226,7 @@ onMounted(async () => {
       </div>
     </div>
     <h3 v-if="cotizacion" class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">Resumen</h3>
-    <div v-if="cotizacion" class="mb-4 flex justify-between items-center">
+    <div v-if="cotizacion" class="mb-4 flex justify-between">
       <ul class="text-[#374151] flex-row w-full">
         <li class="w-[53%]">
           <span class="font-bold text-left align-left text-[#111827] text-start">Motivo Ingreso:</span> 
@@ -237,12 +241,14 @@ onMounted(async () => {
           <p>{{ cotizacion?.comentario || '---' }}</p>
         </li>
       </ul>
-      <ul class="text-[#374151] flex-row w-full">
+      <ul class="text-[#374151] flex-row w-full h-full align-top">
         <li>
           <span class="font-bold text-left align-left text-[#111827] text-start">Lista de vehiculos:</span> 
-          <p v-for="orden in ficha?.orden_trabajo" :key="orden.id">
-            {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} {{ orden.vehiculo.año }}
+          <p class="mt-1 uppercase" v-for="orden in ficha?.orden_trabajo" :key="orden.id">
+            - {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} 
+            <span class="p-1 mt-1 font-bold text-[#1f3d64] rounded-lg"> {{ orden.vehiculo.patente }} </span>
           </p>
+          
         </li>
       </ul>
     </div>
@@ -325,6 +331,7 @@ onMounted(async () => {
       </p>
     </div>
 
+  </div>
   </div>
   </div>
 </template>
