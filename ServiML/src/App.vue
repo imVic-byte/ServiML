@@ -39,7 +39,7 @@ onMounted(() => {
   <GlobalLoader />
   <div class="app-container" :class="{ 'dark': isDark }">
     <RouterView />
-    <Footer v-if="$route.name !== 'login' && $route.name !== 'crear-contraseña' && $route.name !== 'NotFound'" />
+    <Footer v-if="$route.name !== 'login' && $route.name !== 'crear-contraseña' && $route.name !== 'NotFound'" class="print:hidden no-print" />
   </div>
 </template>
 

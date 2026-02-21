@@ -8,7 +8,7 @@ const router = useRouter()
 const userStore = useUserStore()
 </script>
 <template>
-  <nav class="bottom-nav servi-blue servi-white-font">
+  <nav class="bottom-nav servi-blue servi-white-font no-print">
     <RouterLink to="/" class="nav-item primero"><span><svg xmlns="http://www.w3.org/2000/svg" fill="none"
           viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
           <path stroke-linecap="round" stroke-linejoin="round"
@@ -54,6 +54,12 @@ const userStore = useUserStore()
   box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
   border-top-right-radius: 20px;
   border-top-left-radius: 20px;
+}
+
+@media print {
+  .bottom-nav {
+    display: none !important;
+  }
 }
 
 .nav-item {

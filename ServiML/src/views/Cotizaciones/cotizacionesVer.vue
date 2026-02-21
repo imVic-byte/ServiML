@@ -8,6 +8,7 @@ import pdf from './cotizacionesPDF.vue'
 import html2pdf from 'html2pdf.js'
 import { useInterfaz } from '@/stores/interfaz.js'
 import { generarFichaTrabajo } from '../../js/generarFicha.js'
+import volver from '../../components/componentes/volveraListaCotizacion.vue'
 
 const interfaz = useInterfaz()
 const route = useRoute()
@@ -230,9 +231,8 @@ onMounted(async () => {
 <template>
 <div v-if="cotizacion" class="servi-white min-h-screen">
     <navbar :titulo="'Cotización #' + n_cotizacion" subtitulo="Detalle de cotización" class="navbar" />
-    
     <div class="mx-auto p-4 max-w-5xl pb-28">
-        
+        <volver />
         <div class="flex flex-col lg:flex-row gap-6 mt-6">
             
             <!-- Columna izquierda -->

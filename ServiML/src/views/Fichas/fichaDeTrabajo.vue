@@ -365,12 +365,14 @@ const cargarEstados = async () => {
     const {data,error} = await supabase
     .from('tabla_estados_ficha')
     .select('*')
+    .order('orden')
     if(error) throw error
     estadosFicha.value = data
   }
   catch(err){
     console.error("Error al cargar los estados:", err)
   }
+  console.log(estadosFicha.value)
 }
 
 
