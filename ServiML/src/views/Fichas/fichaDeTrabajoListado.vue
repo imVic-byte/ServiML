@@ -33,6 +33,10 @@ const irADetalle = (id) => {
   router.push({ name: "ficha-de-trabajo", params: { id } });
 };
 
+const irACrear = () => {
+  router.push({ name: "crear-ficha-de-trabajo" });
+};
+
 const camelCase = (texto) => {
   if (!texto) return "---";
   return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
@@ -171,11 +175,17 @@ onMounted(async () => {
         <div>
             <h2 class="text-xl font-bold servi-grey-font">Listado de Fichas</h2>
             <p class="text-sm servi-grey-font">Administra las fichas de trabajo del taller</p>
-            <p>mi primera pagina web</p>
-            <p>no se que poner</p>
-            <p>hola</p>
         </div>
+        
         <div class="flex items-center gap-2">
+          <button 
+            @click="irACrear" 
+            class="servi-yellow servi-grey-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
+          >
+            <span class="text-xl leading-none mb-1">+</span>
+            <span class="hidden sm:inline">Nueva Ficha</span>
+          </button>
+
           <button 
             @click="showStats = !showStats" 
             class="md:hidden servi-adapt-bg servi-grey-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-100 hover:opacity-80 transition-all flex items-center gap-2"
