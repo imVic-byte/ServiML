@@ -5,6 +5,9 @@ import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import modal from "../../components/componentes/modal.vue";
 import { useInterfaz } from '@/stores/interfaz.js'
+import volver from '../../components/componentes/volveraListaCotizacion.vue'
+
+
 const router = useRouter();
 const interfaz = useInterfaz();
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
@@ -201,7 +204,7 @@ onMounted(() => {
     <navbar titulo="ServiML" subtitulo="Nueva Cotización" class="navbar sticky top-0 z-50 shadow-sm" />
 
     <div class="mx-auto p-4 max-w-7xl pb-28 pt-8">
-
+      <volver />
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 rounded-lg">
 
         <div class="lg:col-span-7 space-y-12 servi-adapt-bg rounded-xl">

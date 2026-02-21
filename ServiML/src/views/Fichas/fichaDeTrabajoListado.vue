@@ -52,16 +52,6 @@ const stats = computed(() => {
   return { total, ingresadas, enProceso, terminadas };
 });
 
-const claseEstadoCard = (estado) => {
-  switch (Number(estado)) {
-    case 3: return { clase: "badge-aprobada", texto: "Terminada", contenedor: "confirmado" };
-    case 4: return { clase: "badge-cerrada", texto: "Entregada", contenedor: "cerrado" };
-    case 2: return { clase: "badge-proceso", texto: "En Proceso", contenedor: "proceso" };
-    case 1: return { clase: "badge-pendiente", texto: "Ingresada", contenedor: "en-espera" };
-    default: return { clase: "badge-pendiente", texto: "Pendiente", contenedor: "en-espera" };
-  }
-};
-
 const obtenerFichas = async () => {
   try {
     const { data, error } = await supabase
@@ -84,9 +74,44 @@ const obtenerFichas = async () => {
   }
 };
 
+const estadosFicha = ref([]);
+
+const obtenerEstadosFicha = async () => {
+  try{
+    const {data,error} = await supabase
+    .from('tabla_estados_ficha')
+    .select('*')
+    if(error) throw error
+    estadosFicha.value = data
+  }
+  catch(error){
+    console.error("Error al obtener estados de ficha:", error);
+    estadosFicha.value = []
+  }
+}
+
+const handleEstados = (estado) => {
+  const estadoEncontrado = estadosFicha.value.find(e => e.id === estado);
+  if(estadoEncontrado){
+    return {
+      estado: estadoEncontrado.estado,
+      color: estadoEncontrado.color,
+      texto: estadoEncontrado.texto
+    }
+  }
+  else{
+    return {
+      estado: "Desconocido",
+      color: "#ffffff",
+      texto: "#000000"
+    }
+  }
+}
+
 onMounted(async () => {
   interfaz.showLoading();
   await obtenerFichas();
+  await obtenerEstadosFicha();
   interfaz.hideLoading();
 });
 </script>
@@ -204,9 +229,9 @@ onMounted(async () => {
                 <span class="servi-grey-font">{{ formatearFecha(item.fecha_ingreso) }}</span>
               </td>
               <td class="p-4 text-center">
-                <span :class="claseEstadoCard(item.estado).clase">
-                  {{ claseEstadoCard(item.estado).texto }}
-                </span>
+                <span class="px-2 py-1 rounded-full text-xs font-semibold" :style="{backgroundColor: handleEstados(item.estado).color, color: 'white'}">
+                  {{ handleEstados(item.estado).estado }}
+                </span> 
               </td>
               <td class="p-4 text-center">
                 <button class="servi-grey-font hover:text-blue-600 transition-colors">
@@ -236,11 +261,10 @@ onMounted(async () => {
           :key="item.id"
           :to="{ name: 'ficha-de-trabajo', params: { id: item.id } }" 
           class="card-container servi-adapt-bg servi-grey-font"
-          :class="claseEstadoCard(item.estado).contenedor"
         >
           <div class="card-header servi-grey-font">
             <span class="folio">Ficha #{{ item.id }}</span>
-            <span :class="claseEstadoCard(item.estado).clase">{{ claseEstadoCard(item.estado).texto }}</span>
+            <span class="px-2 py-1 rounded-full text-xs font-semibold" :style="{backgroundColor: handleEstados(item.estado).color, color: 'white'}">{{ handleEstados(item.estado).estado }}</span>
           </div>
           <div class="card-body servi-grey-font">
             <div class="info-row">
