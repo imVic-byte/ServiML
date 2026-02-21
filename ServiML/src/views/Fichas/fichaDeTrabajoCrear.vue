@@ -4,10 +4,15 @@ import { useRouter } from 'vue-router'
 import { supabase } from '../../lib/supabaseClient'
 import navbar from "../../components/componentes/navbar.vue"
 import volver from "../../components/componentes/volveraListaFicha.vue"
+import modal from "../../components/componentes/modal.vue" // <-- IMPORTACIÓN AGREGADA
 import { useInterfaz } from '@/stores/interfaz'
 
 const router = useRouter()
 const interfaz = useInterfaz()
+
+// CORRECCIÓN: modalState bien escrito y ficha_id también
+const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
+const ficha_id = ref(null)
 
 // 1. Variables del formulario
 const nombre = ref("");
@@ -44,7 +49,6 @@ const cargarDatosBase = async () => {
 
 // 4. Lógica del autocompletado de clientes
 const buscarClientes = (e) => {
-  // Si el usuario edita el texto, borramos el ID seleccionado para considerarlo "cliente nuevo"
   clienteSeleccionado.value = null 
   
   const texto = e.target.value.trim()
@@ -54,7 +58,6 @@ const buscarClientes = (e) => {
     return
   }
   clienteTimeout = setTimeout(async () => {
-    // Agregamos telefono y email a la búsqueda para autocompletarlos también
     const { data } = await supabase
       .from('cliente')
       .select('id, nombre, apellido, telefono, email')
@@ -80,14 +83,22 @@ const seleccionarCliente = (cliente) => {
   clientesSugeridos.value = []
 }
 
+const redirigir = () => {
+  if (modalState.value.exito && ficha_id.value) {
+    router.push({ name: 'ficha-de-trabajo', params: { id: ficha_id.value } });
+  } else {
+    modalState.value.visible = false;
+  }
+};
+
 // 5. Función principal para guardar
 const guardarNuevaFicha = async () => {
   if (!nombre.value || !apellido.value) {
-    alert("Por favor ingresa el nombre y apellido del cliente.")
+    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Por favor ingresa el nombre y apellido del cliente.", exito: false };
     return
   }
   if (!tallerSeleccionado.value || !motivoIngreso.value) {
-    alert("Por favor completa el Taller y el Motivo de Ingreso.")
+    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Por favor completa el Taller y el Motivo de Ingreso.", exito: false };
     return
   }
 
@@ -128,12 +139,12 @@ const guardarNuevaFicha = async () => {
 
     if (error) throw error
 
-    // ¡Éxito!
-    router.push({ name: 'ficha-de-trabajo', params: { id: data.id } })
+    ficha_id.value = data.id;
+    modalState.value = { visible: true, titulo: "¡Éxito!", mensaje: "Ficha creada correctamente.", exito: true };
     
   } catch (err) {
     console.error(err)
-    alert(err.message || "Ocurrió un error al intentar crear la ficha.")
+    modalState.value = { visible: true, titulo: "Error", mensaje: err.message || "Ocurrió un error al intentar crear la ficha.", exito: false };
   } finally {
     loading.value = false
     interfaz.hideLoadingOverlay()
@@ -194,13 +205,20 @@ onMounted(() => {
 
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Teléfono</label>
-                <div class="flex items-center gap-2">
-                  <select v-model="codigoPais"
-                    class="w-20 py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg text-center cursor-pointer">
-                    <option value="56">+56 </option>
-                    <option value="54">+54 </option>
-                  </select>
-                  <input v-model="telefono" type="text" inputmode="numeric" maxlength="20"
+                <div class="flex items-center gap-4">
+                  <div class="relative w-[110px]">
+                    <select v-model="codigoPais"
+                      class="w-full py-2 pl-2 pr-8 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg text-left cursor-pointer appearance-none">
+                      <option value="56">+56</option>
+                      <option value="54">+54</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <input v-model="telefono" type="text" inputmode="numeric" maxlength="12"
                     class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
                     placeholder="912345678" />
                 </div>
@@ -285,6 +303,9 @@ onMounted(() => {
           </div>
         </div>
       </div>
+      
+      <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje"
+        :exito="modalState.exito" @cerrar="redirigir" />
 
     </div>
   </div>
