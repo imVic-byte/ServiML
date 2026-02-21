@@ -347,7 +347,6 @@ onMounted( async () => {
   await traerDatosServiml();
   await procesarImagenesParaPDF();
   await traerTelefonoEmail();
-  console.log("Informe Data:", informeData.value);
   interfaz.hideLoadingOverlay();
 
   if (route.query.enviar === 'true') {

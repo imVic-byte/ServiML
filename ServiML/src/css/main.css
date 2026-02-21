@@ -40,3 +40,9 @@
 .en-espera { background-color: var(--color-en-espera); }
 .servi-adapt-bg { background-color: var(--color-servi-adapt-bg); }
 .border-gray-100 { border-color: var(--color-gray-100); }
+
+@media print {    
+  .no-print{
+      display: none !important;
+  }
+}

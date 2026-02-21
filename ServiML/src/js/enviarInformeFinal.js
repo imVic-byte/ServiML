@@ -2,7 +2,7 @@ import {supabase} from "../lib/supabaseClient.js";
 
 const WORKER_URL = "https://upload-informe.soporte-serviml.workers.dev/";
 
-export const enviarInformeFinal = async (informeId, numeroFolio, pdf) => {
+export const enviarInformeFinal = async (cliente_id,informeId, numeroFolio, pdf) => {
     if (!informeId || !numeroFolio || !pdf) {
         return { exito: false, error: 'Faltan datos' }
     }
@@ -45,23 +45,23 @@ export const enviarInformeFinal = async (informeId, numeroFolio, pdf) => {
             console.log(errorEnvio);
         }
         const {data:email, error:errorEmail} = await supabase
-        .from('presupuesto')
-        .select('*,cliente(*)')
-        .eq('numero_folio', numeroFolio)
+        .from('cliente')
+        .select('*')
+        .eq('id', cliente_id)
         .single();
         if (errorEmail) {
             console.log(errorEmail);
         }
-        if (!email.cliente.email) {
+        if (!email.email) {
             console.log('El cliente no tiene correo');
             return { exito: false, error: 'El cliente no tiene correo' }
         }
-        const clienteEmail = email.cliente.email;
+        const clienteEmail = email.email;
         const {data:dataMail, error:errorMail} = await supabase.functions.invoke('informe-final', {
             body: {
                 emailCliente: clienteEmail,
-                nombreCliente: email.cliente.nombre,
-                apellidoCliente: email.cliente.apellido,
+                nombreCliente: email.nombre,
+                apellidoCliente: email.apellido,
                 urlPdf: informe.url,
                 folio: numeroFolio
             },
