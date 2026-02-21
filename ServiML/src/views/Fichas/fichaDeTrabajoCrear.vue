@@ -14,8 +14,9 @@ const nombre = ref("");
 const apellido = ref("");
 const telefono = ref("");
 const correo = ref("");
+const codigoPais = ref("56") 
 
-const clienteSeleccionado = ref(null) // Guardará el ID si elige uno existente
+const clienteSeleccionado = ref(null)
 const tallerSeleccionado = ref('')
 const motivoIngreso = ref('')
 const origenIngreso = ref('cliente')
@@ -81,7 +82,6 @@ const seleccionarCliente = (cliente) => {
 
 // 5. Función principal para guardar
 const guardarNuevaFicha = async () => {
-  // Validaciones obligatorias
   if (!nombre.value || !apellido.value) {
     alert("Por favor ingresa el nombre y apellido del cliente.")
     return
@@ -96,8 +96,6 @@ const guardarNuevaFicha = async () => {
   
   try {
     let idDelClienteFinal = clienteSeleccionado.value;
-
-    // Si el ID es null (es decir, el usuario escribió un nombre nuevo a mano), creamos el cliente primero
     if (!idDelClienteFinal) {
       const { data: nuevoCliente, error: errCliente } = await supabase
         .from('cliente')
@@ -106,7 +104,7 @@ const guardarNuevaFicha = async () => {
           apellido: apellido.value.trim(),
           telefono: telefono.value.trim(),
           email: correo.value.trim(),
-          codigo_pais: '56' // Por defecto Chile, ajusta si lo necesitas
+          codigo_pais: codigoPais.value
         })
         .select('id')
         .single()
@@ -115,7 +113,6 @@ const guardarNuevaFicha = async () => {
       idDelClienteFinal = nuevoCliente.id
     }
 
-    // Ahora sí, creamos la ficha vinculada al cliente (sea existente o el recién creado)
     const { data, error } = await supabase
       .from('ficha_de_trabajo')
       .insert({
@@ -197,9 +194,13 @@ onMounted(() => {
 
               <div class="group">
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Teléfono</label>
-                <div class="flex items-center">
-                  <span class="py-2 pr-2 servi-grey-font border-b border-gray-100 text-lg">+56</span>
-                  <input v-model="telefono" type="text"
+                <div class="flex items-center gap-2">
+                  <select v-model="codigoPais"
+                    class="w-20 py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg text-center cursor-pointer">
+                    <option value="56">+56 </option>
+                    <option value="54">+54 </option>
+                  </select>
+                  <input v-model="telefono" type="text" inputmode="numeric" maxlength="20"
                     class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
                     placeholder="912345678" />
                 </div>
@@ -211,7 +212,6 @@ onMounted(() => {
                   class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-lg transition-colors"
                   placeholder="ejemplo@correo.com" />
               </div>
-
             </div>
           </section>
 
