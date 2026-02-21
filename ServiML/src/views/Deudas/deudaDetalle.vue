@@ -14,13 +14,15 @@ const interfaz = useInterfaz();
 // Estados
 const loading = ref(true);
 const deuda = ref(null);
-const otsEnDeuda = ref([]);
+
+
+const FichasEnDeuda = ref([]);
 const abonos = ref([]);
-const otsDisponibles = ref([]);
-const otsSeleccionadas = ref([]); // selección múltiple
+const FichasDisponibles = ref([]);
+const FichasSeleccionadas = ref([]); // selección múltiple
 
 // Modales y UI
-const showModalOT = ref(false);
+const showModalFicha = ref(false);
 const showModalAbono = ref(false);
 const showConfig = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
@@ -60,22 +62,22 @@ const procesandoNotificacion = ref(false);
 
 // --- CÁLCULOS ---
 const totalEstacionamiento = computed(() => {
-  return otsEnDeuda.value.reduce((acc, item) => {
-    return acc + calcularEstacionamientoOT(item.orden_trabajo);
+  return FichasEnDeuda.value.reduce((acc, item) => {
+    return acc + calcularEstacionamientoFicha(item);
   }, 0);
 });
 
 
-const calcularEstacionamientoOT = (ot) => {
-  if (!ot?.fecha_estacionamiento) return 0;
+const calcularEstacionamientoFicha = (ficha) => {
+  if (!ficha?.fecha_estacionamiento) return 0;
 
-  const fechaInicio = new Date(ot.fecha_estacionamiento);
-  const fechaFin = ot.fecha_termino_estacionamiento
-    ? new Date(ot.fecha_termino_estacionamiento)
+  const fechaInicio = new Date(ficha.fecha_estacionamiento);
+  const fechaFin = ficha.fecha_termino_estacionamiento
+    ? new Date(ficha.fecha_termino_estacionamiento)
     : new Date();
 
   const diasTotales = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24));
-  let diasACobrar = diasTotales - 3;
+  let diasACobrar = diasTotales - 3;  
 
   if (diasACobrar < 0) diasACobrar = 0;
 
@@ -84,11 +86,11 @@ const calcularEstacionamientoOT = (ot) => {
 
 
 const totalDeuda = computed(() => {
-  const totalOTs = otsEnDeuda.value.reduce((acc, item) =>
+  const totalFichas = FichasEnDeuda.value.reduce((acc, item) =>
     acc + (item.presupuesto?.total_final || 0), 0
   );
 
-  return totalOTs + totalEstacionamiento.value;
+  return totalFichas + totalEstacionamiento.value;
 });
 
 const totalPagado = computed(() => {
@@ -96,7 +98,7 @@ const totalPagado = computed(() => {
   return Math.round(total);
 });
 
-const saldoPendiente = computed(() => {
+const saldoPendiente = computed(() => { 
   const saldo = totalDeuda.value - totalPagado.value;
   return Math.max(0, Math.round(saldo));
 });
@@ -155,11 +157,11 @@ const cargarDatos = async () => {
   diasNotificacion.value = dataDeuda.notificar_cada || 0;
 
   const { data: dataItems } = await supabase
-    .from("orden_trabajo")
-    .select(`*, vehiculo(*), presupuesto(*), cliente(*)`) 
+    .from("ficha_de_trabajo")
+    .select(`*, presupuesto(*), cliente(*)`) 
     .eq("id_deuda", deudaId)
     .order("id", { ascending: false });
-  otsEnDeuda.value = dataItems || [];
+  FichasEnDeuda.value = dataItems || [];
 
   const { data: dataAbonos } = await supabase
     .from("abonos")
@@ -167,7 +169,6 @@ const cargarDatos = async () => {
     .eq("deuda_id", deudaId)
     .order("created_at", { ascending: false });
   abonos.value = dataAbonos || [];
-
   loading.value = false;
 };
 
@@ -196,10 +197,10 @@ const guardarConfigNotificacion = async () => {
   procesandoNotificacion.value = false;
 };
 
-const buscarOTsDisponibles = async () => {
+const buscarFichasDisponibles = async () => {
   const { data: disponibles, error: errDisponibles } = await supabase
-    .from("orden_trabajo")
-    .select("*, vehiculo(*), presupuesto(*), cliente(*)")
+    .from("ficha_de_trabajo")
+    .select("*, cliente(*)")
     .is("id_deuda", null)
     .order("id", { ascending: false });
   if (errDisponibles) {
@@ -211,50 +212,45 @@ const buscarOTsDisponibles = async () => {
     };
     return;
   }
-  otsDisponibles.value = disponibles || [];
+  FichasDisponibles.value = disponibles || [];
 
-  if (otsDisponibles.value.length === 0) {
+  if (FichasDisponibles.value.length === 0) {
     modalState.value = {
       visible: true,
-      titulo: "Sin OTs disponibles",
-      mensaje: "No hay órdenes de trabajo disponibles para asignar.",
+      titulo: "Sin Fichas disponibles",
+      mensaje: "No hay fichas de trabajo disponibles para asignar.",
       exito: false,
     };
     return;
   }
 
-  otsSeleccionadas.value = [];
-  showModalOT.value = true;
+  FichasSeleccionadas.value = [];
+  showModalFicha.value = true;
 };
 
 
-const toggleSeleccionOT = (otId) => {
-  if (otsSeleccionadas.value.includes(otId)) {
-    otsSeleccionadas.value = otsSeleccionadas.value.filter((id) => id !== otId);
+const toggleSeleccionFicha = (fichaId) => {
+  if (FichasSeleccionadas.value.includes(fichaId)) {
+    FichasSeleccionadas.value = FichasSeleccionadas.value.filter((id) => id !== fichaId);
   } else {
-    otsSeleccionadas.value.push(otId);
+    FichasSeleccionadas.value.push(fichaId);
   }
 };
 
-const agregarOTsMasivas = async () => {
-  if (otsSeleccionadas.value.length === 0) return;
+const agregarFichasMasivas = async () => {
+  if (FichasSeleccionadas.value.length === 0) return;
   interfaz.showLoadingOverlay()
-  const itemsInsertar = otsSeleccionadas.value.map((otId) => ({
-    deuda_id: deudaId,
-    ot_id: otId,
-  }));
-
-  const { error } = await supabase.from("orden_trabajo").update({ id_deuda: deudaId }).in('id', otsSeleccionadas.value);
+  const { error } = await supabase.from("ficha_de_trabajo").update({ id_deuda: deudaId }).in('id', FichasSeleccionadas.value);
   
   if (!error) {
     await cargarDatos();
-    showModalOT.value = false;
-    otsSeleccionadas.value = [];
+    showModalFicha.value = false;
+    FichasSeleccionadas.value = [];
     interfaz.hideLoadingOverlay()
     modalState.value = {
       visible: true,
-      titulo: "OTs Agregadas",
-      mensaje: `Se agregaron las orden(es) de trabajo exitosamente.`,
+      titulo: "Fichas Agregadas",
+      mensaje: `Se agregaron las fichas de trabajo exitosamente.`,
       exito: true,
     };
   } else {
@@ -262,7 +258,7 @@ const agregarOTsMasivas = async () => {
     modalState.value = {
       visible: true,
       titulo: "Error",
-      mensaje: "Error al agregar OTs: " + error.message,
+      mensaje: "Error al agregar fichas de trabajo: " + error.message,
       exito: false,
     };
   }
@@ -271,11 +267,11 @@ const agregarOTsMasivas = async () => {
 // --- GESTIÓN DE ABONOS ---
 const registrarAbono = async () => {
   // Validaciones antes de mostrar overlay
-  if (otsEnDeuda.value.length === 0) {
+  if (FichasEnDeuda.value.length === 0) {
     modalState.value = {
       visible: true,
       titulo: "No se puede abonar",
-      mensaje: "No hay OT's asignadas a esta deuda.",
+      mensaje: "No hay fichas de trabajo asignadas a esta deuda.",
       exito: false,
     };
     return;
@@ -386,19 +382,19 @@ const registrarAbono = async () => {
 
 
 const puedeAbonar = computed(() => {
-  return otsEnDeuda.value.length > 0 && saldoPendiente.value > 0;
+  return FichasEnDeuda.value.length > 0 && saldoPendiente.value > 0;
 });
 
 const puedeCompletar = computed(() => {
-  return otsEnDeuda.value.length > 0 && saldoPendiente.value <= 0 && !esCompletada.value;
+  return FichasEnDeuda.value.length > 0 && saldoPendiente.value <= 0 && !esCompletada.value;
 });
 
 const abrirModalAbono = () => {
-  if (otsEnDeuda.value.length === 0) {
+  if (FichasEnDeuda.value.length === 0) {
     modalState.value = {
       visible: true,
       titulo: "No se puede abonar",
-      mensaje: "Primero tienes que asignar al menos una OT a esta deuda.",
+      mensaje: "Primero tienes que asignar al menos una ficha de trabajo a esta deuda.",
       exito: false,
     };
     return;
@@ -417,8 +413,8 @@ const abrirModalAbono = () => {
   showModalAbono.value = true;
 };
 
-const eliminarOTDeuda = async (id) => {
-  const ok = window.confirm(`¿Deseas desvincular la OT #${id} de esta deuda?`);
+const eliminarFichaDeuda = async (id) => {
+  const ok = window.confirm(`¿Deseas desvincular la ficha de trabajo #${id} de esta deuda?`);
   if (!ok) return;
 
   const montoOT = deudaItem?.presupuesto?.total_final || 0;
@@ -430,7 +426,7 @@ const eliminarOTDeuda = async (id) => {
       visible: true,
       titulo: "No se puede eliminar",
       mensaje:
-        "No puedes eliminar esta OT porque ya existen abonos que dejarían el saldo en negativo.",
+        "No puedes eliminar esta ficha de trabajo porque ya existen abonos que dejarían el saldo en negativo.",
       exito: false,
     };
     return;
@@ -455,8 +451,8 @@ const eliminarOTDeuda = async (id) => {
 
   modalState.value = {
     visible: true,
-    titulo: "OT eliminada",
-    mensaje: `La OT #${id} fue desvinculada correctamente.`,
+    titulo: "Ficha de trabajo eliminada",
+    mensaje: `La ficha de trabajo #${id} fue desvinculada correctamente.`,
     exito: true,
   };
 };
@@ -467,7 +463,7 @@ const pedirConfirmacionCompletar = async () => {
     modalState.value = {
       visible: true,
       titulo: "No se puede completar",
-      mensaje: "Para completar, la cuenta debe tener OTs y saldo pendiente en 0.",
+      mensaje: "Para completar, la cuenta debe tener fichas de trabajo y saldo pendiente en 0.",
       exito: false,
     };
     return;
@@ -487,11 +483,7 @@ const completarDeuda = async () => {
       notificar_cada: 0
     })
     .eq("id", deuda.value.id);
-    const {error: error2} = await supabase
-    .from("orden_trabajo")
-    .update({ pagado: true })
-    .eq("id_deuda", deuda.value.id);
-  if (!error && !error2) {
+  if (!error) {
     await cargarDatos();
     modalState.value = {
       visible: true,
@@ -511,7 +503,6 @@ const completarDeuda = async () => {
 
 onMounted(cargarDatos);
 </script>
-
 <template>
   <div class="min-h-screen servi-white pb-12 font-sans text-white">
     <navbar titulo="Gestión de Deuda" :subtitulo="deuda?.nombre || 'Detalle'" class="navbar" />
@@ -559,8 +550,8 @@ onMounted(cargarDatos);
 
           <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
             <div class="servi-blue rounded-lg p-3 border border-gray-100">
-              <div class="text-xs text-white uppercase">OTs</div>
-              <div class="font-bold text-white">{{ otsEnDeuda.length }}</div>
+              <div class="text-xs text-white uppercase">Fichas</div>
+              <div class="font-bold text-white">{{ FichasEnDeuda.length }}</div>
             </div>
             <div class="servi-blue rounded-lg p-3 border border-gray-100">
               <div class="text-xs text-white uppercase">Total deuda</div>
@@ -580,9 +571,9 @@ onMounted(cargarDatos);
         <!-- Acciones -->
         <div v-if="!esCompletada"
           class="servi-adapt-bg px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3 items-center">
-          <button @click="buscarOTsDisponibles"
+          <button @click="buscarFichasDisponibles"
             class="flex rounded-lg servi-yellow text-white justify-center items-center px-4 py-2 font-bold shadow-sm hover:opacity-90 transition">
-            <span class="text-xl leading-none mb-1">+ Agregar OT</span>
+            <span class="text-xl leading-none mb-1">+ Agregar Ficha</span>
             <span class="hidden sm:inline"></span>
           </button>
 
@@ -630,18 +621,18 @@ onMounted(cargarDatos);
         <!-- Órdenes -->
         <div class="card-shadow overflow-hidden border border-gray-100 servi-adapt-bg">
           <div class="servi-blue servi-yellow-font px-4 py-3 flex items-center justify-between">
-            <h3 class="font-bold text-xs uppercase tracking-wider">Órdenes ({{ otsEnDeuda.length }})</h3>
+            <h3 class="font-bold text-xs uppercase tracking-wider">Fichas ({{ FichasEnDeuda.length }})</h3>
           </div>
 
           <div class="p-4">
-            <div v-if="otsEnDeuda.length === 0" class="text-white text-center py-8">Sin OTs vinculadas</div>
+            <div v-if="FichasEnDeuda.length === 0" class="text-white text-center py-8">Sin fichas de trabajo vinculadas</div>
 
-            <div v-for="item in otsEnDeuda" :key="item.id"
+            <div v-for="item in FichasEnDeuda" :key="item.id"
               class="flex items-center justify-between servi-blue py-3 border-b last:border-0 hover:opacity-80 px-2 rounded-xl transition-colors">
               <div class="min-w-0">
-                <span class="font-bold text-white block">OT #{{ item.id }}</span>
+                <span class="font-bold text-white block">Ficha #{{ item.id }}</span>
                 <span class="text-xs text-white block truncate">
-                  {{ item.vehiculo?.modelo }} - {{ item.vehiculo?.patente }}
+                  a
                 </span>
                 <span class="text-xs text-white">Ingreso: {{ formatearFecha(item.created_at) }}</span>
               </div>
@@ -650,7 +641,7 @@ onMounted(cargarDatos);
                   {{
                     formatearDinero(
                       (item.presupuesto?.total_final || 0) +
-                      calcularEstacionamientoOT(item)
+                      calcularEstacionamientoFicha(item)
                     )
                   }}
                 </span>
@@ -665,8 +656,8 @@ onMounted(cargarDatos);
                 </RouterLink>
 
                 <!-- Botón eliminar ahora a la derecha -->
-                <button type="button" @click.stop="eliminarOTDeuda(item)" class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
-           hover:bg-red-50 hover:border-red-200 transition" title="Eliminar OT" aria-label="Eliminar OT">
+                <button type="button" @click.stop="eliminarFichaDeuda(item)" class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
+           hover:bg-red-50 hover:border-red-200 transition" title="Eliminar Ficha" aria-label="Eliminar Ficha">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600" viewBox="0 0 20 20"
                     fill="currentColor">
                     <path fill-rule="evenodd"
@@ -713,28 +704,28 @@ onMounted(cargarDatos);
     </div>
 
     <!-- Modal OTs -->
-    <div v-if="showModalOT"
+    <div v-if="showModalFicha"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div
         class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh] animate-in fade-in zoom-in duration-200">
         <div class="px-6 py-4 border-b border-white/10">
-          <h2 class="text-lg font-bold servi-yellow-font">Agregar Órdenes</h2>
-          <p class="text-sm text-white/80">Selecciona una o varias OTs para vincular a esta Deuda.</p>
+          <h2 class="text-lg font-bold servi-yellow-font">Agregar Fichas</h2>
+          <p class="text-sm text-white/80">Selecciona una o varias fichas de trabajo para vincular a esta Deuda.</p>
         </div>
 
         <div class="p-6 flex-1 overflow-y-auto space-y-2">
-          <div v-if="otsDisponibles.length === 0" class="text-center text-white/80 py-8">No hay OTs disponibles para
+          <div v-if="FichasDisponibles.length === 0" class="text-center text-white/80 py-8">No hay fichas de trabajo disponibles para
             agregar</div>
 
-          <button v-for="ot in otsDisponibles" :key="ot.id" type="button" @click="toggleSeleccionOT(ot.id)"
-            class="w-full p-3 rounded-lg transition-all flex justify-between items-center text-left" :class="otsSeleccionadas.includes(ot.id)
+          <button v-for="ot in FichasDisponibles" :key="ot.id" type="button" @click="toggleSeleccionFicha(ot.id)"
+            class="w-full p-3 rounded-lg transition-all flex justify-between items-center text-left" :class="FichasSeleccionadas.includes(ot.id)
               ? 'bg-white/10 ring-2 ring-white/50'
               : 'servi-yellow servi-blue-font hover:opacity-90'
               ">
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-5 h-5 rounded border flex items-center justify-center flex-shrink-0"
-                :class="otsSeleccionadas.includes(ot.id) ? 'bg-white/20 border-white/50' : 'border-gray-300 bg-white'">
-                <svg v-if="otsSeleccionadas.includes(ot.id)" xmlns="http://www.w3.org/2000/svg"
+                :class="FichasSeleccionadas.includes(ot.id) ? 'bg-white/20 border-white/50' : 'border-gray-300 bg-white'">
+                <svg v-if="FichasSeleccionadas.includes(ot.id)" xmlns="http://www.w3.org/2000/svg"
                   class="h-3.5 w-3.5 text-white" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -744,29 +735,29 @@ onMounted(cargarDatos);
 
               <div class="min-w-0">
                 <span class="font-bold block truncate"
-                  :class="otsSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
-                  OT #{{ ot.id }}
+                  :class="FichasSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
+                  Ficha #{{ ot.id }}
                 </span>
                 <div class="text-xs truncate"
-                  :class="otsSeleccionadas.includes(ot.id) ? 'text-white/80' : 'text-white'">
+                  :class="FichasSeleccionadas.includes(ot.id) ? 'text-white/80' : 'text-white'">
                   {{ ot.vehiculo?.modelo }} - {{ ot.vehiculo?.patente }}
                 </div>
               </div>
             </div>
 
-            <span class="font-bold" :class="otsSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
+            <span class="font-bold" :class="FichasSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
               {{ formatearDinero(ot.presupuesto?.total_final) }}
             </span>
           </button>
         </div>
 
         <div class="px-6 py-4 border-t border-white/10">
-          <button @click="agregarOTsMasivas" :disabled="otsSeleccionadas.length === 0"
+          <button @click="agregarFichasMasivas" :disabled="FichasSeleccionadas.length === 0"
             class="w-full servi-yellow text-white font-bold py-3 rounded-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition">
-            Agregar {{ otsSeleccionadas.length }} OTs Seleccionadas
+            Agregar {{ FichasSeleccionadas.length }} Fichas Seleccionadas
           </button>
 
-          <button @click="showModalOT = false"
+          <button @click="showModalFicha = false"
             class="mt-3 text-white/80 w-full hover:text-white font-medium">Cancelar</button>
         </div>
       </div>

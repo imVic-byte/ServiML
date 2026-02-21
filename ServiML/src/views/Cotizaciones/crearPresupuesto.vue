@@ -1,12 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import navbar from "../../components/componentes/navbar.vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import modal from "../../components/componentes/modal.vue";
-import cargando2 from "../../components/componentes/cargando2.vue";
 import { useInterfaz } from '@/stores/interfaz.js'
 const router = useRouter();
+const route = useRoute();
 const interfaz = useInterfaz();
 
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
@@ -30,7 +30,7 @@ const loading = ref(false);
 
 // ── Autocompletado de servicios ──
 const serviciosCatalogo = ref([])
-const autocompletadoActivo = ref(-1) // índice del item que tiene el dropdown abierto
+const autocompletadoActivo = ref(-1)
 
 const sugerenciasFiltradas = computed(() => {
   if (autocompletadoActivo.value < 0) return []
@@ -65,7 +65,6 @@ const agregarItem = () => items.value.push({ descripcion: "", monto: "", cantida
 const eliminarItem = (index) => items.value.splice(index, 1);
 
 // Validaciones básicas
-
 const esEmailValido = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -204,15 +203,44 @@ const redirigir = () => {
   }
 };
 
-onMounted(() => {
+// ── Cargar datos de la cotización ──
+const cargarCotizacion = async () => {
+  interfaz.showLoading();
+  const { data, error } = await supabase
+    .from('cotizacion')
+    .select('*, detalle_cotizacion(*)')
+    .eq('id', route.params.id)
+    .single()
 
-  cargarServicios()
+  if (data) {
+    nombre.value = data.nombre || '';
+    apellido.value = data.apellido || '';
+    diagnostico.value = data.diagnostico || '';
+    descuentoPorcentaje.value = data.descuento || '';
+    ivaBoolean.value = (data.iva && data.iva > 0) ? true : false;
+
+    if (data.detalle_cotizacion && data.detalle_cotizacion.length > 0) {
+      items.value = data.detalle_cotizacion.map(d => ({
+        descripcion: d.descripcion || '',
+        monto: d.monto || '',
+        cantidad: d.cantidad || 1,
+      }));
+    }
+  } else {
+    console.error(error);
+  }
+  interfaz.hideLoading();
+}
+
+onMounted(async () => {
+  await cargarServicios()
+  await cargarCotizacion()
 })
 </script>
 
 <template>
   <div class="servi-white min-h-screen font-sans">
-    <navbar titulo="ServiML" subtitulo="Nuevo Presupuesto" class="navbar sticky top-0 z-50 shadow-sm" />
+    <navbar titulo="ServiML" subtitulo="Presupuesto desde Cotización" class="navbar" />
 
     <div class="mx-auto p-4 max-w-7xl pb-28 pt-8">
 

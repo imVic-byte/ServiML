@@ -1,11 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import navbar from "../../components/componentes/navbar.vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import modal from "../../components/componentes/modal.vue";
-import cargando2 from "../../components/componentes/cargando2.vue";
 import { useInterfaz } from '@/stores/interfaz.js'
+
+const route = useRoute();
 const router = useRouter();
 const interfaz = useInterfaz();
 
@@ -24,13 +25,18 @@ const correo = ref("");
 const items = ref([{ descripcion: "", monto: "", cantidad: 1 }]);
 const ivaBoolean = ref(true);
 
-const alertaEmail = ref(true);
 const presupuesto_id = ref(null);
+const numero_folio = ref(null);
 const loading = ref(false);
+const cargado = ref(false);
+
+// IDs originales para actualizar registros relacionados
+const vehiculoId = ref(null);
+const clienteId = ref(null);
 
 // ── Autocompletado de servicios ──
 const serviciosCatalogo = ref([])
-const autocompletadoActivo = ref(-1) // índice del item que tiene el dropdown abierto
+const autocompletadoActivo = ref(-1)
 
 const sugerenciasFiltradas = computed(() => {
   if (autocompletadoActivo.value < 0) return []
@@ -64,23 +70,19 @@ const cargarServicios = async () => {
 const agregarItem = () => items.value.push({ descripcion: "", monto: "", cantidad: 1 });
 const eliminarItem = (index) => items.value.splice(index, 1);
 
-// Validaciones básicas
-
 const esEmailValido = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 const validarFormulario = () => {
-  if (!patente.value || patente.value.length !== 6 || patente.value.trim().length !== 6 || patente.value.trim().length > 7) {
+  if (!patente.value || patente.value.length < 6) {
     modalState.value = { visible: true, titulo: "Patente inválida", mensaje: "Ingresa una patente válida.", exito: false };
     return false;
   }
-
   if (!marca.value || !modelo.value) {
     modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Marca y Modelo son obligatorios.", exito: false };
     return false;
   }
-
   if (!nombre.value || !apellido.value || !telefono.value) {
     modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Completa los datos del cliente.", exito: false };
     return false;
@@ -89,17 +91,14 @@ const validarFormulario = () => {
     modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "El diagnóstico es obligatorio.", exito: false };
     return false;
   }
-
   if (correo.value && !esEmailValido(correo.value)) {
     modalState.value = { visible: true, titulo: "Email inválido", mensaje: "El formato del correo electrónico no es correcto.", exito: false };
     return false;
   }
-
   if (items.value.length === 0) {
     modalState.value = { visible: true, titulo: "Sin servicios", mensaje: "Agrega al menos un servicio o repuesto.", exito: false };
     return false;
   }
-
   for (const item of items.value) {
     if (!item.descripcion || !item.monto) {
       modalState.value = { visible: true, titulo: "Item incompleto", mensaje: "Todos los items deben tener descripción y monto.", exito: false };
@@ -129,70 +128,125 @@ const totales = computed(() => {
   const pctIva = ivaBoolean.value ? 19 : 0;
   const iva = total_neto * (pctIva / 100);
   const total_final = total_neto + iva;
-
   return { subtotal, descuento: dsc, total_neto, iva, total_final };
 });
 
-const handleCorreo = () => {
-  if (!correo.value && alertaEmail.value) {
-    modalState.value = { visible: true, titulo: "Advertencia", mensaje: "¿Continuar sin correo del cliente?", exito: false };
-    alertaEmail.value = false;
-    return false;
-  }
-  return true;
-}
+// ── Cargar presupuesto existente ──
+const cargarPresupuesto = async () => {
+  interfaz.showLoading();
+  const { data, error } = await supabase
+    .from('presupuesto')
+    .select('*, vehiculo(*), cliente(*), detalle_presupuesto(*)')
+    .eq('id', route.params.id)
+    .single();
 
-const dosSemanasDespues = () => {
-  const fecha = new Date();
-  fecha.setDate(fecha.getDate() + 14);
-  return fecha.toISOString().split("T")[0];
-}
-
-const enviarFormulario = async () => {
-  if (!validarFormulario()) return;
-  if (alertaEmail.value && !correo.value) {
-    handleCorreo();
+  if (error || !data) {
+    interfaz.hideLoading();
+    modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudo cargar el presupuesto.", exito: false };
     return;
   }
 
-  interfaz.showLoadingOverlay()
-  loading.value = true;
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error("Sesión expirada");
+  presupuesto_id.value = data.id;
+  numero_folio.value = data.numero_folio;
+  diagnostico.value = data.diagnostico || '';
+  descuentoPorcentaje.value = data.descuento || '';
+  ivaBoolean.value = data.iva > 0;
 
-    const { data, error } = await supabase.functions.invoke("crear-presupuesto", {
-      body: {
+  // Vehículo
+  if (data.vehiculo) {
+    vehiculoId.value = data.vehiculo.id;
+    patente.value = data.vehiculo.patente || '';
+    marca.value = data.vehiculo.marca || '';
+    modelo.value = data.vehiculo.modelo || '';
+  }
+
+  // Cliente
+  if (data.cliente) {
+    clienteId.value = data.cliente.id;
+    nombre.value = data.cliente.nombre || '';
+    apellido.value = data.cliente.apellido || '';
+    codigoPais.value = data.cliente.codigo_pais || '+56';
+    telefono.value = data.cliente.telefono || '';
+    correo.value = data.cliente.email || '';
+  }
+
+  // Detalles
+  if (data.detalle_presupuesto && data.detalle_presupuesto.length > 0) {
+    items.value = data.detalle_presupuesto.map(d => ({
+      id: d.id,
+      descripcion: d.descripcion || '',
+      monto: d.monto || '',
+      cantidad: d.cantidad || 1,
+    }));
+  }
+
+  cargado.value = true;
+  interfaz.hideLoading();
+}
+
+// ── Guardar cambios ──
+const guardarCambios = async () => {
+  if (!validarFormulario()) return;
+
+  interfaz.showLoadingOverlay();
+  loading.value = true;
+
+  try {
+    // 1. Actualizar vehículo
+    if (vehiculoId.value) {
+      await supabase.from('vehiculo').update({
         patente: patente.value.trim().toUpperCase(),
         marca: marca.value.trim().toUpperCase(),
         modelo: modelo.value.trim().toUpperCase(),
+      }).eq('id', vehiculoId.value);
+    }
+
+    // 2. Actualizar cliente
+    if (clienteId.value) {
+      await supabase.from('cliente').update({
         nombre: nombre.value.trim().toUpperCase(),
         apellido: apellido.value.trim().toUpperCase(),
-        codigoPais: codigoPais.value,
+        codigo_pais: codigoPais.value,
         telefono: telefono.value,
         email: correo.value,
-        vencimiento: dosSemanasDespues(),
-        diagnostico: diagnostico.value.toUpperCase(),
-        ...totales.value,
-        detalles: items.value.map((item) => ({
-          descripcion: item.descripcion.toUpperCase(),
-          monto: item.monto,
-          cantidad: item.cantidad || 1,
-          total_linea: (Number(item.monto) || 0) * (Number(item.cantidad) || 1),
-        })),
-      },
-    });
+      }).eq('id', clienteId.value);
+    }
 
-    if (error) throw error;
+    // 3. Actualizar presupuesto
+    const { error: errorPresupuesto } = await supabase.from('presupuesto').update({
+      diagnostico: diagnostico.value.toUpperCase(),
+      subtotal: totales.value.subtotal,
+      descuento: totales.value.descuento,
+      total_neto: totales.value.total_neto,
+      iva: totales.value.iva,
+      total_final: totales.value.total_final,
+      updated_at: new Date(),
+      estado:1,
+      editado:true
+    }).eq('id', presupuesto_id.value);
 
-    presupuesto_id.value = data.data.id;
-    modalState.value = { visible: true, titulo: "¡Éxito!", mensaje: "Presupuesto creado correctamente.", exito: true };
+    if (errorPresupuesto) throw errorPresupuesto;
+
+    // 4. Reemplazar detalles: borrar los antiguos e insertar los nuevos
+    await supabase.from('detalle_presupuesto').delete().eq('id_presupuesto', presupuesto_id.value);
+
+    const nuevosDetalles = items.value.map(item => ({
+      id_presupuesto: presupuesto_id.value,
+      descripcion: item.descripcion.toUpperCase(),
+      monto: item.monto,
+      cantidad: item.cantidad || 1,
+    }));
+
+    const { error: errorDetalles } = await supabase.from('detalle_presupuesto').insert(nuevosDetalles);
+    if (errorDetalles) throw errorDetalles;
+
+    modalState.value = { visible: true, titulo: "¡Éxito!", mensaje: "Presupuesto actualizado correctamente.", exito: true };
   } catch (err) {
     console.error(err);
-    modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudo guardar el presupuesto.", exito: false };
+    modalState.value = { visible: true, titulo: "Error", mensaje: "No se pudo actualizar el presupuesto.", exito: false };
   } finally {
     loading.value = false;
-    interfaz.hideLoadingOverlay()
+    interfaz.hideLoadingOverlay();
   }
 };
 
@@ -205,16 +259,16 @@ const redirigir = () => {
 };
 
 onMounted(() => {
-
   cargarServicios()
+  cargarPresupuesto()
 })
 </script>
 
 <template>
   <div class="servi-white min-h-screen font-sans">
-    <navbar titulo="ServiML" subtitulo="Nuevo Presupuesto" class="navbar sticky top-0 z-50 shadow-sm" />
+    <navbar titulo="ServiML" :subtitulo="'Editar Presupuesto #' + (numero_folio || '')" class="navbar sticky top-0 z-50 shadow-sm" />
 
-    <div class="mx-auto p-4 max-w-7xl pb-28 pt-8">
+    <div v-if="cargado" class="mx-auto p-4 max-w-7xl pb-28 pt-8">
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 rounded-lg">
 
@@ -408,14 +462,14 @@ onMounted(() => {
               </div>
             </div>
 
-            <button @click="enviarFormulario"
+            <button @click="guardarCambios"
               class="w-full servi-blue servi-yellow-font text-sm font-bold py-4 mb-4 px-4 rounded-b-lg hover:bg-blue-800 transition-all flex justify-center items-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               :disabled="loading">
-              <span v-if="loading">Procesando...</span>
-              <span v-else>EMITIR PRESUPUESTO</span>
+              <span v-if="loading">Guardando...</span>
+              <span v-else>GUARDAR CAMBIOS</span>
               <svg v-if="!loading" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
             </button>
           </div>
