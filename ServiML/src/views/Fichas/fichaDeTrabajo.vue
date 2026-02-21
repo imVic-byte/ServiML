@@ -347,22 +347,12 @@ const generarPresupuesto = async () => {
 const irAPresupuesto = async () => {
   router.push({name: 'ver-presupuesto-ficha-de-trabajo', params: {id: fichaId}})
 }
-const tienePresupuesto = ref(false)
-
-const handleVerificarPresupuesto = async () => {
- const{data,error} = await supabase.from('presupuesto').select('*').eq('id_ficha', fichaId) 
- if(error) throw error
- if(data.length > 0){
-  tienePresupuesto.value = true
- }
-}
 
 onMounted(async () => {
   interfaz.showLoading()
   if (fichaId) {
     await cargarDatos()
     await traerEstados()
-    await handleVerificarPresupuesto()
   } else {
     error.value = "ID de ficha no proporcionado."
     cargando.value = false
@@ -510,10 +500,10 @@ onMounted(async () => {
                 <span class="text-sm font-bold text-white uppercase tracking-wider">Acciones</span>
              </div>
              <div class="p-4 grid grid-cols-1 gap-3">
-                <button v-if="tienePresupuesto" @click="irAPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+                <button v-if="ficha.presupuesto" @click="irAPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
                   ir al presupuesto
                 </button>
-                <button v-if="cotizacionConfirmada" @click="generarPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+                <button v-else-if="cotizacionConfirmada" @click="generarPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
                   Generar presupuesto
                 </button>
              </div>

@@ -7,7 +7,6 @@ import modal from '../../components/componentes/modal.vue'
 import pdf from './cotizacionesPDF.vue'
 import html2pdf from 'html2pdf.js'
 import { useInterfaz } from '@/stores/interfaz.js'
-import { generarFichaTrabajo } from '../../js/generarFicha.js'
 import volveraFicha from '../../components/componentes/volveraFicha.vue'
 
 const interfaz = useInterfaz()
@@ -17,11 +16,6 @@ const cotizacion = ref(null)
 const n_cotizacion = ref()
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true })
 const confirmada = ref(false)
-// Modal confirmación
-const modalConfirmacion = ref(false)
-const correoCliente = ref('')
-const codigoPais = ref('+56')
-const telefonoCliente = ref('')
 const isPendiente = computed(() => cotizacion.value.estado === 1 || cotizacion.value.estado === 4)
 const cuentasBancarias = ref([])
 const cuentaSeleccionada = ref(null)
@@ -52,74 +46,6 @@ const redirigir = () => {
     }
 }
 
-const irAEditar = () => {
-    router.push({ name: "editar-cotizacion", params: { id: route.params.id } });
-}
-
-const mostrarModalConfirmacion = () => {
-    modalConfirmacion.value = true
-}
-
-const cerrarModalConfirmacion = () => {
-    modalConfirmacion.value = false
-    correoCliente.value = ''
-    codigoPais.value = '+56'
-    telefonoCliente.value = ''
-}
-
-// Sanitizar teléfono: solo dígitos
-const sanitizarTelefono = (e) => {
-    telefonoCliente.value = e.target.value.replace(/\D/g, '')
-}
-
-// Validaciones
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-const emailValido = computed(() => {
-    if (!correoCliente.value) return true // opcional
-    return emailRegex.test(correoCliente.value)
-})
-
-const telefonoValido = computed(() => {
-    return telefonoCliente.value.length >= 7 && telefonoCliente.value.length <= 15
-})
-
-const formularioValido = computed(() => {
-    return telefonoValido.value && emailValido.value
-})
-
-const generarFicha = async () => {
-    modalConfirmacion.value = false
-    interfaz.showLoading();
-    const data = {
-      cliente:{
-        nombre: cotizacion.value.nombre,
-        apellido: cotizacion.value.apellido,
-        email: correoCliente.value || null,
-        codigo_pais: codigoPais.value,
-        telefono: telefonoCliente.value
-      },
-      ficha_de_trabajo:{
-        motivo_ingreso: cotizacion.value.diagnostico
-      },
-      id_cotizacion: cotizacion.value.id
-    }
-    const { exito, ficha_de_trabajo, mensaje } = await generarFichaTrabajo(data);
-    if (exito) {
-      modalState.value.visible = true;
-      modalState.value.titulo = "Exito";
-      modalState.value.mensaje = mensaje;
-      modalState.value.exito = true;
-    } else {
-      modalState.value.visible = true;
-      modalState.value.titulo = "Error";
-      modalState.value.mensaje = mensaje;
-      modalState.value.exito = false;
-    }
-    interfaz.hideLoading();
-    cerrarModalConfirmacion();
-}
-
 const generarPDF = () => {
   const elemento = document.getElementById('elemento-a-imprimir');
   const opciones = {
@@ -138,6 +64,21 @@ const confirmarCotizacion = async () => {
     modalState.value.visible = true;
     modalState.value.titulo = "Exito";
     modalState.value.mensaje = "Cotización confirmada";
+    modalState.value.exito = true;
+  }else{
+    modalState.value.visible = true;
+    modalState.value.titulo = "Error";
+    modalState.value.mensaje = error.message;
+    modalState.value.exito = false;
+  }
+}
+
+const descartarCotizacion = async () => {
+  const {data,error} = await supabase.from('cotizaciones_ficha').update({estado:3}).eq('id',route.params.cotizacion_id).select().single()
+  if(data){
+    modalState.value.visible = true;
+    modalState.value.titulo = "Exito";
+    modalState.value.mensaje = "Cotización descartada";
     modalState.value.exito = true;
   }else{
     modalState.value.visible = true;
@@ -310,7 +251,7 @@ onMounted(async () => {
                         </button> 
                         <div v-if="isPendiente" class="w-full">
                         <button @click="confirmarCotizacion" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-blue text-white border border-gray-200 hover:bg-blue-800 transition-colors text-sm font-medium">Confirmar</button>
-                        <button @click="cancelarCotizacion" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-white text-black hover:bg-blue-800 transition-colors text-sm font-medium">Descartar</button>
+                        <button @click="descartarCotizacion" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-white text-black hover:bg-blue-800 transition-colors text-sm font-medium">Descartar</button>
                         </div>
                     </div>
                 </div>

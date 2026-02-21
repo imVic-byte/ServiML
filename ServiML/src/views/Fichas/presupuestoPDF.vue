@@ -3,7 +3,8 @@ import { ref, onMounted, computed } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, useRoute } from 'vue-router';
 import { useInterfaz } from '@/stores/interfaz';
-
+import Navbar from '@/components/componentes/navbar.vue';
+import Volver from '@/components/componentes/volver.vue';
 const route = useRoute()
 const router = useRouter()
 const interfaz = useInterfaz()
@@ -60,74 +61,83 @@ const traerTelefono = async () => {
   }
 }
 
-const ficha = ref(null)
-const cotizacion = ref(null)
+const cuentaSeleccionada = computed(() => {
+  return cotizacion.value?.serviml_cuenta || null
+})
 
 const generarPresupuesto = async () => {
-  if (handleVerificarPresupuesto()) {
+  const yaExiste = await handleVerificarPresupuesto()
+  if (yaExiste) {
     return
   }
-  const {data,error} = await supabase
+  if (!ficha.value || !cotizacion.value) {
+    console.error('Falta ficha o cotización aprobada para generar el presupuesto')
+    return
+  }
+  const {data, error} = await supabase
     .from('presupuesto')
     .insert({
       id_cliente: ficha.value.cliente.id,
       subtotal: cotizacion.value.subtotal,
       descuento: cotizacion.value.descuento,
       iva: cotizacion.value.iva,
-      total_neto:cotizacion.value.total_neto,
+      total_neto: cotizacion.value.total_neto,
       total_final: cotizacion.value.total_final,
       id_ficha: ficha.value.id,
       id_cuenta: cotizacion.value.serviml_cuenta.id,
     })
     .select()
     .single()
-    if (data) {
-      for (const detalle of cotizacion.value.detalle_cotizaciones_ficha) {
-        await supabase.from('detalle_presupuesto').insert({
-          id_presupuesto: data.id,
-          cantidad: detalle.cantidad,
-          monto: detalle.monto,
-          descripcion:detalle.descripcion
-        })
-      }
+
+  if (data) {
+    for (const detalle of cotizacion.value.detalle_cotizaciones_ficha) {
+      await supabase.from('detalle_presupuesto').insert({
+        id_presupuesto: data.id,
+        cantidad: detalle.cantidad,
+        monto: detalle.monto,
+        descripcion: detalle.descripcion
+      })
     }
-    if (error) {
-      console.error('Error al generar presupuesto:', error)
-    }
-    cargarDatos()
+    const {error} = await supabase
+      .from('ficha_de_trabajo')
+      .update({presupuesto: true})
+      .eq('id', ficha.value.id)
+  }
+  if (error) {
+    console.error('Error al generar presupuesto:', error)
+  }
+  await cargarDatos()
 }
 
-const presupuesto = ref({})
+const presupuesto = ref(null)
+const ficha = ref(null)
+const cotizacion = ref(null)
 
 const cargarDatos = async () => {
-    const {data,error} = await supabase
+    const {data, error} = await supabase
     .from('ficha_de_trabajo')
     .select(`*, presupuesto(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
     .eq('id', route.params.id)
     .single()
+
     if (data) {
-      console.log(data)
-      presupuesto.value = data.presupuesto[0]
-      console.log(presupuesto.value)
       ficha.value = data
-      cotizacion.value = data.cotizaciones_ficha.find(c => c.estado === 2)
+      presupuesto.value = data.presupuesto && data.presupuesto.length > 0 ? data.presupuesto[0] : null
+      cotizacion.value = data.cotizaciones_ficha?.find(c => c.estado === 2) || null
     }
+
     if (error) {
       console.error('Error al traer datos de la ficha:', error)
     }
-    console.log(ficha.value)
 }
 
 const handleVerificarPresupuesto = async () => {
-  const {data,error} = await supabase.from('presupuesto').select('*').eq('id_ficha', route.params.id)
-  if (data) {
-    return true
-  }
+  const {data, error} = await supabase.from('presupuesto').select('*').eq('id_ficha', route.params.id)
   if (error) {
-    console.log(error)
+    console.error('Error al verificar presupuesto:', error)
     return false
   }
-  return false
+  return data && data.length > 0
 }
 
 onMounted(async () => {
@@ -144,6 +154,11 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div class="servi-white min-h-screen font-sans">
+    <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Presupuesto" class="navbar" />
+    <div class="mt-4 flex w-[90%] mx-auto">
+      <Volver />
+    </div>
   <div 
     id="elemento-a-imprimir" 
     class="bg-[#ffffff] text-[#000000] p-10 max-w-[21cm] min-h-[27.9cm] mx-auto text-xs font-sans leading-normal"
@@ -175,16 +190,16 @@ onMounted(async () => {
     </div>
     <div v-if="!cotizacion" class="p-10 text-center border-2 border-dashed border-red-300 rounded-xl my-10">
       <p class="text-red-500 font-bold">No hay cotización seleccionada para previsualizar.</p>
-      <p class="text-gray-500 text-xs mt-2">Para depurar, asegúrate de pasar una cotización válida.</p>
+      <p class="text-gray-500 text-xs mt-2">Asegúrate de que la cotización esté aprobada para ver el presupuesto.</p>
     </div>
     <div v-else class="grid grid-cols-2 gap-10 mb-8">
       <div>
         <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">De: ServiML</h3>
         <ul class="text-[#374151] space-y-1">
-          <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa.dirección || '...' }}</li>
-          <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa.ciudad || '...' }}</li>
-          <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa.telefono || 'Sin Teléfono' }}</li>
-          <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa.email || '...' }}</li>
+          <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa?.dirección || '...' }}</li>
+          <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa?.ciudad || '...' }}</li>
+          <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa?.telefono || 'Sin Teléfono' }}</li>
+          <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa?.email || '...' }}</li>
         </ul>
       </div>
 
@@ -193,15 +208,15 @@ onMounted(async () => {
         <ul class="text-[#374151] space-y-1">
           <li>
             <span class="font-bold text-[#111827]">Cliente:</span> 
-            {{ ficha.value.cliente ? (ficha.value.cliente.nombre + ' ' + ficha.value.cliente.apellido) : 'Sin Nombre' }}
+            {{ ficha?.cliente ? (ficha.cliente.nombre + ' ' + ficha.cliente.apellido) : 'Sin Nombre' }}
           </li>
           <li>
             <span class="font-bold text-[#111827]">Teléfono:</span> 
-            {{ ficha.value.cliente ? ('+' + ficha.value.cliente.codigo_pais + ' ' + ficha.value.cliente.telefono) : 'Sin Teléfono' }}
+            {{ ficha?.cliente ? ('+' + ficha.cliente.codigo_pais + ' ' + ficha.cliente.telefono) : 'Sin Teléfono' }}
           </li>
           <li>
             <span class="font-bold text-[#111827]">Email:</span> 
-            {{ ficha.cliente?.email || 'Sin Email' }}
+            {{ ficha?.cliente?.email || 'Sin Email' }}
           </li>
         </ul>
       </div>
@@ -211,15 +226,23 @@ onMounted(async () => {
       <ul class="text-[#374151] flex-row w-full">
         <li class="w-[53%]">
           <span class="font-bold text-left align-left text-[#111827] text-start">Motivo Ingreso:</span> 
-          <p>{{ ficha.motivo_ingreso || '---' }}</p>
+          <p>{{ ficha?.motivo_ingreso || '---' }}</p>
         </li>
         <li>
           <span class="font-bold text-left align-left text-[#111827] text-start">Fecha Ingreso:</span> 
-          <p>{{ formatoFechaYHora(ficha.fecha_ingreso) }}</p>
+          <p>{{ formatoFechaYHora(ficha?.fecha_ingreso) }}</p>
         </li>
         <li>
           <span class="font-bold text-left align-left text-[#111827] text-start">Comentarios adicionales:</span> 
-          <p>{{ cotizacion.comentario }}</p>
+          <p>{{ cotizacion?.comentario || '---' }}</p>
+        </li>
+      </ul>
+      <ul class="text-[#374151] flex-row w-full">
+        <li>
+          <span class="font-bold text-left align-left text-[#111827] text-start">Lista de vehiculos:</span> 
+          <p v-for="orden in ficha?.orden_trabajo" :key="orden.id">
+            {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} {{ orden.vehiculo.año }}
+          </p>
         </li>
       </ul>
     </div>
@@ -302,6 +325,7 @@ onMounted(async () => {
       </p>
     </div>
 
+  </div>
   </div>
 </template>
 
