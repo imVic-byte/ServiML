@@ -106,7 +106,7 @@ const presupuesto = ref(null)
 const cargarDatos = async () => {
     const {data, error} = await supabase
     .from('ficha_de_trabajo')
-    .select(`*, informe_final(*),presupuesto_ficha(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
+    .select(`*, informe_final(*),presupuesto_ficha(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*)), OT_bitacora(*), OT_fotos_ingreso(*)),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
     .eq('id', route.params.id)
     .single()
 
@@ -115,12 +115,62 @@ const cargarDatos = async () => {
       presupuesto.value = data.presupuesto_ficha[0]
       informeFinal.value = data.informe_final[0]
       cotizacion.value = data.cotizaciones_ficha?.find(c => c.estado === 2) || null
+      
+      // Fetch bitácora photos
+      for (const ot of ficha.value.orden_trabajo) {
+        if (ot.OT_bitacora) {
+          for (const entry of ot.OT_bitacora) {
+            const { data: fotos } = await supabase
+              .from('OT_Fotos')
+              .select('*')
+              .eq('id_OT_bitacora', entry.id);
+            entry.fotos = fotos || [];
+          }
+        }
+      }
     }
 
     if (error) {
       console.error('Error al traer datos de la ficha:', error)
     }
 }
+
+const convertirImagenABase64 = async (url) => {
+  try {
+    const response = await fetch(url + '?t=' + new Date().getTime());
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    return url;
+  }
+};
+
+const procesarImagenesParaPDF = async () => {
+  if (!ficha.value || !ficha.value.orden_trabajo) return;
+  
+  for (const ot of ficha.value.orden_trabajo) {
+    // 1. Fotos de ingreso
+    if (ot.OT_fotos_ingreso) {
+      for (const item of ot.OT_fotos_ingreso) {
+        if (item.url) item.url = await convertirImagenABase64(item.url);
+      }
+    }
+    // 2. Fotos de bitácora
+    if (ot.OT_bitacora) {
+      for (const entry of ot.OT_bitacora) {
+        if (entry.fotos) {
+          for (const foto of entry.fotos) {
+            if (foto.url) foto.url = await convertirImagenABase64(foto.url);
+          }
+        }
+      }
+    }
+  }
+};
 
 const handleVerificarInformeFinal = async () => {
   const {data, error} = await supabase.from('informe_final').select('*').eq('id_ficha', route.params.id)
@@ -167,6 +217,7 @@ onMounted(async () => {
   await traerTelefono()
   await cargarDatos()
   await obtenerEstados()
+  await procesarImagenesParaPDF()
   if (route.query.generar === 'true') {
     generarInformeFinal()
   }
@@ -342,11 +393,120 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="mt-16 text-center border-t border-[#e5e7eb] pt-4">
-      <p class="text-[#9ca3af] text-[9px] uppercase tracking-widest font-bold">
-        ServiML • Soluciones Automotrices de Confianza
-      </p>
+    <!-- Page Break -->
+    <div class="html2pdf__page-break"></div>
+
+    <!-- Technical Details Page(s) -->
+    <div v-for="ot in ficha?.orden_trabajo" :key="ot.id" class="p-10 pt-8 min-h-[27.9cm] bg-white relative">
+      <div class="absolute top-0 left-0 w-full h-2 bg-servi-blue"></div>
+      
+      <div class="flex justify-between items-end border-b border-gray-200 pb-2 mb-4">
+        <div>
+           <h2 class="text-xl font-bold text-servi-blue uppercase tracking-tight">Informe Técnico Detallado</h2>
+           <p class="text-xs text-gray-500">Anexo de inspección visual y bitácora de trabajo</p>
+        </div>
+        <div class="text-right">
+           <p class="text-[10px] text-gray-400 font-mono">OT-{{ ot.id }} / {{ ot.vehiculo.marca }} {{ ot.vehiculo.modelo }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-12 gap-4 mb-6">
+        <div class="col-span-4 bg-slate-50 rounded-lg p-3 border border-slate-100 shadow-sm">
+           <h4 class="font-bold text-servi-blue uppercase text-[10px] mb-2 border-b border-slate-200 pb-1">Inventario & Accesorios</h4>
+           <ul class="space-y-1 text-[11px]">
+             <li class="flex justify-between items-center">
+                <span class="text-slate-600">Documentos</span>
+                <span :class="ot.trae_documentos ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_documentos ? '✔ Sí' : 'No' }}</span>
+              </li>
+              <li class="flex justify-between items-center">
+                <span class="text-slate-600">Llaves</span>
+                <span :class="ot.trae_llaves ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_llaves ? '✔ Sí' : 'No' }}</span>
+              </li>
+              <li class="flex justify-between items-center">
+                <span class="text-slate-600">Candado Seg.</span>
+                <span :class="ot.trae_candado_seguridad ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_candado_seguridad ? '✔ Sí' : 'No' }}</span>
+              </li>
+              <li class="flex justify-between items-center">
+                <span class="text-slate-600">Panel Radio</span>
+                <span :class="ot.trae_panel_radio ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_panel_radio ? '✔ Sí' : 'No' }}</span>
+              </li>
+              <li class="flex justify-between items-center">
+                <span class="text-slate-600">Rueda Rep.</span>
+                <span :class="ot.trae_rueda_repuesto ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_rueda_repuesto ? '✔ Sí' : 'No' }}</span>
+              </li>
+              <li class="flex justify-between items-center">
+                <span class="text-slate-600">Encendedor</span>
+                <span :class="ot.trae_encendedor ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_encendedor ? '✔ Sí' : 'No' }}</span>
+              </li>
+           </ul>
+        </div>
+        
+        <div class="col-span-8">
+          <div class="grid grid-cols-2 gap-4 mb-3">
+             <div class="bg-slate-50 border border-slate-200 p-2 rounded shadow-sm text-center">
+                <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kilometraje</span>
+                <span class="block text-lg font-bold text-servi-blue mt-0.5">{{ ot.kilometraje_inicial || '0' }} km</span>
+             </div>
+             <div class="bg-slate-50 border border-slate-200 p-2 rounded shadow-sm text-center">
+                <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Combustible</span>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-1.5 mb-1">
+                  <div class="bg-green-500 h-2 rounded-full" :style="{ width: (ot.combustible_inicial || 0) + '%' }"></div>
+                </div>
+                <span class="block text-[11px] font-bold text-servi-blue">{{ ot.combustible_inicial || '0' }}%</span>
+             </div>
+          </div>
+
+          <div v-if="ot.OT_fotos_ingreso && ot.OT_fotos_ingreso.length > 0">
+             <h4 class="font-bold text-servi-blue uppercase text-[10px] mb-1">Registro Fotográfico de Ingreso</h4>
+             <div class="flex gap-2 overflow-hidden h-24 bg-slate-100 p-1 rounded border border-slate-200">
+                <div v-for="(item, index) in ot.OT_fotos_ingreso.slice(0, 3)" :key="index" class="relative w-1/3 h-full">
+                   <img :src="item.url" class="absolute inset-0 w-full h-full object-cover rounded-sm border border-slate-300">
+                </div>
+             </div>
+          </div>
+          <div v-else class="h-24 bg-slate-50 rounded border border-dashed border-slate-300 flex items-center justify-center">
+             <span class="text-xs text-slate-400">Sin registro fotográfico de ingreso</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+         <h3 class="flex items-center gap-3 text-sm font-bold text-servi-blue uppercase border-b-2 border-servi-blue pb-1 mb-3">
+            <span class="bg-servi-blue text-white w-5 h-5 flex items-center justify-center rounded text-[10px]">✔</span>
+            Bitácora de Trabajo
+         </h3>
+
+         <div v-if="ot.OT_bitacora && ot.OT_bitacora.length > 0" class="space-y-4">
+            <div v-for="(item, index) in ot.OT_bitacora.filter(e => e.observacion)" :key="index" class="flex gap-3">
+               <div class="flex flex-col items-center">
+                  <div class="w-2 h-2 rounded-full bg-servi-blue mt-2"></div>
+                  <div class="w-px h-full bg-slate-200 my-1" v-if="index !== ot.OT_bitacora.length - 1"></div>
+               </div>
+               <div class="flex-1 border border-l-4 border-l-servi-blue border-gray-100 p-3 rounded shadow-sm bg-white">
+                  <div class="flex justify-between items-start mb-2">
+                     <p class="text-[11px] font-bold text-gray-800 uppercase">Detalle de actividad</p>
+                     <span class="text-[9px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded font-mono">{{ formatoFecha(item.created_at) }}</span>
+                  </div>
+                  <p class="text-[11px] text-gray-600 leading-snug mb-3">{{ item.observacion }}</p>
+                  
+                  <div v-if="item.fotos && item.fotos.length > 0" class="flex gap-2 mt-1 pt-2 border-t border-dashed border-gray-100">
+                     <img v-for="(foto, fIdx) in item.fotos" :key="fIdx" :src="foto.url" class="w-20 h-20 object-cover rounded border border-gray-200 shadow-sm">
+                  </div>
+               </div>
+            </div>
+         </div>
+         
+         <div v-else class="text-center py-8 bg-slate-50 rounded border border-slate-100 border-dashed">
+            <p class="text-xs text-slate-400 italic">No se registraron hallazgos adicionales para este vehículo.</p>
+         </div>
+      </div>
+
+      <!-- Footer for each technical page -->
+      <div class="mt-auto pt-8 text-center border-t border-gray-100">
+        <p class="text-[#9ca3af] text-[9px] uppercase tracking-widest font-bold">
+          ServiML • Soluciones Automotrices de Confianza
+        </p>
+      </div>
     </div>
 
   </div>
@@ -360,13 +520,6 @@ onMounted(async () => {
   print-color-adjust: exact !important;
 }
 
-@media print {
-  .no-print {
-    display: none;
-  }
-}
-</style>
-<style scoped>
 .html2pdf__page-break {
   page-break-before: always;
   break-before: always;
@@ -374,8 +527,9 @@ onMounted(async () => {
   display: block;
 }
 
-#elemento-a-imprimir {
-  -webkit-print-color-adjust: exact !important;
-  print-color-adjust: exact !important;
+@media print {
+  .no-print {
+    display: none;
+  }
 }
 </style>
