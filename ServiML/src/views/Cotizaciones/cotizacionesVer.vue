@@ -67,8 +67,8 @@ const mostrarModalConfirmacion = () => {
             correoCliente.value = clienteEncontrado.email || ''
             telefonoCliente.value = clienteEncontrado.telefono || ''
             // El código de país debe tener el prefijo +
-            const cp = clienteEncontrado.codigo_pais || '56'
-            codigoPais.value = cp.startsWith('+') ? cp : `+${cp}`
+            const cp = (clienteEncontrado.codigo_pais || '56').toString().trim()
+codigoPais.value = `+${cp.replace(/^\+/, '')}`
         }
     }
     modalConfirmacion.value = true

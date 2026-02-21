@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseClient'
 import navbar from "../../components/componentes/navbar.vue";
 import {creacionOT} from '../../js/creacionOT.js'
 import OTcard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
-import volver from "../../components/componentes/volver.vue";
+import volver from "../../components/componentes/volveraListaFicha.vue";
 import {useInterfaz} from '../../stores/interfaz.js'
 
 const router = useRouter()
@@ -457,7 +457,7 @@ onMounted(async () => {
             </div>
             <div class="p-6">
               <div v-if="ficha.orden_trabajo" class="flex flex-row">
-                <OTcard v-for="orden in ficha.orden_trabajo" :key="orden.id" :orden="orden" :estado="handleEstados(orden.estado_actual_id)" />
+                <OTcard v-for="(orden, i) in ficha.orden_trabajo" :key="orden.id" :orden="orden" :index="i" :estado="handleEstados(orden.estado_actual_id)" />
               </div>
               <p v-else class="text-sm servi-grey-font italic text-center py-4 servi-adapt-bg rounded-lg border border-dashed border-gray-200">
                 No se encontraron vehículos registrados para este cliente.

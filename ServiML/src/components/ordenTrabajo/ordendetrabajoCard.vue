@@ -17,6 +17,10 @@ const props = defineProps({
   estado: {
     type: Object,
     required: true
+  },
+  index: {
+    type: Number,
+    required: false
   }
 });
 
@@ -89,7 +93,7 @@ const formatearFecha = (fechaString) => {
     
     <div class="flex justify-between items-start border-b border-gray-100 pb-2">
       <div class="flex flex-col">
-        <span class="font-bold servi-grey-font text-xl">#{{ orden.id || '---' }}</span>
+        <span class="font-bold servi-grey-font text-xl">#{{ index + 1 || '---' }}</span>
       </div>
       <span :style="{ backgroundColor: estado.color, color: estado.texto }" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
         {{ estado.estado }}
