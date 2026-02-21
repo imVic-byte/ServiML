@@ -185,7 +185,7 @@ const generarPDF = () => {
   const elemento = document.getElementById('elemento-a-imprimir');
   const opciones = {
     margin:       0,
-    filename:     `InformeFinal_${informeFinal.value.numero_folio}.pdf`,
+    filename:     `InformeFinal_${presupuesto.value.numero_folio}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true },
     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -227,40 +227,40 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="servi-white min-h-screen font-sans">
+  <div class="min-h-screen font-sans" style="background-color: #ffffff;">
     <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" class="navbar" />
-    <div class="mt-4 flex w-[70%] mx-auto justify-between">
+    <div class="mt-4 flex w-[70%] mx-auto justify-between no-print">
       <Volver />
-      <button @click="generarPDF" class="ml-4 px-4 py-2 bg-servi-blue text-white rounded-lg hover:bg-servi-blue/80 transition-colors">
+      <button @click="generarPDF" class="ml-4 px-4 py-2 text-white rounded-lg transition-colors" style="background-color: #1f3d64;">
         Generar PDF
       </button>
     </div>
-  <div class="border border-green-100 w-[70%] mx-auto mt-10 rounded-md shadow-lg mb-10 overflow-hidden">
+  <div class="w-[70%] mx-auto mt-10 rounded-md shadow-lg mb-10 overflow-hidden" style="border: 1px solid #dcfce7; background-color: #ffffff;">
   <div 
     id="elemento-a-imprimir" 
-    class="bg-[#ffffff] text-[#000000] p-10 max-w-[21cm] min-h-[27.9cm] mx-auto text-xs font-sans leading-normal"
-    style="background-color: #ffffff;"
+    class="p-10 max-w-[21cm] min-h-[27.9cm] mx-auto text-xs font-sans leading-normal"
+    style="background-color: #ffffff; color: #000000;"
   >
     
     <!-- Header -->
-    <div class="flex justify-between border-b-4 border-servi-blue pb-4 mb-4">
+    <div class="flex justify-between pb-4 mb-4" style="border-bottom: 4px solid #1f3d64;">
       
       <div class="flex items-center gap-2">
         <span class="w-24 h-24 rounded-full overflow-hidden border border-[#e5e7eb]">
             <img class="w-full h-full object-cover" src="../../img/Logo.jpg" alt="Logo">
         </span>
         <div>
-            <h1 class="text-2xl font-black text-servi-blue tracking-tighter italic">SERVIML</h1>
-            <p class="text-[#4b5563] font-bold uppercase text-[11px] tracking-widest mt-1">Servicios Mecánicos</p>
+            <h1 class="text-2xl font-black tracking-tighter italic" style="color: #1f3d64;">SERVIML</h1>
+            <p class="font-bold uppercase text-[11px] tracking-widest mt-1" style="color: #4b5563;">Servicios Mecánicos</p>
         </div>
       </div>
 
       <div class="text-right">
-        <h2 class="text-lg font-bold text-servi-blue">INFORME FINAL</h2>
-        <p class="text-md font-mono text-[#dc2626] font-bold">
+        <h2 class="text-lg font-bold" style="color: #1f3d64;">INFORME FINAL</h2>
+        <p class="text-md font-mono font-bold" style="color: #dc2626;">
             Folio N° {{ presupuesto?.numero_folio || '---' }}
         </p>
-        <p class="text-[#6b7280] mt-1 text-[11px]">
+        <p class="mt-1 text-[11px]" style="color: #6b7280;">
             Fecha: {{ formatoFecha(informeFinal?.created_at) }}
         </p>
         <div :style="{backgroundColor: handleEstados(ficha?.estado).color}" class="mt-2 inline-block text-white px-2 py-1 rounded font-bold text-[10px] uppercase">
@@ -269,35 +269,35 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div v-if="!cotizacion" class="p-10 text-center border-2 border-dashed border-red-300 rounded-xl my-10">
-      <p class="text-red-500 font-bold">No hay una cotización aprobada para este informe.</p>
+    <div v-if="!cotizacion" class="p-10 text-center border-2 border-dashed rounded-xl my-10" style="border-color: #fca5a5;">
+      <p class="font-bold" style="color: #ef4444;">No hay una cotización aprobada para este informe.</p>
     </div>
     
     <div v-else>
       <div class="grid grid-cols-2 gap-10 mb-8">
         <div>
-          <h3 class="font-bold text-servi-blue border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">De: ServiML</h3>
-          <ul class="text-[#374151] space-y-1">
-            <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa?.dirección || '...' }}</li>
-            <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa?.ciudad || '...' }}</li>
-            <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa?.telefono || 'Sin Teléfono' }}</li>
-            <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa?.email || '...' }}</li>
+          <h3 class="font-bold border-b mb-2 pb-1 text-[11px] uppercase" style="color: #1f3d64; border-bottom-color: #cbd5e1;">De: ServiML</h3>
+          <ul class="space-y-1" style="color: #374151;">
+            <li><span class="font-bold" style="color: #111827;">Dirección:</span> {{ datosEmpresa?.dirección || '...' }}</li>
+            <li><span class="font-bold" style="color: #111827;">Ciudad:</span> {{ datosEmpresa?.ciudad || '...' }}</li>
+            <li><span class="font-bold" style="color: #111827;">Teléfono:</span> {{ datosEmpresa?.telefono || 'Sin Teléfono' }}</li>
+            <li><span class="font-bold" style="color: #111827;">Email:</span> {{ datosEmpresa?.email || '...' }}</li>
           </ul>
         </div>
 
         <div>
-          <h3 class="font-bold text-servi-blue border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">Para: Cliente</h3>
-          <ul class="text-[#374151] space-y-1">
+          <h3 class="font-bold border-b mb-2 pb-1 text-[11px] uppercase" style="color: #1f3d64; border-bottom-color: #cbd5e1;">Para: Cliente</h3>
+          <ul class="space-y-1" style="color: #374151;">
             <li>
-              <span class="font-bold text-[#111827]">Cliente:</span> 
+              <span class="font-bold" style="color: #111827;">Cliente:</span> 
               {{ ficha?.cliente ? (ficha.cliente.nombre + ' ' + ficha.cliente.apellido) : 'Sin Nombre' }}
             </li>
             <li>
-              <span class="font-bold text-[#111827]">Teléfono:</span> 
+              <span class="font-bold" style="color: #111827;">Teléfono:</span> 
               {{ ficha?.cliente ? ('+' + ficha.cliente.codigo_pais + ' ' + ficha.cliente.telefono) : 'Sin Teléfono' }}
             </li>
             <li>
-              <span class="font-bold text-[#111827]">Email:</span> 
+              <span class="font-bold" style="color: #111827;">Email:</span> 
               {{ ficha?.cliente?.email || 'Sin Email' }}
             </li>
           </ul>
@@ -306,38 +306,39 @@ onMounted(async () => {
 
       <!-- Resumen Ficha / Vehículos -->
       <div class="mb-6">
-        <h3 class="font-bold text-servi-blue border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">Lista de vehiculos</h3>
+        <h3 class="font-bold border-b mb-2 pb-1 text-[11px] uppercase" style="color: #1f3d64; border-bottom-color: #cbd5e1;">Lista de vehiculos</h3>
         <div class="grid grid-cols-2 gap-4">
-          <div v-for="orden in ficha?.orden_trabajo" :key="orden.id" class="bg-gray-50 p-3 rounded-lg border border-gray-100">
-             <p class="font-bold text-servi-blue uppercase text-sm">
+          <div v-for="orden in ficha?.orden_trabajo" :key="orden.id" class="p-3 rounded-lg border" style="background-color: #f9fafb; border-color: #f3f4f6;">
+             <p class="font-bold uppercase text-sm" style="color: #1f3d64;">
                {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} {{ orden.vehiculo.anio }}
              </p>
-             <p class="text-xs text-gray-600 mt-1">
-               Patente: <span class="font-bold bg-yellow-100 px-1 rounded">{{ orden.vehiculo.patente }}</span>
+             <p class="text-xs mt-1" style="color: #4b5563;">
+               Patente: <span class="font-bold px-1 rounded" style="background-color: #fef9c3;">{{ orden.vehiculo.patente }}</span>
              </p>
-             <p class="text-[10px] text-gray-500 mt-1">KM Entrada: {{ orden.kilometraje_inicial || '---' }}</p>
-             <p class="text-[10px] text-gray-500 mt-1">Diagnostico: {{ orden.diagnostico || '---' }}</p>
+             <p class="text-[10px] mt-1" style="color: #6b7280;">KM Entrada: {{ orden.kilometraje_inicial || '---' }}</p>
+             <p class="text-[10px] mt-1" style="color: #6b7280;">Diagnostico: {{ orden.diagnostico || '---' }}</p>
           </div>
         </div>
       </div>
 
-      <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden">
+      <div class="mb-8 border rounded-lg overflow-hidden" style="border-color: #e5e7eb;">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-servi-blue text-[#ffffff] text-[10px] uppercase tracking-wider">
+            <tr class="text-white text-[10px] uppercase tracking-wider" style="background-color: #1f3d64;">
               <th class="p-3 font-semibold">Descripción del Servicio / Repuesto</th>
               <th class="p-3 text-right w-28">P. Unitario</th>
               <th class="p-3 text-right w-20">Cant.</th>
               <th class="p-3 text-right w-28">Total</th>
             </tr>
           </thead>
-          <tbody class="text-[#1f2937] text-[11px]">
+          <tbody class="text-[11px]" style="color: #1f2937;">
             <tr 
               v-for="(item, index) in cotizacion?.detalle_cotizaciones_ficha || []" 
               :key="index"
-              class="bg-[#ffffff] border-b border-gray-100 last:border-0"
+              class="border-b last:border-0"
+              style="background-color: #ffffff; border-bottom-color: #f3f4f6;"
             >
-              <td class="p-3 font-medium text-servi-blue">{{ item.descripcion }}</td>
+              <td class="p-3 font-medium" style="color: #1f3d64;">{{ item.descripcion }}</td>
               <td class="p-3 text-right font-bold">{{ formatoPesos(item.monto) }}</td>
               <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
               <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
@@ -348,44 +349,44 @@ onMounted(async () => {
 
       <div class="flex justify-between items-start gap-8">
         <div class="w-3/5">
-          <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
-            <h4 class="font-bold text-servi-blue uppercase text-[10px] mb-2">Comentarios del Informe</h4>
-            <p class="text-[#4b5563] italic text-[11px] leading-relaxed">
+          <div class="p-4 rounded-lg border" style="background-color: #f9fafb; border-color: #f3f4f6;">
+            <h4 class="font-bold uppercase text-[10px] mb-2" style="color: #1f3d64;">Comentarios del Informe</h4>
+            <p class="italic text-[11px] leading-relaxed" style="color: #4b5563;">
               {{ cotizacion?.comentario || 'Servicio realizado satisfactoriamente según lo presupuestado.' }}
             </p>
           </div>
           
           <div class="mt-8 flex gap-12">
             <div class="text-center w-32">
-               <div class="h-10 border-b border-gray-300 mb-1"></div>
-               <p class="text-[9px] font-bold text-gray-400">FIRMA TALLER</p>
+               <div class="h-10 border-b mb-1" style="border-bottom-color: #d1d5db;"></div>
+               <p class="text-[9px] font-bold" style="color: #9ca3af;">FIRMA TALLER</p>
             </div>
             <div class="text-center w-32">
-               <div class="h-10 border-b border-gray-300 mb-1"></div>
-               <p class="text-[9px] font-bold text-gray-400">FIRMA CLIENTE</p>
+               <div class="h-10 border-b mb-1" style="border-bottom-color: #d1d5db;"></div>
+               <p class="text-[9px] font-bold" style="color: #9ca3af;">FIRMA CLIENTE</p>
             </div>
           </div>
         </div>
 
         <div class="w-2/5">
-          <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+          <div class="flex justify-between items-center py-2 border-b" style="border-bottom-color: #e5e7eb; color: #374151;">
             <span class="font-medium">Subtotal</span>
             <span>{{ formatoPesos(cotizacion?.subtotal || 0) }}</span>
           </div>
-          <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
+          <div class="flex justify-between items-center py-2 border-b" style="border-bottom-color: #e5e7eb; color: #16a34a;">
             <span class="font-medium">Descuento ({{ cotizacion?.descuento || 0 }}%)</span>
             <span>- {{ formatoPesos((cotizacion?.subtotal || 0) * (cotizacion?.descuento || 0) / 100) }}</span>
           </div>
-          <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+          <div class="flex justify-between items-center py-2 border-b" style="border-bottom-color: #e5e7eb; color: #374151;">
             <span class="font-medium">Total Neto</span>
             <span>{{ formatoPesos(cotizacion?.total_neto || 0) }}</span>
           </div>
-          <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+          <div class="flex justify-between items-center py-2 border-b" style="border-bottom-color: #e5e7eb; color: #374151;">
             <span class="font-medium">IVA 19%</span>
             <span>{{ formatoPesos(cotizacion?.iva || 0) }}</span>
           </div>
 
-          <div class="flex justify-between items-center bg-servi-blue text-[#ffffff] p-3 rounded mt-2 shadow-md">
+          <div class="flex justify-between items-center text-white p-3 rounded mt-2 shadow-md" style="background-color: #1f3d64;">
             <span class="font-bold text-md tracking-tighter uppercase">Total Final</span>
             <span class="font-bold text-lg">{{ formatoPesos(cotizacion?.total_final || 0) }}</span>
           </div>
@@ -397,113 +398,113 @@ onMounted(async () => {
     <div class="html2pdf__page-break"></div>
 
     <!-- Technical Details Page(s) -->
-    <div v-for="ot in ficha?.orden_trabajo" :key="ot.id" class="p-10 pt-8 min-h-[27.9cm] bg-white relative">
-      <div class="absolute top-0 left-0 w-full h-2 bg-servi-blue"></div>
+    <div v-for="ot in ficha?.orden_trabajo" :key="ot.id" class="p-10 pt-8 min-h-[27.9cm] relative" style="background-color: #ffffff;">
+      <div class="absolute top-0 left-0 w-full h-2" style="background-color: #1f3d64;"></div>
       
-      <div class="flex justify-between items-end border-b border-gray-200 pb-2 mb-4">
+      <div class="flex justify-between items-end border-b pb-2 mb-4" style="border-bottom-color: #e5e7eb;">
         <div>
-           <h2 class="text-xl font-bold text-servi-blue uppercase tracking-tight">Informe Técnico Detallado</h2>
-           <p class="text-xs text-gray-500">Anexo de inspección visual y bitácora de trabajo</p>
+           <h2 class="text-xl font-bold uppercase tracking-tight" style="color: #1f3d64;">Informe Técnico Detallado</h2>
+           <p class="text-xs" style="color: #6b7280;">Anexo de inspección visual y bitácora de trabajo</p>
         </div>
         <div class="text-right">
-           <p class="text-[10px] text-gray-400 font-mono">OT-{{ ot.id }} / {{ ot.vehiculo.marca }} {{ ot.vehiculo.modelo }}</p>
+           <p class="text-[10px] font-mono" style="color: #9ca3af;">OT-{{ ot.id }} / {{ ot.vehiculo.marca }} {{ ot.vehiculo.modelo }}</p>
         </div>
       </div>
 
       <div class="grid grid-cols-12 gap-4 mb-6">
-        <div class="col-span-4 bg-slate-50 rounded-lg p-3 border border-slate-100 shadow-sm">
-           <h4 class="font-bold text-servi-blue uppercase text-[10px] mb-2 border-b border-slate-200 pb-1">Inventario & Accesorios</h4>
+        <div class="col-span-4 rounded-lg p-3 border shadow-sm" style="background-color: #f8fafc; border-color: #f1f5f9;">
+           <h4 class="font-bold uppercase text-[10px] mb-2 border-b pb-1" style="color: #1f3d64; border-bottom-color: #e2e8f0;">Inventario & Accesorios</h4>
            <ul class="space-y-1 text-[11px]">
              <li class="flex justify-between items-center">
-                <span class="text-slate-600">Documentos</span>
-                <span :class="ot.trae_documentos ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_documentos ? '✔ Sí' : 'No' }}</span>
+                <span style="color: #475569;">Documentos</span>
+                <span :style="{ color: ot.trae_documentos ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_documentos ? 'bold' : 'normal' }">{{ ot.trae_documentos ? '✔ Sí' : 'No' }}</span>
               </li>
               <li class="flex justify-between items-center">
-                <span class="text-slate-600">Llaves</span>
-                <span :class="ot.trae_llaves ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_llaves ? '✔ Sí' : 'No' }}</span>
+                <span style="color: #475569;">Llaves</span>
+                <span :style="{ color: ot.trae_llaves ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_llaves ? 'bold' : 'normal' }">{{ ot.trae_llaves ? '✔ Sí' : 'No' }}</span>
               </li>
               <li class="flex justify-between items-center">
-                <span class="text-slate-600">Candado Seg.</span>
-                <span :class="ot.trae_candado_seguridad ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_candado_seguridad ? '✔ Sí' : 'No' }}</span>
+                <span style="color: #475569;">Candado Seg.</span>
+                <span :style="{ color: ot.trae_candado_seguridad ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_candado_seguridad ? 'bold' : 'normal' }">{{ ot.trae_candado_seguridad ? '✔ Sí' : 'No' }}</span>
               </li>
               <li class="flex justify-between items-center">
-                <span class="text-slate-600">Panel Radio</span>
-                <span :class="ot.trae_panel_radio ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_panel_radio ? '✔ Sí' : 'No' }}</span>
+                <span style="color: #475569;">Panel Radio</span>
+                <span :style="{ color: ot.trae_panel_radio ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_panel_radio ? 'bold' : 'normal' }">{{ ot.trae_panel_radio ? '✔ Sí' : 'No' }}</span>
               </li>
               <li class="flex justify-between items-center">
-                <span class="text-slate-600">Rueda Rep.</span>
-                <span :class="ot.trae_rueda_repuesto ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_rueda_repuesto ? '✔ Sí' : 'No' }}</span>
+                <span style="color: #475569;">Rueda Rep.</span>
+                <span :style="{ color: ot.trae_rueda_repuesto ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_rueda_repuesto ? 'bold' : 'normal' }">{{ ot.trae_rueda_repuesto ? '✔ Sí' : 'No' }}</span>
               </li>
               <li class="flex justify-between items-center">
-                <span class="text-slate-600">Encendedor</span>
-                <span :class="ot.trae_encendedor ? 'text-green-600 font-bold' : 'text-gray-400'">{{ ot.trae_encendedor ? '✔ Sí' : 'No' }}</span>
+                <span style="color: #475569;">Encendedor</span>
+                <span :style="{ color: ot.trae_encendedor ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_encendedor ? 'bold' : 'normal' }">{{ ot.trae_encendedor ? '✔ Sí' : 'No' }}</span>
               </li>
            </ul>
         </div>
         
         <div class="col-span-8">
           <div class="grid grid-cols-2 gap-4 mb-3">
-             <div class="bg-slate-50 border border-slate-200 p-2 rounded shadow-sm text-center">
-                <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kilometraje</span>
-                <span class="block text-lg font-bold text-servi-blue mt-0.5">{{ ot.kilometraje_inicial || '0' }} km</span>
+             <div class="border p-2 rounded shadow-sm text-center" style="background-color: #f8fafc; border-color: #e2e8f0;">
+                <span class="block text-[9px] font-bold uppercase tracking-widest" style="color: #94a3b8;">Kilometraje</span>
+                <span class="block text-lg font-bold mt-0.5" style="color: #1f3d64;">{{ ot.kilometraje_inicial || '0' }} km</span>
              </div>
-             <div class="bg-slate-50 border border-slate-200 p-2 rounded shadow-sm text-center">
-                <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Combustible</span>
-                <div class="w-full bg-gray-200 rounded-full h-2 mt-1.5 mb-1">
-                  <div class="bg-green-500 h-2 rounded-full" :style="{ width: (ot.combustible_inicial || 0) + '%' }"></div>
+             <div class="border p-2 rounded shadow-sm text-center" style="background-color: #f8fafc; border-color: #e2e8f0;">
+                <span class="block text-[9px] font-bold uppercase tracking-widest" style="color: #94a3b8;">Combustible</span>
+                <div class="w-full rounded-full h-2 mt-1.5 mb-1" style="background-color: #e5e7eb;">
+                  <div class="h-2 rounded-full" :style="{ width: (ot.combustible_inicial || 0) + '%', backgroundColor: '#22c55e' }"></div>
                 </div>
-                <span class="block text-[11px] font-bold text-servi-blue">{{ ot.combustible_inicial || '0' }}%</span>
+                <span class="block text-[11px] font-bold" style="color: #1f3d64;">{{ ot.combustible_inicial || '0' }}%</span>
              </div>
           </div>
 
           <div v-if="ot.OT_fotos_ingreso && ot.OT_fotos_ingreso.length > 0">
-             <h4 class="font-bold text-servi-blue uppercase text-[10px] mb-1">Registro Fotográfico de Ingreso</h4>
-             <div class="flex gap-2 overflow-hidden h-24 bg-slate-100 p-1 rounded border border-slate-200">
+             <h4 class="font-bold uppercase text-[10px] mb-1" style="color: #1f3d64;">Registro Fotográfico de Ingreso</h4>
+             <div class="flex gap-2 overflow-hidden h-24 p-1 rounded border" style="background-color: #f1f5f9; border-color: #e2e8f0;">
                 <div v-for="(item, index) in ot.OT_fotos_ingreso.slice(0, 3)" :key="index" class="relative w-1/3 h-full">
-                   <img :src="item.url" class="absolute inset-0 w-full h-full object-cover rounded-sm border border-slate-300">
+                   <img :src="item.url" class="absolute inset-0 w-full h-full object-cover rounded-sm border" style="border-color: #cbd5e1;">
                 </div>
              </div>
           </div>
-          <div v-else class="h-24 bg-slate-50 rounded border border-dashed border-slate-300 flex items-center justify-center">
-             <span class="text-xs text-slate-400">Sin registro fotográfico de ingreso</span>
+          <div v-else class="h-24 rounded border border-dashed flex items-center justify-center" style="background-color: #f8fafc; border-color: #cbd5e1;">
+             <span class="text-xs" style="color: #94a3b8;">Sin registro fotográfico de ingreso</span>
           </div>
         </div>
       </div>
 
       <div class="mt-4">
-         <h3 class="flex items-center gap-3 text-sm font-bold text-servi-blue uppercase border-b-2 border-servi-blue pb-1 mb-3">
-            <span class="bg-servi-blue text-white w-5 h-5 flex items-center justify-center rounded text-[10px]">✔</span>
+         <h3 class="flex items-center gap-3 text-sm font-bold uppercase border-b-2 pb-1 mb-3" style="color: #1f3d64; border-bottom-color: #1f3d64;">
+            <span class="w-5 h-5 flex items-center justify-center rounded text-[10px]" style="background-color: #1f3d64; color: #ffffff;">✔</span>
             Bitácora de Trabajo
          </h3>
 
          <div v-if="ot.OT_bitacora && ot.OT_bitacora.length > 0" class="space-y-4">
             <div v-for="(item, index) in ot.OT_bitacora.filter(e => e.observacion)" :key="index" class="flex gap-3">
                <div class="flex flex-col items-center">
-                  <div class="w-2 h-2 rounded-full bg-servi-blue mt-2"></div>
-                  <div class="w-px h-full bg-slate-200 my-1" v-if="index !== ot.OT_bitacora.length - 1"></div>
+                  <div class="w-2 h-2 rounded-full mt-2" style="background-color: #1f3d64;"></div>
+                  <div class="w-px h-full my-1" v-if="index !== ot.OT_bitacora.length - 1" style="background-color: #e2e8f0;"></div>
                </div>
-               <div class="flex-1 border border-l-4 border-l-servi-blue border-gray-100 p-3 rounded shadow-sm bg-white">
+               <div class="flex-1 border border-l-4 p-3 rounded shadow-sm bg-white" style="border-color: #f3f4f6; border-left-color: #1f3d64;">
                   <div class="flex justify-between items-start mb-2">
-                     <p class="text-[11px] font-bold text-gray-800 uppercase">Detalle de actividad</p>
-                     <span class="text-[9px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded font-mono">{{ formatoFecha(item.created_at) }}</span>
+                     <p class="text-[11px] font-bold uppercase" style="color: #1f2937;">Detalle de actividad</p>
+                     <span class="text-[9px] px-2 py-0.5 rounded font-mono" style="color: #9ca3af; background-color: #f9fafb;">{{ formatoFecha(item.created_at) }}</span>
                   </div>
-                  <p class="text-[11px] text-gray-600 leading-snug mb-3">{{ item.observacion }}</p>
+                  <p class="text-[11px] leading-snug mb-3" style="color: #4b5563;">{{ item.observacion }}</p>
                   
-                  <div v-if="item.fotos && item.fotos.length > 0" class="flex gap-2 mt-1 pt-2 border-t border-dashed border-gray-100">
-                     <img v-for="(foto, fIdx) in item.fotos" :key="fIdx" :src="foto.url" class="w-20 h-20 object-cover rounded border border-gray-200 shadow-sm">
+                  <div v-if="item.fotos && item.fotos.length > 0" class="flex gap-2 mt-1 pt-2 border-t border-dashed" style="border-top-color: #f3f4f6;">
+                     <img v-for="(foto, fIdx) in item.fotos" :key="fIdx" :src="foto.url" class="w-20 h-20 object-cover rounded border shadow-sm" style="border-color: #e5e7eb;">
                   </div>
                </div>
             </div>
          </div>
          
-         <div v-else class="text-center py-8 bg-slate-50 rounded border border-slate-100 border-dashed">
-            <p class="text-xs text-slate-400 italic">No se registraron hallazgos adicionales para este vehículo.</p>
+         <div v-else class="text-center py-8 rounded border border-dashed" style="background-color: #f8fafc; border-color: #f1f5f9;">
+            <p class="text-xs italic" style="color: #94a3b8;">No se registraron hallazgos adicionales para este vehículo.</p>
          </div>
       </div>
 
       <!-- Footer for each technical page -->
-      <div class="mt-auto pt-8 text-center border-t border-gray-100">
-        <p class="text-[#9ca3af] text-[9px] uppercase tracking-widest font-bold">
+      <div class="mt-auto pt-8 text-center border-t" style="border-top-color: #f3f4f6;">
+        <p class="text-[9px] uppercase tracking-widest font-bold" style="color: #9ca3af;">
           ServiML • Soluciones Automotrices de Confianza
         </p>
       </div>
