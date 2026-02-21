@@ -184,15 +184,20 @@ const handleVerificarInformeFinal = async () => {
 const generarPDF = () => {
   const elemento = document.getElementById('elemento-a-imprimir');
   const opciones = {
-    margin:       0,
-    filename:     `InformeFinal_${presupuesto.value.numero_folio}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true },
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    margin: [15, 10, 15, 10],
+    filename: `InformeFinal_${presupuesto.value.numero_folio}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 1.5, 
+      useCORS: true,
+      scrollY: 0
+    },
+    pagebreak: { mode: ['css', 'legacy'] },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
+  
   html2pdf().set(opciones).from(elemento).save();
 }
-
 const estados = ref([])
 
 
@@ -225,7 +230,6 @@ onMounted(async () => {
   interfaz.hideLoading()
 })
 </script>
-
 <template>
   <div class="min-h-screen font-sans" style="background-color: #ffffff;">
     <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" class="navbar" />
@@ -237,10 +241,10 @@ onMounted(async () => {
     </div>
   <div class="w-[70%] mx-auto mt-10 rounded-md shadow-lg mb-10 overflow-hidden" style="border: 1px solid #dcfce7; background-color: #ffffff;">
   <div 
-    id="elemento-a-imprimir" 
-    class="p-10 max-w-[21cm] min-h-[27.9cm] mx-auto text-xs font-sans leading-normal"
-    style="background-color: #ffffff; color: #000000;"
-  >
+  id="elemento-a-imprimir" 
+  class="px-4 py-2 max-w-[21cm] mx-auto text-xs font-sans leading-normal"
+  style="background-color: #ffffff; color: #000000;"
+>
     
     <!-- Header -->
     <div class="flex justify-between pb-4 mb-4" style="border-bottom: 4px solid #1f3d64;">
@@ -394,125 +398,126 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Page Break -->
-    <div class="html2pdf__page-break"></div>
-
-    <!-- Technical Details Page(s) -->
-    <div v-for="ot in ficha?.orden_trabajo" :key="ot.id" class="p-10 pt-8 min-h-[27.9cm] relative" style="background-color: #ffffff;">
-      <div class="absolute top-0 left-0 w-full h-2" style="background-color: #1f3d64;"></div>
+    <template v-for="ot in ficha?.orden_trabajo" :key="ot.id">
       
-      <div class="flex justify-between items-end border-b pb-2 mb-4" style="border-bottom-color: #e5e7eb;">
-        <div>
-           <h2 class="text-xl font-bold uppercase tracking-tight" style="color: #1f3d64;">Informe Técnico Detallado</h2>
-           <p class="text-xs" style="color: #6b7280;">Anexo de inspección visual y bitácora de trabajo</p>
-        </div>
-        <div class="text-right">
-           <p class="text-[10px] font-mono" style="color: #9ca3af;">OT-{{ ot.id }} / {{ ot.vehiculo.marca }} {{ ot.vehiculo.modelo }}</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-12 gap-4 mb-6">
-        <div class="col-span-4 rounded-lg p-3 border shadow-sm" style="background-color: #f8fafc; border-color: #f1f5f9;">
-           <h4 class="font-bold uppercase text-[10px] mb-2 border-b pb-1" style="color: #1f3d64; border-bottom-color: #e2e8f0;">Inventario & Accesorios</h4>
-           <ul class="space-y-1 text-[11px]">
-             <li class="flex justify-between items-center">
-                <span style="color: #475569;">Documentos</span>
-                <span :style="{ color: ot.trae_documentos ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_documentos ? 'bold' : 'normal' }">{{ ot.trae_documentos ? '✔ Sí' : 'No' }}</span>
-              </li>
-              <li class="flex justify-between items-center">
-                <span style="color: #475569;">Llaves</span>
-                <span :style="{ color: ot.trae_llaves ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_llaves ? 'bold' : 'normal' }">{{ ot.trae_llaves ? '✔ Sí' : 'No' }}</span>
-              </li>
-              <li class="flex justify-between items-center">
-                <span style="color: #475569;">Candado Seg.</span>
-                <span :style="{ color: ot.trae_candado_seguridad ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_candado_seguridad ? 'bold' : 'normal' }">{{ ot.trae_candado_seguridad ? '✔ Sí' : 'No' }}</span>
-              </li>
-              <li class="flex justify-between items-center">
-                <span style="color: #475569;">Panel Radio</span>
-                <span :style="{ color: ot.trae_panel_radio ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_panel_radio ? 'bold' : 'normal' }">{{ ot.trae_panel_radio ? '✔ Sí' : 'No' }}</span>
-              </li>
-              <li class="flex justify-between items-center">
-                <span style="color: #475569;">Rueda Rep.</span>
-                <span :style="{ color: ot.trae_rueda_repuesto ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_rueda_repuesto ? 'bold' : 'normal' }">{{ ot.trae_rueda_repuesto ? '✔ Sí' : 'No' }}</span>
-              </li>
-              <li class="flex justify-between items-center">
-                <span style="color: #475569;">Encendedor</span>
-                <span :style="{ color: ot.trae_encendedor ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_encendedor ? 'bold' : 'normal' }">{{ ot.trae_encendedor ? '✔ Sí' : 'No' }}</span>
-              </li>
-           </ul>
-        </div>
+      <!-- FORZAR SALTO ENTRE OTs -->
+      <div class="html2pdf__page-break"></div>
+      
+      <div style="background-color: #ffffff;">
+        <div class="w-full h-2" style="background-color: #1f3d64;"></div>
         
-        <div class="col-span-8">
-          <div class="grid grid-cols-2 gap-4 mb-3">
-             <div class="border p-2 rounded shadow-sm text-center" style="background-color: #f8fafc; border-color: #e2e8f0;">
-                <span class="block text-[9px] font-bold uppercase tracking-widest" style="color: #94a3b8;">Kilometraje</span>
-                <span class="block text-lg font-bold mt-0.5" style="color: #1f3d64;">{{ ot.kilometraje_inicial || '0' }} km</span>
-             </div>
-             <div class="border p-2 rounded shadow-sm text-center" style="background-color: #f8fafc; border-color: #e2e8f0;">
-                <span class="block text-[9px] font-bold uppercase tracking-widest" style="color: #94a3b8;">Combustible</span>
-                <div class="w-full rounded-full h-2 mt-1.5 mb-1" style="background-color: #e5e7eb;">
-                  <div class="h-2 rounded-full" :style="{ width: (ot.combustible_inicial || 0) + '%', backgroundColor: '#22c55e' }"></div>
+        <div class="p-5">
+          <div class="flex justify-between items-end border-b pb-2 mb-4" style="border-bottom-color: #e5e7eb;">
+            <div>
+               <h2 class="text-xl font-bold uppercase tracking-tight" style="color: #1f3d64;">Informe Técnico Detallado</h2>
+               <p class="text-xs" style="color: #6b7280;">Anexo de inspección visual y bitácora de trabajo</p>
+            </div>
+            <div class="text-right">
+               <p class="text-[10px] font-mono" style="color: #9ca3af;">OT-{{ ot.id }} / {{ ot.vehiculo.marca }} {{ ot.vehiculo.modelo }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-12 gap-4 mb-6">
+            <div class="col-span-4 rounded-lg p-3 border shadow-sm break-inside-avoid" style="background-color: #f8fafc; border-color: #f1f5f9;">
+               <h4 class="font-bold uppercase text-[10px] mb-2 border-b pb-1" style="color: #1f3d64; border-bottom-color: #e2e8f0;">Inventario & Accesorios</h4>
+               <ul class="space-y-1 text-[11px]">
+                 <li class="flex justify-between items-center">
+                    <span style="color: #475569;">Documentos</span>
+                    <span :style="{ color: ot.trae_documentos ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_documentos ? 'bold' : 'normal' }">{{ ot.trae_documentos ? 'Sí' : 'No' }}</span>
+                  </li>
+                  <li class="flex justify-between items-center">
+                    <span style="color: #475569;">Llaves</span>
+                    <span :style="{ color: ot.trae_llaves ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_llaves ? 'bold' : 'normal' }">{{ ot.trae_llaves ? 'Sí' : 'No' }}</span>
+                  </li>
+                  <li class="flex justify-between items-center">
+                    <span style="color: #475569;">Candado Seg.</span>
+                    <span :style="{ color: ot.trae_candado_seguridad ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_candado_seguridad ? 'bold' : 'normal' }">{{ ot.trae_candado_seguridad ? 'Sí' : 'No' }}</span>
+                  </li>
+                  <li class="flex justify-between items-center">
+                    <span style="color: #475569;">Panel Radio</span>
+                    <span :style="{ color: ot.trae_panel_radio ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_panel_radio ? 'bold' : 'normal' }">{{ ot.trae_panel_radio ? 'Sí' : 'No' }}</span>
+                  </li>
+                  <li class="flex justify-between items-center">
+                    <span style="color: #475569;">Rueda Rep.</span>
+                    <span :style="{ color: ot.trae_rueda_repuesto ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_rueda_repuesto ? 'bold' : 'normal' }">{{ ot.trae_rueda_repuesto ? 'Sí' : 'No' }}</span>
+                  </li>
+                  <li class="flex justify-between items-center">
+                    <span style="color: #475569;">Encendedor</span>
+                    <span :style="{ color: ot.trae_encendedor ? '#16a34a' : '#9ca3af', fontWeight: ot.trae_encendedor ? 'bold' : 'normal' }">{{ ot.trae_encendedor ? 'Sí' : 'No' }}</span>
+                  </li>
+               </ul>
+            </div>
+            
+            <div class="col-span-8 break-inside-avoid">
+              <div class="grid grid-cols-2 gap-4 mb-3">
+                 <div class="border p-2 rounded shadow-sm text-center" style="background-color: #f8fafc; border-color: #f1f5f9;">
+                    <span class="block text-[9px] font-bold uppercase tracking-widest" style="color: #94a3b8;">Kilometraje</span>
+                    <span class="block text-lg font-bold mt-0.5" style="color: #1f3d64;">{{ ot.kilometraje_inicial || '0' }} km</span>
+                 </div>
+                 <div class="border p-2 rounded shadow-sm text-center" style="background-color: #f8fafc; border-color: #f1f5f9;">
+                    <span class="block text-[9px] font-bold uppercase tracking-widest" style="color: #94a3b8;">Combustible</span>
+                    <div class="w-full rounded-full h-2 mt-1.5 mb-1" style="background-color: #e5e7eb;">
+                      <div class="h-2 rounded-full" :style="{ width: (ot.combustible_inicial || 0) + '%', backgroundColor: '#22c55e' }"></div>
+                    </div>
+                    <span class="block text-[11px] font-bold" style="color: #1f3d64;">{{ ot.combustible_inicial || '0' }}%</span>
+                 </div>
+              </div>
+
+              <div v-if="ot.OT_fotos_ingreso && ot.OT_fotos_ingreso.length > 0">
+                 <h4 class="font-bold uppercase text-[10px] mb-1" style="color: #1f3d64;">Registro Fotográfico de Ingreso</h4>
+                 <div class="flex gap-2 overflow-hidden h-24 p-1 rounded border" style="background-color: #f1f5f9; border-color: #e2e8f0;">
+                    <div v-for="(item, index) in ot.OT_fotos_ingreso.slice(0, 3)" :key="index" class="relative w-1/3 h-full">
+                       <img :src="item.url" class="absolute inset-0 w-full h-full object-cover rounded-sm border" style="border-color: #cbd5e1;">
+                    </div>
+                 </div>
+              </div>
+              <div v-else class="h-24 rounded border border-dashed flex items-center justify-center" style="background-color: #f8fafc; border-color: #cbd5e1;">
+                 <span class="text-xs" style="color: #94a3b8;">Sin registro fotográfico de ingreso</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4">
+             <h3 class="flex items-center gap-3 text-sm font-bold uppercase border-b-2 pb-1 mb-3 break-inside-avoid" style="color: #1f3d64; border-bottom-color: #1f3d64;">
+                Bitácora de Trabajo
+             </h3>
+
+             <div v-if="ot.OT_bitacora && ot.OT_bitacora.length > 0">
+                <div v-for="(item, index) in ot.OT_bitacora.filter(e => e.observacion)" :key="index" class="flex gap-3 mb-4 break-inside-avoid">
+                   <div class="flex flex-col items-center">
+                      <div class="w-2 h-2 rounded-full mt-2" style="background-color: #1f3d64;"></div>
+                      <div class="w-px flex-grow my-1" v-if="index !== ot.OT_bitacora.length - 1" style="background-color: #e2e8f0;"></div>
+                   </div>
+                   <div class="flex-1 border border-l-4 p-3 rounded shadow-sm bg-white" style="border-color: #f3f4f6; border-left-color: #1f3d64;">
+                      <div class="flex justify-between items-start mb-2">
+                         <p class="text-[11px] font-bold uppercase" style="color: #1f2937;">Detalle de actividad</p>
+                         <span class="text-[9px] px-2 py-0.5 rounded font-mono" style="color: #9ca3af; background-color: #f9fafb;">{{ formatoFecha(item.created_at) }}</span>
+                      </div>
+                      <p class="text-[11px] leading-snug mb-3" style="color: #4b5563;">{{ item.observacion }}</p>
+                      
+                      <div v-if="item.fotos && item.fotos.length > 0" class="flex gap-2 mt-1 pt-2 border-t border-dashed" style="border-top-color: #f3f4f6;">
+                         <img v-for="(foto, fIdx) in item.fotos" :key="fIdx" :src="foto.url" class="w-20 h-20 object-cover rounded border shadow-sm" style="border-color: #e5e7eb;">
+                      </div>
+                   </div>
                 </div>
-                <span class="block text-[11px] font-bold" style="color: #1f3d64;">{{ ot.combustible_inicial || '0' }}%</span>
+             </div>
+             
+             <div v-else class="text-center py-2 rounded border border-dashed break-inside-avoid" style="background-color: #f8fafc; border-color: #f1f5f9;">
+                <p class="text-xs italic" style="color: #94a3b8;">No se registraron hallazgos adicionales para este vehículo.</p>
              </div>
           </div>
 
-          <div v-if="ot.OT_fotos_ingreso && ot.OT_fotos_ingreso.length > 0">
-             <h4 class="font-bold uppercase text-[10px] mb-1" style="color: #1f3d64;">Registro Fotográfico de Ingreso</h4>
-             <div class="flex gap-2 overflow-hidden h-24 p-1 rounded border" style="background-color: #f1f5f9; border-color: #e2e8f0;">
-                <div v-for="(item, index) in ot.OT_fotos_ingreso.slice(0, 3)" :key="index" class="relative w-1/3 h-full">
-                   <img :src="item.url" class="absolute inset-0 w-full h-full object-cover rounded-sm border" style="border-color: #cbd5e1;">
-                </div>
-             </div>
-          </div>
-          <div v-else class="h-24 rounded border border-dashed flex items-center justify-center" style="background-color: #f8fafc; border-color: #cbd5e1;">
-             <span class="text-xs" style="color: #94a3b8;">Sin registro fotográfico de ingreso</span>
+          <div class="mt-6 pt-4 text-center border-t break-inside-avoid" style="border-top-color: #f3f4f6;">
+            <p class="text-[9px] uppercase tracking-widest font-bold" style="color: #9ca3af;">
+              ServiML • Soluciones Automotrices de Confianza
+            </p>
           </div>
         </div>
       </div>
-
-      <div class="mt-4">
-         <h3 class="flex items-center gap-3 text-sm font-bold uppercase border-b-2 pb-1 mb-3" style="color: #1f3d64; border-bottom-color: #1f3d64;">
-            <span class="w-5 h-5 flex items-center justify-center rounded text-[10px]" style="background-color: #1f3d64; color: #ffffff;">✔</span>
-            Bitácora de Trabajo
-         </h3>
-
-         <div v-if="ot.OT_bitacora && ot.OT_bitacora.length > 0" class="space-y-4">
-            <div v-for="(item, index) in ot.OT_bitacora.filter(e => e.observacion)" :key="index" class="flex gap-3">
-               <div class="flex flex-col items-center">
-                  <div class="w-2 h-2 rounded-full mt-2" style="background-color: #1f3d64;"></div>
-                  <div class="w-px h-full my-1" v-if="index !== ot.OT_bitacora.length - 1" style="background-color: #e2e8f0;"></div>
-               </div>
-               <div class="flex-1 border border-l-4 p-3 rounded shadow-sm bg-white" style="border-color: #f3f4f6; border-left-color: #1f3d64;">
-                  <div class="flex justify-between items-start mb-2">
-                     <p class="text-[11px] font-bold uppercase" style="color: #1f2937;">Detalle de actividad</p>
-                     <span class="text-[9px] px-2 py-0.5 rounded font-mono" style="color: #9ca3af; background-color: #f9fafb;">{{ formatoFecha(item.created_at) }}</span>
-                  </div>
-                  <p class="text-[11px] leading-snug mb-3" style="color: #4b5563;">{{ item.observacion }}</p>
-                  
-                  <div v-if="item.fotos && item.fotos.length > 0" class="flex gap-2 mt-1 pt-2 border-t border-dashed" style="border-top-color: #f3f4f6;">
-                     <img v-for="(foto, fIdx) in item.fotos" :key="fIdx" :src="foto.url" class="w-20 h-20 object-cover rounded border shadow-sm" style="border-color: #e5e7eb;">
-                  </div>
-               </div>
-            </div>
-         </div>
-         
-         <div v-else class="text-center py-8 rounded border border-dashed" style="background-color: #f8fafc; border-color: #f1f5f9;">
-            <p class="text-xs italic" style="color: #94a3b8;">No se registraron hallazgos adicionales para este vehículo.</p>
-         </div>
-      </div>
-
-      <!-- Footer for each technical page -->
-      <div class="mt-auto pt-8 text-center border-t" style="border-top-color: #f3f4f6;">
-        <p class="text-[9px] uppercase tracking-widest font-bold" style="color: #9ca3af;">
-          ServiML • Soluciones Automotrices de Confianza
-        </p>
-      </div>
-    </div>
-
+    </template>
   </div>
   </div>
-  </div>
+  </div> 
 </template>
 
 <style scoped>
@@ -521,6 +526,7 @@ onMounted(async () => {
   print-color-adjust: exact !important;
 }
 
+/* Página nueva antes de cada OT (html2pdf reconoce esta clase) */
 .html2pdf__page-break {
   page-break-before: always;
   break-before: always;
@@ -528,7 +534,17 @@ onMounted(async () => {
   display: block;
 }
 
+/* Workaround para evitar problemas de parsing de funciones de color modernas (oklch).
+   Forzamos colores hex sencillos SOLO durante impresión para que html2pdf/html2canvas no intenten parsear reglas modernas. */
 @media print {
+  /* Aplicar colores sólidos para la sección imprimible */
+  #elemento-a-imprimir, 
+  #elemento-a-imprimir * {
+    color: #000000 !important;
+    background-color: transparent !important;
+    border-color: #e5e7eb !important;
+  }
+
   .no-print {
     display: none;
   }
