@@ -44,13 +44,11 @@ const handleEstados = (estado) => {
 </script>
 
 <template>
-  <RouterLink 
-    :to="{ name: 'ver-presupuesto', params: { id: data.id } }" 
-    class="card-container servi-adapt-bg servi-grey-font"
+    <div class="card-container servi-adapt-bg servi-grey-font"
     :class="handleEstados(data.estado).contenedor"
   >
     <div class="card-header servi-grey-font">
-      <span class="folio">#{{ data.numero_folio }}</span>
+      <span class="folio">Ficha #{{ data.ficha_de_trabajo.id }}</span>
       <span class="font-bold text-black" :class="handleEstados(data.estado).clase">{{ handleEstados(data.estado).texto }}</span>  
     </div>
 
@@ -59,22 +57,15 @@ const handleEstados = (estado) => {
         <span class="label">Emisión:</span>
         <span class="valor">{{ formatearFecha(data.created_at) }}</span>
       </div>
-      
-      <div class="info-row" v-if="data.vehiculo">
-        <span class="label">Patente:</span>
-        <span class="valor">{{ data.vehiculo.patente }}</span>
-      </div>
-      <div class="info-row" v-if="data.cliente">
+      <div class="info-row" v-if="data.ficha_de_trabajo?.cliente">
         <span class="label">Cliente:</span>
-        <span class="valor">{{ camelCase(data.cliente.nombre) + ' ' +  camelCase(data.cliente.apellido) }} </span>
+        <span class="valor">{{ camelCase(data.ficha_de_trabajo.cliente.nombre) + ' ' +  camelCase(data.ficha_de_trabajo.cliente.apellido) }} </span>
       </div>
       <div class="info-row">
         <span class="label">Diagnóstico:</span>
         <span class="valor truncate">{{ data.diagnostico }}</span>
       </div>
-
       <div class="divider"></div>
-
       <div class="totales">
         <div class="total-row">
           <span>Subtotal</span>
@@ -90,12 +81,7 @@ const handleEstados = (estado) => {
         </div>
       </div>
     </div>
-    
-    <div class="card-footer servi-grey-font">
-      <small v-if="data.estado===1">Vence el: {{ formatearFecha(data.vencimiento) }}</small>
-      <small v-if="data.estado===4">Vencido el: {{ formatearFecha(data.vencimiento) }}</small>
-    </div>
-  </RouterLink>
+  </div>
 </template>
 
 <style scoped>

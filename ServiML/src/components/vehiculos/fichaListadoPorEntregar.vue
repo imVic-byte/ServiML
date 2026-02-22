@@ -5,7 +5,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const props = defineProps({
-    vehiculos: {
+    fichas: {
         type: Array,
         required: true
     },
@@ -15,20 +15,23 @@ const props = defineProps({
     }
 })
 
-const lista = ref(props.vehiculos)
+const lista = ref(props.fichas)
 
-watch(() => props.vehiculos, (v) => {
+watch(() => props.fichas, (v) => {
+    console.log(props.fichas)
     lista.value = v
 })
 
-const obtenerEstado = (orden) => {
-    if (!orden) return { estado: 'Sin OT', color: '#9ca3af', texto: '#fff' }
-    return props.estados.find(e => e.id === orden.estado_actual_id) || { estado: 'Desconocido', color: '#9ca3af', texto: '#fff' }
+const obtenerEstado = (ficha) => {
+    if (!ficha) return { estado: 'Sin ficha', color: '#9ca3af', texto: '#fff' }
+    return props.estados.find(e => e.id === ficha.estado) || { estado: 'Desconocido', color: '#9ca3af', texto: '#fff' }
 }
 
-const redirigir = (id) => {
-    router.push({ name: 'ver-orden-de-trabajo', params: { id } })
+const contarVehiculos = (id) => {
+    const ficha = lista.value.find(f => f.id === id)
+    return ficha?.orden_trabajo?.length || 0
 }
+
 </script>
 
 <template>
@@ -36,13 +39,11 @@ const redirigir = (id) => {
         <table class="w-full text-left">
             <thead>
                 <tr class="servi-blue text-white text-xs uppercase tracking-wider">
-                    <th class="p-4 font-bold">Patente</th>
-                    <th class="p-4 font-bold">Vehículo</th>
+                    <th class="p-4 font-bold text-center">Ficha</th>
+                    <th class="p-4 font-bold">Vehículos</th>
                     <th class="p-4 font-bold">Cliente</th>
                     <th class="p-4 font-bold">Diagnóstico</th>
-                    <th class="p-4 font-bold text-center">Estado OT</th>
-                    <th class="p-4 font-bold text-center">Ficha</th>
-                    <th class="p-4 font-bold text-center">Acción</th>
+                    <th class="p-4 font-bold text-center">Estado Ficha</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -50,18 +51,14 @@ const redirigir = (id) => {
                     v-for="item in lista" 
                     :key="item.id"
                     class="hover:bg-gray-50/50 transition-colors cursor-pointer group"
-                    @click="redirigir(item.id)"
                 >
-                    <td class="p-4">
-                        <span class="servi-blue text-white px-2.5 py-1 rounded text-xs font-black tracking-wider uppercase shadow-sm">
-                            {{ item.vehiculo?.patente || 'S/P' }}
-                        </span>
+                    <td class="p-4 text-center">
+                        <span class="text-sm font-bold text-gray-400">#{{ item.id }}</span>
                     </td>
                     <td class="p-4">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold servi-grey-font">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</span>
-                            <span v-if="item.vehiculo?.anio" class="text-[10px] uppercase font-bold text-gray-400">{{ item.vehiculo.anio }}</span>
-                        </div>
+                        <span class="servi-blue text-white px-2.5 py-1 rounded text-xs font-black tracking-wider uppercase shadow-sm">
+                            {{ contarVehiculos(item.id) }}
+                        </span>
                     </td>
                     <td class="p-4">
                         <div v-if="item.cliente" class="flex flex-col">
@@ -71,8 +68,8 @@ const redirigir = (id) => {
                         <span v-else class="text-sm text-gray-300 italic">No asignado</span>
                     </td>
                     <td class="p-4">
-                        <p class="text-sm servi-grey-font truncate max-w-[200px]" :title="item.diagnostico">
-                            {{ item.diagnostico || 'Sin diagnóstico' }}
+                        <p class="text-sm servi-grey-font truncate max-w-[200px]" :title="item.motivo_ingreso">
+                            {{ item.motivo_ingreso || 'Sin motivo ingreso' }}
                         </p>
                     </td>
                     <td class="p-4 text-center">
@@ -82,20 +79,6 @@ const redirigir = (id) => {
                         >
                             {{ obtenerEstado(item).estado }}
                         </span>
-                    </td>
-                    <td class="p-4 text-center">
-                        <span class="text-sm font-bold text-gray-400">#{{ item.id_ficha }}</span>
-                    </td>
-                    <td class="p-4 text-center">
-                        <button 
-                            @click.stop="redirigir(item.id)"
-                            class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group-hover:scale-110"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-                        </button>
                     </td>
                 </tr>
             </tbody>
@@ -114,4 +97,5 @@ const redirigir = (id) => {
         </div>
     </div>
 </template>
+
 

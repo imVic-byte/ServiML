@@ -1,18 +1,22 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import presupuestoCard from "../../components/presupuesto/presupuestoCard.vue";
 import { useInterfaz } from '../../stores/interfaz.js'
 import navbar from "../../components/componentes/navbar.vue";
 import presupuestoList from '../../components/presupuesto/presupuestoList.vue'
+import volver from '../../components/componentes/volver.vue'
 
 const servicios = ref([]);
 const todosLosServicios = ref([]);
 const uiStore = useInterfaz()
 const router = useRouter()
+const route = useRoute()
 let searchTimeout = null;
 const showStats = ref(false);
+const cotizaciones = ref([])
+const tallerSeleccionado = computed(() => route.params.taller);
 
 const inicioSemana = computed(() => {
   const fecha = new Date();
@@ -24,48 +28,8 @@ const inicioSemana = computed(() => {
   return lunes;
 });
 
-const handleBusqueda = (texto) => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
-    obtenerPresupuestos(texto);
-  }, 500);
-};
-
-const obtenerPresupuestos = async (busqueda = '', esCargaInicial = false) => {
-  const f = inicioSemana.value;
-  const fechaCorte = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}T00:00:00`;
-
-  let query = supabase
-    .from("presupuesto")
-  if (busqueda) {
-    query = query
-    .select("*, vehiculo!inner(*), cliente(*)")
-    .gte('created_at', fechaCorte)
-    .ilike('vehiculo.patente', `%${busqueda}%`);
-  } else {
-    query = query.select("*, vehiculo(*), cliente(*)")
-    .gte('created_at', fechaCorte);
-  }
-  query = query.order("numero_folio", { ascending: false });
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error cargando presupuestos:', error);
-  } else if (data) {
-    servicios.value = data;
-    if (esCargaInicial) {
-      todosLosServicios.value = data;
-    }
-  }
-  uiStore.hideLoading()
-};
-
 const irADetalle = (id) => {
   router.push({ name: 'ver-presupuesto', params: { id } });
-}
-
-const irACrear = () => {
-    router.push({ name: 'crear-presupuesto' });
 }
 
 const formatearDinero = (monto) => {
@@ -74,22 +38,41 @@ const formatearDinero = (monto) => {
 }
 
 const stats = computed(() => {
-  if (!todosLosServicios.value.length) return { total: 0, pendientes: 0, confirmados: 0, dineroPendiente: 0 };
+  if (!cotizaciones.value.length) return { total: 0, pendientes: 0, confirmados: 0, dineroPendiente: 0 };
 
-  const total = todosLosServicios.value.length;
-  const pendientes = todosLosServicios.value.filter(s => s.estado === 1).length;
-  const confirmados = todosLosServicios.value.filter(s => s.estado === 2).length;
+  const total = cotizaciones.value.length;
+  const pendientes = cotizaciones.value.filter(s => s.estado === 1).length;
+  const confirmados = cotizaciones.value.filter(s => s.estado === 2).length;
   
-  const dineroPendiente = todosLosServicios.value
-      .filter(s => s.estado === 1)
+  const dineroPendiente = cotizaciones.value
+      .filter(s => s.estado === 2)
       .reduce((acc, curr) => acc + (curr.total_final || 0), 0);
 
   return { total, pendientes, confirmados, dineroPendiente };
 });
 
+const handleCotizaciones = async () => {
+  try {
+    const fechaFormateada = new Date(inicioSemana.value).toISOString()
+
+    const { data, error } = await supabase
+      .from('cotizaciones_ficha')
+      .select('*, ficha_de_trabajo!inner(*, cliente(*))')
+      .gte('created_at', fechaFormateada)
+      .eq('ficha_de_trabajo.id_taller', tallerSeleccionado.value)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    cotizaciones.value = data || []
+    console.log(cotizaciones.value)
+  } catch (error) {
+    console.error('Error cargando cotizaciones:', error.message)
+  }
+}
+
 onMounted(async () => {
   uiStore.showLoading()
-  await obtenerPresupuestos('', true);
+  await handleCotizaciones()
+  uiStore.hideLoading()
 });
 </script>
 <template>
@@ -98,12 +81,10 @@ onMounted(async () => {
       titulo="ServiML"
       subtitulo="Presupuestos / Semana"
       class="sticky top-0 z-50"
-      searchInput="true"
-      @buscar="handleBusqueda"
     />
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
+      <volver />
       <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
         <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Total Presupuestos / semana</p>
@@ -169,16 +150,15 @@ onMounted(async () => {
           </button>
         </div>
       </div>
-      <presupuestoList :servicios="servicios" />
+      <presupuestoList :servicios="cotizaciones"/>
       <div class="md:hidden grid grid-cols-1">
         <presupuestoCard
-          v-for="item in servicios"
+          v-for="item in cotizaciones"
           :key="item.id"
           :data="item"
-          @click="irADetalle(item.id)"
         />
       </div>
-      <div v-if="servicios.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
+      <div v-if="cotizaciones.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
         <div class="servi-grey-font mb-2">
           <p class="servi-grey-font text-lg">No se encontraron presupuestos</p>
           <p class="text-sm servi-grey-font">Intenta cambiar el filtro de búsqueda o crea uno nuevo.</p>

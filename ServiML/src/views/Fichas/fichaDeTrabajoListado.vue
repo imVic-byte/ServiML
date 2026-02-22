@@ -51,8 +51,8 @@ const formatearFecha = (fechaString) => {
 const stats = computed(() => {
   const total = fichasOriginales.value.length;
   const ingresadas = fichasOriginales.value.filter(f => f.estado === 1).length;
-  const enProceso = fichasOriginales.value.filter(f => f.estado === 2).length;
-  const terminadas = fichasOriginales.value.filter(f => f.estado === 3).length;
+  const enProceso = fichasOriginales.value.filter(f => f.estado > 1 && f.estado < 6).length;
+  const terminadas = fichasOriginales.value.filter(f => f.estado === 6).length;
   return { total, ingresadas, enProceso, terminadas };
 });
 
@@ -62,7 +62,7 @@ const obtenerFichas = async () => {
       .from("ficha_de_trabajo")
       .select(`
         *,
-        cliente ( nombre, apellido )
+        cliente ( nombre, apellido, telefono )
       `)
       .order('created_at', { ascending: false });
 
@@ -245,9 +245,10 @@ onMounted(async () => {
               </td>
               <td class="p-4 text-center">
                 <button class="servi-grey-font hover:text-blue-600 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7-7" />
-                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
                 </button>
               </td>
             </tr>
@@ -265,33 +266,62 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="md:hidden grid grid-cols-1">
-        <RouterLink 
+      <div class="md:hidden grid grid-cols-1 gap-4">
+        <div 
+        @click="irADetalle(item.id)" 
           v-for="item in fichas" 
           :key="item.id"
-          :to="{ name: 'ficha-de-trabajo', params: { id: item.id } }" 
-          class="card-container servi-adapt-bg servi-grey-font"
-        >
-          <div class="card-header servi-grey-font">
-            <span class="folio">Ficha #{{ item.id }}</span>
-            <span class="px-2 py-1 rounded-full text-xs font-semibold" :style="{backgroundColor: handleEstados(item.estado).color, color: 'white'}">{{ handleEstados(item.estado).estado }}</span>
+          class="servi-adapt-bg rounded-xl shadow-sm overflow-hidden border-t-4 transition-all hover:shadow-md cursor-pointer"
+          :style="{ borderTopColor: handleEstados(item.estado).color }"        >
+          <div class="p-4">
+            <!-- Header: Patente + Estado -->
+            <div class="flex justify-between items-center mb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-black servi-grey-font tracking-wide">#{{ item.id }}</span>
+              </div>
+              <span 
+                class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase text-white shadow-sm"
+                :style="{ backgroundColor: handleEstados(item.estado).color }"
+              >
+                {{ handleEstados(item.estado).estado }}
+              </span>
+            </div>
+            <div v-if="item.vehiculo?.marca || item.vehiculo?.modelo" class="text-sm font-bold servi-grey-font mb-3">
+              {{ [item.vehiculo.marca, item.vehiculo.modelo].filter(Boolean).join(' · ') }}
+              <span v-if="item.vehiculo.anio" class="text-gray-400 font-medium ml-1">({{ item.vehiculo.anio }})</span>
+            </div>
+            <div class="mb-3">
+              <p class="text-[10px] uppercase font-black text-gray-400 mb-0.5 tracking-widest">Diagnóstico/Motivo</p>
+              <p class="text-sm servi-grey-font leading-relaxed line-clamp-2">
+                {{ item.diagnostico || 'Sin diagnóstico detallado' }}
+              </p>
+            </div>
+            <div v-if="item.cliente" class="flex items-center gap-3 pt-3 border-t border-gray-100 mt-2">
+              <div class="w-9 h-9 rounded-full servi-blue flex items-center justify-center shrink-0 shadow-sm">
+                <span class="text-sm font-black text-white">{{ item.cliente.nombre?.charAt(0)?.toUpperCase() || '?' }}</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold servi-grey-font truncate">
+                  {{ item.cliente.nombre }} {{ item.cliente.apellido }}
+                </p>
+                <div class="flex items-center gap-3 mt-0.5">
+                  <span v-if="item.cliente.telefono" class="text-[10px] font-bold text-gray-400 flex items-center gap-1"> 
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-3 h-3">
+                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                    </svg>
+                    +56 {{ item.cliente.telefono }}
+                  </span>
+                </div>
+              </div>
+              <button class="servi-grey-font hover:text-blue-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+              </button>
+            </div>
           </div>
-          <div class="card-body servi-grey-font">
-            <div class="info-row">
-              <span class="label">Ingreso:</span>
-              <span class="valor">{{ formatearFecha(item.fecha_ingreso) }}</span>
-            </div>
-            <div class="info-row" v-if="item.cliente">
-              <span class="label">Cliente:</span>
-              <span class="valor">{{ camelCase(item.cliente.nombre) + ' ' + camelCase(item.cliente.apellido) }}</span>
-            </div>
-            <div class="info-row" v-if="item.motivo_ingreso">
-              <span class="label">Motivo:</span>
-              <span class="valor truncate max-w-[150px]">{{ item.motivo_ingreso }}</span>
-            </div>
-          </div>
-        </RouterLink>
-      </div>
+        </div>
 
       <div v-if="fichas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
         <div class="servi-grey-font mb-2">
@@ -305,6 +335,7 @@ onMounted(async () => {
 
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>
