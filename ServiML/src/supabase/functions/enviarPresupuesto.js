@@ -20,11 +20,11 @@ serve(async (req) => {
     }
 
     const transporter = createTransport({
-      host: "mail.serviml.cl",
-      port: 465,
+      host: Deno.env.get("SMTP"),
+      port: Deno.env.get("SMTP_PORT"),
       secure: true,
       auth: {
-        user: Deno.env.get("SMTP_USER"),
+        user: Deno.env.get("SMTP_EMAIL"),
         pass: Deno.env.get("SMTP_PASS"),
       },
     });
@@ -48,7 +48,7 @@ serve(async (req) => {
     `;
 
     const info = await transporter.sendMail({
-      from: `"ServiML Soporte" <${Deno.env.get("SMTP_USER")}>`,
+      from: `"ServiML" <no-reply@serviml.cl>`,
       to: emailCliente,
       subject: asunto,
       html: cuerpoHtml,
