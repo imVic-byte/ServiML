@@ -372,7 +372,6 @@ const cargarEstados = async () => {
   catch(err){
     console.error("Error al cargar los estados:", err)
   }
-  console.log(estadosFicha.value)
 }
 
 

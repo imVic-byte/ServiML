@@ -1,78 +1,205 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import { supabase } from "../lib/supabaseClient.js";
-import navbar from "../components/componentes/navbar.vue";
-import html2pdf from "html2pdf.js";
-import { enviarInformeFinal } from "../js/enviarInformeFinal.js";
-import { useInterfaz } from "@/stores/interfaz.js";
-const route = useRoute();
-const router = useRouter();
-const informeData = ref({});
+import { ref, onMounted, computed } from 'vue';
+import { supabase } from '@/lib/supabaseClient';
+import { useRouter, useRoute } from 'vue-router';
+import { useInterfaz } from '@/stores/interfaz';
+import Navbar from '@/components/componentes/navbar.vue';
+import html2pdf from 'html2pdf.js';
+import Volver from '@/components/componentes/volver.vue';
+import { enviarInformeFinal } from '@/js/enviarInformeFinal';
+
+const route = useRoute()
+const router = useRouter()
+const interfaz = useInterfaz()
 const loading = ref(true);
-const OrdenTrabajo = ref({});
-const detalle_presupuesto = ref([]);
 const enviandoCorreo = ref(false);
-const iva = ref(0);
-const interfaz = useInterfaz();
 
-const traerDatosCuenta = async () => {
-  const { data, error } = await supabase
-    .from('serviml_cuenta')
-    .select('*')
-    .eq('id', OrdenTrabajo.value.presupuesto.id_cuenta)
-    .single();
+const formatoPesos = (valor) => {
+  if (valor === undefined || valor === null) return '$0';
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor);
+};
 
-  if (error) {
-    console.error('Error al traer datos de la cuenta:', error);
-    return;
+const formatoFechaYHora = (fecha) => {
+  if (!fecha) return '---';
+  return new Date(fecha).toLocaleString('es-CL');
+};
+
+const formatoFecha = (fecha) => {
+  if (!fecha) return '---';
+  return new Date(fecha).toLocaleDateString('es-CL');
+};
+
+const TotalItem = (item) => {
+  return formatoPesos(Number(item.monto) * Number(item.cantidad))
+};
+
+const datosEmpresa = ref({})
+
+const traerDatosEmpresa = async () => {
+  const {data, error} = await supabase.from('serviml').select('*').eq('id', 1).single()
+  if (data) {
+    datosEmpresa.value = data
   }
-  informeData.value.cuenta = data;
+  if (error) {
+    console.error(error)
+  }
 }
 
-const traerDatosServiml = async () => {
-  const {data,error} = await supabase
-    .from('serviml')
-    .select('*')
-    .eq('id', 1)
-    .single();
-
-  if (error) {
-    console.error('Error al traer datos de Serviml:', error);
-    return;
+const traerEmail = async () => {
+  const {data, error} = await supabase.from('serviml_email').select('*').eq('id_serviml', 1).eq('prioritario',true).single()
+  if (data) {
+    datosEmpresa.value.email = data.email
   }
-  informeData.value.serviml = data;
+  if (error) {
+    console.error(error)
+  }
 }
 
-const traerTelefonoEmail = async () => {
-  const {data,error} = await supabase
-    .from('serviml_telefono')
-    .select('*')
-    .eq('prioritario',true)
-    .single();
-
+const traerTelefono = async () => {
+  const {data,error} = await supabase.from('serviml_telefono').select('*').eq('id_serviml', 1).eq('prioritario',true).maybeSingle()
+  if (data) {
+    datosEmpresa.value.telefono = data.telefono || ''
+  }
   if (error) {
-    console.error('Error al traer datos de Serviml:', error);
-    return;
+    datosEmpresa.value.telefono = ''
   }
-  informeData.value.serviml.telefono = data;
-  const {data:email,error:errorEmail} = await supabase
-    .from('serviml_email')
-    .select('*')
-    .eq('prioritario',true)
-    .single();
-
-  if (errorEmail) {
-    console.error('Error al traer datos de Serviml:', errorEmail);
-    return;
-  }
-  informeData.value.serviml.email = email;
 }
 
-// --- NUEVO: Función para convertir URL a Base64 y evitar CORS ---
+const cuentaSeleccionada = computed(() => {
+  return cotizacion.value?.serviml_cuenta || null
+})
+
+const getOpcionesPDF = () => {
+  return {
+    margin: [10, 10, 10, 10],
+    filename: `InformeFinal_${presupuesto.value?.numero_folio}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      onclone: (clonedDoc) => {
+        const sheets = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
+        sheets.forEach(sheet => {
+          try {
+            const text = sheet.textContent || '';
+            if (text.includes('oklch')) {
+              sheet.textContent = text.replace(/oklch\([^)]*\)/g, 'transparent');
+            }
+          } catch (e) {}
+        });
+        const allElements = clonedDoc.querySelectorAll('*');
+        const propsToCheck = ['color', 'background-color', 'border-color', 'outline-color', 'border-top-color', 'border-bottom-color', 'border-left-color', 'border-right-color', 'text-decoration-color'];
+        allElements.forEach(el => {
+          const computed = clonedDoc.defaultView.getComputedStyle(el);
+          propsToCheck.forEach(prop => {
+            try {
+              const val = computed.getPropertyValue(prop);
+              if (val && val.includes('oklch')) {
+                el.style.setProperty(prop, prop === 'color' ? '#000000' : 'transparent', 'important');
+              }
+            } catch (e) {}
+          });
+        });
+      }
+    },
+    pagebreak: { mode: ['css', 'legacy'] },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+};
+
+const generarYsubir = async () => {
+  enviandoCorreo.value = true;
+  const elemento = document.getElementById('elemento-a-imprimir');
+  if (!elemento) return;
+  
+  try {
+    const pdfBlob = await html2pdf().set(getOpcionesPDF()).from(elemento).output('blob');
+    const {exito, error} = await enviarInformeFinal(ficha.value.cliente.id, informeFinal.value.id, presupuesto.value.numero_folio, pdfBlob);
+    if (error) {
+      console.error(error);
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    enviandoCorreo.value = false;
+  }
+};
+
+const generarInformeFinal = async () => {
+  const yaExiste = await handleVerificarInformeFinal()
+  if (yaExiste) {
+    return
+  }
+  if (!ficha.value || !cotizacion.value) {
+    console.error('Falta ficha o cotización aprobada para generar el informe final')
+    return
+  }
+  const {data, error} = await supabase
+    .from('informe_final')
+    .insert({
+      cliente_nombre: ficha.value.cliente.nombre,
+      cliente_apellido: ficha.value.cliente.apellido,
+      cliente_telefono: ficha.value.cliente.telefono,
+      cliente_email: ficha.value.cliente.email,
+      total_final: cotizacion.value.total_final,
+      cliente_codigo_pais: ficha.value.cliente.codigo_pais,
+      id_ficha: ficha.value.id,
+    })
+    .select()
+    .single()
+  if (error) {
+    console.error(error)
+  }
+  if (data) {
+    informeFinal.value = data
+    await generarYsubir()
+  }
+  const {error:errorInformeFinal} = await supabase.from('ficha_de_trabajo').update({informe_final:true}).eq('id',ficha.value.id)
+  if (errorInformeFinal) {
+    console.error(errorInformeFinal)
+  }
+  await cargarDatos()
+}
+
+const informeFinal = ref(null)
+const ficha = ref(null)
+const cotizacion = ref(null)
+const presupuesto = ref(null)
+
+const cargarDatos = async () => {
+    const {data, error} = await supabase
+    .from('ficha_de_trabajo')
+    .select(`*, informe_final(*),presupuesto_ficha(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*)), OT_bitacora(*), OT_fotos_ingreso(*)),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
+    .eq('id', route.params.id)
+    .single()
+
+    if (data) {
+      ficha.value = data
+      presupuesto.value = data.presupuesto_ficha[0]
+      informeFinal.value = data.informe_final[0]
+      cotizacion.value = data.cotizaciones_ficha?.find(c => c.estado === 2) || null
+      
+      for (const ot of ficha.value.orden_trabajo) {
+        if (ot.OT_bitacora) {
+          for (const entry of ot.OT_bitacora) {
+            const { data: fotos } = await supabase
+              .from('OT_Fotos')
+              .select('*')
+              .eq('id_OT_bitacora', entry.id);
+            entry.fotos = fotos || [];
+          }
+        }
+      }
+    }
+
+    if (error) {
+      console.error(error)
+    }
+}
+
 const convertirImagenABase64 = async (url) => {
   try {
-    // Añadimos un timestamp para evitar caché del navegador
     const response = await fetch(url + '?t=' + new Date().getTime());
     const blob = await response.blob();
     return new Promise((resolve) => {
@@ -86,586 +213,369 @@ const convertirImagenABase64 = async (url) => {
 };
 
 const procesarImagenesParaPDF = async () => {
-  // 1. Procesar fotos de ingreso
-  if (OrdenTrabajo.value.OT_fotos_ingreso) {
-    for (const item of OrdenTrabajo.value.OT_fotos_ingreso) {
-      if (item.url) item.url = await convertirImagenABase64(item.url);
+  if (!ficha.value || !ficha.value.orden_trabajo) return;
+  
+  for (const ot of ficha.value.orden_trabajo) {
+    if (ot.OT_fotos_ingreso) {
+      for (const item of ot.OT_fotos_ingreso) {
+        if (item.url) item.url = await convertirImagenABase64(item.url);
+      }
     }
-  }
-  // 2. Procesar fotos de bitácora
-  if (OrdenTrabajo.value.OT_bitacora) {
-    for (const item of OrdenTrabajo.value.OT_bitacora) {
-      if (item.fotos) {
-        for (const foto of item.fotos) {
-          if (foto.url) foto.url = await convertirImagenABase64(foto.url);
+    if (ot.OT_bitacora) {
+      for (const entry of ot.OT_bitacora) {
+        if (entry.fotos) {
+          for (const foto of entry.fotos) {
+            if (foto.url) foto.url = await convertirImagenABase64(foto.url);
+          }
         }
       }
     }
   }
 };
-// ---------------------------------------------------------------
 
-const bitacoraFiltrada = computed(() => {
-  if (!OrdenTrabajo.value || !OrdenTrabajo.value.OT_bitacora) {
-    return [];
+const handleVerificarInformeFinal = async () => {
+  const {data, error} = await supabase.from('informe_final').select('*').eq('id_ficha', route.params.id)
+  if (error) {
+    console.error(error)
+    return false
   }
-  return OrdenTrabajo.value.OT_bitacora.filter(item => item.observacion);
-});
-
-const formatoPesos = (valor) => {
-  if (valor === undefined || valor === null) return '$0';
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor);
-};
-
-const formatoFecha = (fecha) => {
-  if (!fecha) return new Date().toLocaleDateString('es-CL');
-  return new Date(fecha).toLocaleDateString('es-CL');
-};
-
-const totalItem = (item) => {
-  return formatoPesos(Number(item.monto) * Number(item.cantidad))
-};
-
-const obtenerDatos = async () => {
-  try {
-    const { data: informe, error: errorInforme } = await supabase
-      .from("informe_final")
-      .select("*")
-      .eq("ot_id", route.params.id)
-      .single();
-
-    if (errorInforme) throw errorInforme;
-    informeData.value = informe;
-  } catch (error) {
-    console.error(error);
-  } finally {
-    // Movemos el loading a false DESPUES de procesar todo en onMounted
-  }
-};
-
-const obtenerOT = async () => {
-  try {
-    const { data, error: errorDetalles } = await supabase
-      .from("orden_trabajo")
-      .select("*, cliente(*), vehiculo(*), presupuesto(*), OT_bitacora(*), OT_fotos_ingreso(*)")
-      .eq("id", route.params.id)
-      .single();
-    if (errorDetalles) throw errorDetalles;
-    OrdenTrabajo.value = data || [];
-    const { data:detalles, error2 } = await supabase
-    .from('detalle_presupuesto')
-    .select('*')
-    .eq('id_presupuesto', OrdenTrabajo.value.presupuesto.id);
-    if (error2) throw error2;
-    detalle_presupuesto.value = detalles || [];
-    iva.value = OrdenTrabajo.value.presupuesto.iva;
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-const traerFotosBitacora = async () => {
-  if (!OrdenTrabajo.value.OT_bitacora) return;
-  for (const item of OrdenTrabajo.value.OT_bitacora) {
-    const { data } = await supabase
-      .from('OT_Fotos')
-      .select('*')
-      .eq('id_OT_bitacora', item.id);
-    item.fotos = data || [];
-  }
-};
-
-const getOpcionesPDF = () => {
-
-  return {
-
-    margin: [10,10,10,10],
-
-    filename: `Informe_ServiML_OT_${route.params.id}.pdf`,
-
-    image: { type: 'jpeg', quality: 0.98 },
-
-    html2canvas: {
-
-      scale: 2,
-
-      useCORS: true,
-
-      logging: false,
-
-      ignoreElements: (element) => element.classList.contains('no-print'),
-
-      onclone: (clonedDoc) => {
-
-        // Remove stylesheets that contain oklch (Tailwind v4 base)
-
-        const sheets = clonedDoc.querySelectorAll('style, link[rel="stylesheet"]');
-
-        sheets.forEach(sheet => {
-
-          try {
-
-            const text = sheet.textContent || '';
-
-            if (text.includes('oklch')) {
-
-              // Replace oklch values in style tags
-
-              sheet.textContent = text.replace(/oklch\([^)]*\)/g, 'transparent');
-
-            }
-
-          } catch (e) { /* ignore cross-origin sheets */ }
-
-        });
-
-        // Override any remaining computed oklch on elements
-
-        const allElements = clonedDoc.querySelectorAll('*');
-
-        const propsToCheck = ['color', 'background-color', 'border-color', 'outline-color', 'border-top-color', 'border-bottom-color', 'border-left-color', 'border-right-color', 'text-decoration-color'];
-
-        allElements.forEach(el => {
-
-          const computed = clonedDoc.defaultView.getComputedStyle(el);
-
-          propsToCheck.forEach(prop => {
-
-            try {
-
-              const val = computed.getPropertyValue(prop);
-
-              if (val && val.includes('oklch')) {
-
-                el.style.setProperty(prop, prop === 'color' ? '#000000' : 'transparent');
-
-              }
-
-            } catch (e) { /* skip */ }
-
-          });
-
-        });
-
-      }
-
-    },
-
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'], before: '.page-break', avoid: '.avoid-break' },
-
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-
-  };
-
-};
-
-
-const descargarPDF = () => {
-  const elemento = document.getElementById("elemento-a-imprimir");
-  html2pdf().set(getOpcionesPDF()).from(elemento).save();
-};
-
-const generarYEnviarPDF = async () => {
-  if (enviandoCorreo.value) return;
-  enviandoCorreo.value = true;
-  try {
-    const elemento = document.getElementById("elemento-a-imprimir");
-
-    const pdfBlob = await html2pdf()
-      .set(getOpcionesPDF())
-      .from(elemento)
-      .output('blob');
-
-    const exito = await enviarInformeFinal(informeData.value.id, OrdenTrabajo.value.presupuesto.numero_folio, pdfBlob);
-    if (!exito) throw new Error("Error al subir el informe");
-
-    alert("Informe subido exitosamente.");
-    router.replace({ query: null });
-
-  } catch (error) {
-    console.error("Error envío:", error);
-    alert("Hubo un error al generar/enviar el informe. Revisa la consola.");
-  } finally {
-    enviandoCorreo.value = false;
-  }
-};
-
-const datosEstacionamiento = computed(() => {
-  if (!OrdenTrabajo.value.fecha_estacionamiento) {
-    return { diasTotales: 0, diasCobrar: 0, total: 0 };
-  }
-
-  const fechaInicio = new Date(OrdenTrabajo.value.fecha_estacionamiento);
-  const fechaFin = OrdenTrabajo.value.fecha_termino_estacionamiento
-    ? new Date(OrdenTrabajo.value.fecha_termino_estacionamiento)
-    : new Date();
-
-  const diasTotales = Math.ceil(
-    (fechaFin - fechaInicio) / (1000 * 60 * 60 * 24)
-  );
-
-  let diasACobrar = diasTotales - 3;
-  if (diasACobrar < 0) diasACobrar = 0;
-
-  console.log("Cálculo Estacionamiento:", {
-    fechaInicio,
-    fechaFin,
-    diasTotales,
-    diasACobrar,
-    total: diasACobrar * 5000
-  });
-
-  return {
-    diasTotales,
-    diasCobrar: diasACobrar,
-    total: diasACobrar * 5000
-  };
-});
-
-const totalFinalCalculado = computed(() => {
-  const totalBase = informeData.value.total_final || 0;
-  return totalBase + datosEstacionamiento.value.total;
-});
-
-const formatearFechayHora = (fecha) => {
-  const fechaObj = new Date(fecha);
-  return fechaObj.toLocaleDateString('es-CL', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return data && data.length > 0
 }
 
-onMounted( async () => {
-  interfaz.showLoadingOverlay();
-  await obtenerDatos();
-  await obtenerOT();
-  await traerFotosBitacora();
-  await traerDatosCuenta();
-  await traerDatosServiml();
-  await procesarImagenesParaPDF();
-  await traerTelefonoEmail();
-  interfaz.hideLoadingOverlay();
+const generarPDF = () => {
+  generarYsubir();
+}
+const estados = ref([])
 
-  if (route.query.enviar === 'true') {
-    setTimeout(() => {
-      generarYEnviarPDF();
-    }, 1500);
+const obtenerEstados = async () => {
+  const {data, error} = await supabase.from('tabla_estados_ficha').select('*')
+  if (error) {
+    console.error(error)
+    estados.value = []
   }
-});
+  estados.value = data
+}
+
+const handleEstados = (estado) => {
+  const estadoEncontrado = estados.value.find(e => e.id === estado)
+  return estadoEncontrado ? {estado: estadoEncontrado.estado, color: estadoEncontrado.color} : {estado: 'Estado Desconocido', color: '#000000'}
+}
+
+onMounted(async () => {
+  interfaz.showLoadingOverlay()
+  await cargarDatos()
+  await traerDatosEmpresa()
+  await traerEmail()
+  await traerTelefono()
+  await obtenerEstados()
+  await procesarImagenesParaPDF()
+  interfaz.hideLoadingOverlay();
+  if (route.query.generar === 'true') {
+    generarInformeFinal()
+  }
+})
 </script>
+
 <template>
-  <navbar titulo="ServiML" subtitulo="Informe Final de Trabajo" class="navbar" searchInput="false"/>
-
-  <div class="bg-gray-200 min-h-screen py-10 relative pb-20">
-
+  <div class="min-h-screen font-sans bg-white print:absolute print:inset-0 print:z-[9999] print:bg-white">
+    
+    <div class="print:hidden">
+      <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" />
+      <div class="mt-4 flex w-[70%] mx-auto justify-between">
+        <Volver />
+        <button @click="generarPDF" class="ml-4 px-4 py-2 bg-[#1f3d64] text-white rounded-lg transition-colors">
+          Generar PDF
+        </button>
+      </div>
+    </div>
+    
     <div v-if="enviandoCorreo"
       class="fixed inset-0 bg-black/50 z-50 flex flex-col items-center justify-center text-white backdrop-blur-sm">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
       <p class="font-bold text-lg">Generando y enviando informe...</p>
       <p class="text-sm opacity-80">Por favor espera un momento.</p>
     </div>
-
-    <div class="max-w-[21cm] mx-auto mb-6 flex justify-end px-4">
-      <button @click="descargarPDF"
-        class="bg-[#1f3d64] text-white px-6 py-2 rounded-lg font-bold shadow-md hover:bg-[#162c4b] transition-colors flex items-center gap-2">
-        Descargar Informe PDF
-      </button>
-    </div>
-
-    <div id="elemento-a-imprimir"
-      class="bg-white text-black p-0 max-w-[21cm] mx-auto text-xs font-sans leading-normal shadow-2xl">
-      
-      <div class="p-10 pb-4 h-[27cm] relative"> <div class="flex justify-between border-b-4 border-[#1f3d64] pb-4 mb-2">
+    
+    <div class="mt-10 mb-10">
+      <div id="elemento-a-imprimir" class="w-[21cm] mx-auto bg-white px-8 py-4 text-xs font-sans leading-normal">
+        
+        <div class="flex justify-between pb-4 mb-4 border-b-4 border-[#1f3d64]">
           <div class="flex items-center gap-2">
             <span class="w-24 h-24 rounded-full overflow-hidden border border-[#e5e7eb]">
-              <img class="w-full h-full object-cover" src="../img/Logo2.png" alt="Logo">
+                <img class="w-full h-full object-cover" src="../../img/Logo.jpg" alt="Logo">
             </span>
             <div>
-              <h1 class="text-2xl font-black text-[#1f3d64] tracking-tighter italic">SERVIML</h1>
-              <p class="text-[#4b5563] font-bold uppercase text-[11px] tracking-widest mt-1">Servicios Mecánicos</p>
+                <h1 class="text-2xl font-black tracking-tighter italic text-[#1f3d64]">SERVIML</h1>
+                <p class="font-bold uppercase text-[11px] tracking-widest mt-1 text-[#4b5563]">Servicios Mecánicos</p>
             </div>
           </div>
 
           <div class="text-right">
             <h2 class="text-lg font-bold text-[#1f3d64]">INFORME FINAL</h2>
-            <p class="text-md font-mono text-[#dc2626] font-bold">
-              OT N° {{ route.params.id || '---' }}
+            <p class="text-md font-mono font-bold text-[#dc2626]">
+                Folio N° {{ presupuesto?.numero_folio || '---' }}
             </p>
-            <p class="text-[#6b7280] mt-1 text-[11px]">
-              Fecha: {{ formatoFecha(informeData.created_at) }}
+            <p class="mt-1 text-[11px] text-[#6b7280]">
+                Fecha: {{ formatoFecha(informeFinal?.created_at) }}
             </p>
-            <div
-              class="mt-2 inline-block bg-[#dcfce7] text-[#166534] px-2 py-1 rounded font-bold text-[10px] uppercase border border-[#bbf7d0]">
-              Estado: Completado
+            <div :style="{backgroundColor: handleEstados(ficha?.estado).color}" class="mt-2 inline-block text-white px-2 py-1 rounded font-bold text-[10px] uppercase">
+              {{ handleEstados(ficha?.estado).estado }}
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-10 mb-6">
-          <div>
-            <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 text-[11px] uppercase">De: ServiML</h3>
-            <ul class="text-[#374151] space-y-1">
-              <li><span class="font-bold text-[#111827]">Dirección:</span> {{ informeData.serviml?.dirección }}</li>
-              <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ informeData.serviml?.ciudad }}</li>
-              <li><span class="font-bold text-[#111827]">Teléfono:</span>+56 {{ informeData.serviml?.telefono?.telefono }}</li>
-              <li><span class="font-bold text-[#111827]">Email:</span> {{ informeData.serviml?.email?.email }}</li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 text-[11px] uppercase">Para: Cliente</h3>
-            <ul class="text-[#374151] space-y-1">
-              <li>
-                <span class="font-bold text-[#111827]">Cliente:</span>
-                {{ informeData.cliente_nombre || 'Sin Nombre' }} {{ informeData.cliente_apellido || '' }}
-              </li>
-              <li>  
-                <span class="font-bold text-[#111827]">Correo:</span>
-                {{ informeData.cliente_correo || 'Sin Correo' }}
-              </li>
-              <li>
-                <span class="font-bold text-[#111827]">Fono:</span>
-                +{{ informeData.cliente_codigo_pais }} {{ informeData.cliente_telefono || 'Sin Teléfono' }}
-              </li>
-              <li>
-                <span class="font-bold text-[#111827]">Vehículo:</span>
-                {{ informeData.vehiculo_marca }} {{ informeData.vehiculo_modelo }} {{ informeData.vehiculo_anio }}
-                <span v-if="informeData.vehiculo_patente"
-                  class="ml-2 bg-[#fef08a] px-1 border border-[#fde047] text-[#854d0e] font-bold rounded">
-                  {{ informeData.vehiculo_patente }}
-                </span>
-              </li>
-            </ul>
-          </div>
+        <div v-if="!cotizacion" class="p-10 text-center border-2 border-dashed border-[#fca5a5] rounded-xl my-10">
+          <p class="font-bold text-[#ef4444]">No hay una cotización aprobada para este informe.</p>
         </div>
-
-        <div class="mb-6 border border-[#e5e7eb] rounded-lg overflow-hidden">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
-                <th class="p-3 font-semibold">Descripción del Servicio / Repuesto</th>
-                <th class="p-3 w-28 text-right">Precio Unitario</th>
-                <th class="p-3 w-28 text-right">Cantidad</th>
-                <th class="p-3 w-28 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody class="text-[#1f2937] text-[11px]">
-              <tr v-for="(item, index) in detalle_presupuesto" :key="index"
-                class="bg-[#ffffff] border-b border-gray-100 last:border-0">
-                <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
-                <td class="p-3 text-right font-bold">
-                  {{ formatoPesos(item.monto) }}
-                </td>
-                <td class="p-3 text-right font-bold">
-                  {{ item.cantidad }}
-                </td>
-                <td class="p-3 text-right font-bold">
-                  {{ totalItem(item) }}
-                </td>
-              </tr>
-              <tr v-if="datosEstacionamiento.total > 0" class="bg-yellow-50 shadow-lg border-b border-[#1f3d64]">
-              <td class="p-3 font-medium text-[#1f3d64]">
-                Servicio de Estacionamiento ({{ datosEstacionamiento.diasCobrar }} días facturables tras 3 días de gracia)
-              </td>
-              <td class="p-3 text-right font-bold text-red-600">
-                {{ formatoPesos(datosEstacionamiento.total) }}
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="flex justify-between items-start gap-8">
-          <div class="w-full max-w-3xl bg-[#f8fafc] rounded-lg border border-[#e2e8f0]">
-            <h4
-              class="font-bold rounded-t-lg bg-[#1f3d64] text-[#ffffff] px-3 py-2 uppercase text-xs flex items-center gap-2">
-              Información general
-            </h4>
-            <div class="grid grid-cols-2 gap-x-6 gap-y-4 p-4">
-              <div>
-                <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Motivo Ingreso</span>
-                <p class="text-xs text-[#1f3d64] font-semibold leading-relaxed">{{ OrdenTrabajo.motivo_ingreso }}</p>
-              </div>
-              <div>
-                <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Diagnóstico</span>
-                <p class="text-xs text-[#1f3d64] leading-relaxed">{{ OrdenTrabajo.diagnostico }}</p>
-              </div>
-              <div class="border-t border-slate-200 pt-2">
-                <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Ingreso</span>
-                <p class="text-xs text-[#1f3d64]">{{ formatearFechayHora(OrdenTrabajo.fecha_ingreso) }}</p>
-              </div>
-              <div class="border-t border-slate-200 pt-2">
-                <span class="text-[10px] text-slate-500 uppercase font-bold tracking-wider block mb-1">Tipo Trabajo</span>
-                <p class="text-xs text-[#1f3d64]">{{ OrdenTrabajo.tipo_trabajo || 'General' }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="w-2/5 pt-1">
-            <div class="flex justify-between items-center py-1 border-b border-[#e5e7eb] text-[#374151]">
-              <span class="font-medium text-xs">Subtotal</span>
-              <span class="text-xs">{{ formatoPesos(informeData.sub_total) }}</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-[#e5e7eb] text-[#374151]">
-              <span class="font-medium text-xs">Descuento</span>
-              <span class="text-xs">{{ informeData.descuento_porcentaje }}%</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-[#e5e7eb] text-[#374151]">
-              <span class="font-medium text-xs">Total Neto</span>
-              <span class="text-xs">{{ formatoPesos(informeData.total_neto) }}</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-[#e5e7eb] text-[#374151]">
-              <span class="font-medium text-xs">IVA (19%)</span>
-              <span class="text-xs">{{ formatoPesos(informeData.iva) }}</span>
-            </div>
-
-            <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-2 rounded mt-3 shadow-sm">
-              <span class="font-bold text-sm">TOTAL</span>
-              <span class="font-bold text-lg">{{ formatoPesos(totalFinalCalculado) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="html2pdf__page-break"></div>
-
-      <div class="p-10 pt-8 min-h-[26cm] bg-white relative">
-        <div class="absolute top-0 left-0 w-full h-2 bg-[#1f3d64]"></div>
         
-        <div class="flex justify-between items-end border-b border-gray-200 pb-2 mb-4">
-          <div>
-             <h2 class="text-xl font-bold text-[#1f3d64] uppercase tracking-tight">Informe Técnico Detallado</h2>
-             <p class="text-xs text-gray-500">Anexo de inspección visual y bitácora de trabajo</p>
+        <div v-else>
+          <div class="grid grid-cols-2 gap-10 mb-8">
+            <div>
+              <h3 class="font-bold border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">De: ServiML</h3>
+              <ul class="space-y-1 text-[#374151]">
+                <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa?.dirección || '...' }}</li>
+                <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa?.ciudad || '...' }}</li>
+                <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa?.telefono || 'Sin Teléfono' }}</li>
+                <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa?.email || '...' }}</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 class="font-bold border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">Para: Cliente</h3>
+              <ul class="space-y-1 text-[#374151]">
+                <li>
+                  <span class="font-bold text-[#111827]">Cliente:</span> 
+                  {{ ficha?.cliente ? (ficha.cliente.nombre + ' ' + ficha.cliente.apellido) : 'Sin Nombre' }}
+                </li>
+                <li>
+                  <span class="font-bold text-[#111827]">Teléfono:</span> 
+                  {{ ficha?.cliente ? ('+' + ficha.cliente.codigo_pais + ' ' + ficha.cliente.telefono) : 'Sin Teléfono' }}
+                </li>
+                <li>
+                  <span class="font-bold text-[#111827]">Email:</span> 
+                  {{ ficha?.cliente?.email || 'Sin Email' }}
+                </li>
+              </ul>
+            </div>
           </div>
-          <div class="text-right">
-             <p class="text-[10px] text-gray-400 font-mono">OT-{{ route.params.id }} / PÁGINA 2</p>
+
+          <div class="mb-6">
+            <h3 class="font-bold border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">Lista de vehiculos</h3>
+            <div class="grid grid-cols-2 gap-4 break-inside-avoid">
+              <div v-for="orden in ficha?.orden_trabajo" :key="orden.id" class="p-3 rounded-lg border border-[#f3f4f6] bg-[#f9fafb]">
+                 <p class="font-bold uppercase text-sm text-[#1f3d64]">
+                   {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} {{ orden.vehiculo.anio }}
+                 </p>
+                 <p class="text-xs mt-1 text-[#4b5563]">
+                   Patente: <span class="font-bold px-1 rounded bg-[#fef9c3]">{{ orden.vehiculo.patente }}</span>
+                 </p>
+                 <p class="text-[10px] mt-1 text-[#6b7280]">KM Entrada: {{ orden.kilometraje_inicial || '---' }}</p>
+                 <p class="text-[10px] mt-1 text-[#6b7280]">Diagnostico: {{ orden.diagnostico || '---' }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden break-inside-avoid">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="text-white text-[10px] uppercase tracking-wider bg-[#1f3d64]">
+                  <th class="p-3 font-semibold">Descripción del Servicio / Repuesto</th>
+                  <th class="p-3 text-right w-28">P. Unitario</th>
+                  <th class="p-3 text-right w-20">Cant.</th>
+                  <th class="p-3 text-right w-28">Total</th>
+                </tr>
+              </thead>
+              <tbody class="text-[11px] text-[#1f2937]">
+                <tr 
+                  v-for="(item, index) in cotizacion?.detalle_cotizaciones_ficha || []" 
+                  :key="index"
+                  class="border-b border-[#f3f4f6] last:border-0 bg-white break-inside-avoid"
+                >
+                  <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
+                  <td class="p-3 text-right font-bold">{{ formatoPesos(item.monto) }}</td>
+                  <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
+                  <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex justify-between items-start gap-8 break-inside-avoid">
+            <div class="w-3/5">
+              <div class="p-4 rounded-lg border border-[#f3f4f6] bg-[#f9fafb]">
+                <h4 class="font-bold uppercase text-[10px] mb-2 text-[#1f3d64]">Comentarios del Informe</h4>
+                <p class="italic text-[11px] leading-relaxed text-[#4b5563]">
+                  {{ cotizacion?.comentario || 'Servicio realizado satisfactoriamente según lo presupuestado.' }}
+                </p>
+              </div>
+              
+              <div class="mt-8 flex gap-12">
+                <div class="text-center w-32">
+                   <div class="h-10 border-b border-[#d1d5db] mb-1"></div>
+                   <p class="text-[9px] font-bold text-[#9ca3af]">FIRMA TALLER</p>
+                </div>
+                <div class="text-center w-32">
+                   <div class="h-10 border-b border-[#d1d5db] mb-1"></div>
+                   <p class="text-[9px] font-bold text-[#9ca3af]">FIRMA CLIENTE</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="w-2/5">
+              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+                <span class="font-medium">Subtotal</span>
+                <span>{{ formatoPesos(cotizacion?.subtotal || 0) }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
+                <span class="font-medium">Descuento ({{ cotizacion?.descuento || 0 }}%)</span>
+                <span>- {{ formatoPesos((cotizacion?.subtotal || 0) * (cotizacion?.descuento || 0) / 100) }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+                <span class="font-medium">Total Neto</span>
+                <span>{{ formatoPesos(cotizacion?.total_neto || 0) }}</span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+                <span class="font-medium">IVA 19%</span>
+                <span>{{ formatoPesos(cotizacion?.iva || 0) }}</span>
+              </div>
+
+              <div class="flex justify-between items-center text-white p-3 rounded mt-2 shadow-md bg-[#1f3d64]">
+                <span class="font-bold text-md tracking-tighter uppercase">Total Final</span>
+                <span class="font-bold text-lg">{{ formatoPesos(cotizacion?.total_final || 0) }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-12 gap-4 mb-6"> <div class="col-span-4 bg-slate-50 rounded-lg p-3 border border-slate-100">
-             <h4 class="font-bold text-[#1f3d64] uppercase text-[10px] mb-2 border-b border-slate-200 pb-1">Inventario & Accesorios</h4>
-             <ul class="space-y-1 text-[11px]"> <li class="flex justify-between items-center">
-                  <span class="text-slate-600">Documentos</span>
-                  <span :class="OrdenTrabajo.trae_documentos ? 'text-green-600 font-bold' : 'text-gray-400'">{{ OrdenTrabajo.trae_documentos ? '✔ Sí' : 'No' }}</span>
-                </li>
-                <li class="flex justify-between items-center">
-                  <span class="text-slate-600">Llaves</span>
-                  <span :class="OrdenTrabajo.trae_llaves ? 'text-green-600 font-bold' : 'text-gray-400'">{{ OrdenTrabajo.trae_llaves ? '✔ Sí' : 'No' }}</span>
-                </li>
-                <li class="flex justify-between items-center">
-                  <span class="text-slate-600">Candado Seg.</span>
-                  <span :class="OrdenTrabajo.trae_candado_seguridad ? 'text-green-600 font-bold' : 'text-gray-400'">{{ OrdenTrabajo.trae_candado_seguridad ? '✔ Sí' : 'No' }}</span>
-                </li>
-                <li class="flex justify-between items-center">
-                  <span class="text-slate-600">Panel Radio</span>
-                  <span :class="OrdenTrabajo.trae_panel_radio ? 'text-green-600 font-bold' : 'text-gray-400'">{{ OrdenTrabajo.trae_panel_radio ? '✔ Sí' : 'No' }}</span>
-                </li>
-                <li class="flex justify-between items-center">
-                  <span class="text-slate-600">Rueda Rep.</span>
-                  <span :class="OrdenTrabajo.trae_rueda_repuesto ? 'text-green-600 font-bold' : 'text-gray-400'">{{ OrdenTrabajo.trae_rueda_repuesto ? '✔ Sí' : 'No' }}</span>
-                </li>
-                <li class="flex justify-between items-center">
-                  <span class="text-slate-600">Encendedor</span>
-                  <span :class="OrdenTrabajo.trae_encendedor ? 'text-green-600 font-bold' : 'text-gray-400'">{{ OrdenTrabajo.trae_encendedor ? '✔ Sí' : 'No' }}</span>
-                </li>
-             </ul>
-          </div>
+        <template v-for="ot in ficha?.orden_trabajo" :key="ot.id">
           
-          <div class="col-span-8">
-            <div class="grid grid-cols-2 gap-4 mb-3">
-               <div class="servi-adapt-bg border border-slate-200 p-2 rounded shadow-sm text-center">
-                  <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Kilometraje</span>
-                  <span class="block text-lg servi-grey-font mt-0.5">{{ OrdenTrabajo.kilometraje_inicial || '0' }} km</span>
-               </div>
-               <div class="servi-adapt-bg border border-slate-200 p-2 rounded shadow-sm text-center">
-                  <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Combustible</span>
-                  <div class="w-full bg-gray-200 rounded-full h-2 mt-1.5 mb-1">
-                    <div class="bg-green-500 h-2 rounded-full" :style="{ width: (OrdenTrabajo.combustible_inicial || 0) + '%' }"></div>
+          <div class="html2pdf__page-break"></div>
+          
+          <div class="bg-white pt-2 relative">
+            <div class="w-full h-2 bg-[#1f3d64]"></div>
+            
+            <div class="p-5">
+              <div class="flex justify-between items-end border-b border-[#e5e7eb] pb-2 mb-4">
+                <div>
+                   <h2 class="text-xl font-bold uppercase tracking-tight text-[#1f3d64]">Informe Técnico Detallado</h2>
+                   <p class="text-xs text-[#6b7280]">Anexo de inspección visual y bitácora de trabajo</p>
+                </div>
+                <div class="text-right">
+                   <p class="text-[10px] font-mono text-[#9ca3af]">OT-{{ ot.id }} / {{ ot.vehiculo.marca }} {{ ot.vehiculo.modelo }}</p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-12 gap-4 mb-6">
+                <div class="col-span-4 rounded-lg p-3 border shadow-sm break-inside-avoid bg-[#f8fafc] border-[#f1f5f9]">
+                   <h4 class="font-bold uppercase text-[10px] mb-2 border-b pb-1 text-[#1f3d64] border-[#e2e8f0]">Inventario & Accesorios</h4>
+                   <ul class="space-y-1 text-[11px]">
+                     <li class="flex justify-between items-center">
+                        <span class="text-[#475569]">Documentos</span>
+                        <span :class="ot.trae_documentos ? 'text-[#16a34a] font-bold' : 'text-[#9ca3af]'">{{ ot.trae_documentos ? 'Sí' : 'No' }}</span>
+                      </li>
+                      <li class="flex justify-between items-center">
+                        <span class="text-[#475569]">Llaves</span>
+                        <span :class="ot.trae_llaves ? 'text-[#16a34a] font-bold' : 'text-[#9ca3af]'">{{ ot.trae_llaves ? 'Sí' : 'No' }}</span>
+                      </li>
+                      <li class="flex justify-between items-center">
+                        <span class="text-[#475569]">Candado Seg.</span>
+                        <span :class="ot.trae_candado_seguridad ? 'text-[#16a34a] font-bold' : 'text-[#9ca3af]'">{{ ot.trae_candado_seguridad ? 'Sí' : 'No' }}</span>
+                      </li>
+                      <li class="flex justify-between items-center">
+                        <span class="text-[#475569]">Panel Radio</span>
+                        <span :class="ot.trae_panel_radio ? 'text-[#16a34a] font-bold' : 'text-[#9ca3af]'">{{ ot.trae_panel_radio ? 'Sí' : 'No' }}</span>
+                      </li>
+                      <li class="flex justify-between items-center">
+                        <span class="text-[#475569]">Rueda Rep.</span>
+                        <span :class="ot.trae_rueda_repuesto ? 'text-[#16a34a] font-bold' : 'text-[#9ca3af]'">{{ ot.trae_rueda_repuesto ? 'Sí' : 'No' }}</span>
+                      </li>
+                      <li class="flex justify-between items-center">
+                        <span class="text-[#475569]">Encendedor</span>
+                        <span :class="ot.trae_encendedor ? 'text-[#16a34a] font-bold' : 'text-[#9ca3af]'">{{ ot.trae_encendedor ? 'Sí' : 'No' }}</span>
+                      </li>
+                   </ul>
+                </div>
+                
+                <div class="col-span-8 break-inside-avoid">
+                  <div class="grid grid-cols-2 gap-4 mb-3">
+                     <div class="border rounded shadow-sm text-center p-2 bg-[#f8fafc] border-[#f1f5f9]">
+                        <span class="block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Kilometraje</span>
+                        <span class="block text-lg font-bold mt-0.5 text-[#1f3d64]">{{ ot.kilometraje_inicial || '0' }} km</span>
+                     </div>
+                     <div class="border rounded shadow-sm text-center p-2 bg-[#f8fafc] border-[#f1f5f9]">
+                        <span class="block text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">Combustible</span>
+                        <div class="w-full rounded-full h-2 mt-1.5 mb-1 bg-[#e5e7eb]">
+                          <div class="h-2 rounded-full bg-[#22c55e]" :style="{ width: (ot.combustible_inicial || 0) + '%' }"></div>
+                        </div>
+                        <span class="block text-[11px] font-bold text-[#1f3d64]">{{ ot.combustible_inicial || '0' }}%</span>
+                     </div>
                   </div>
-                  <span class="block text-[11px] font-bold text-[#1f3d64]">{{ OrdenTrabajo.combustible_inicial || '0' }}%</span>
-               </div>
-            </div>
 
-            <div v-if="OrdenTrabajo.OT_fotos_ingreso && OrdenTrabajo.OT_fotos_ingreso.length > 0">
-               <h4 class="font-bold text-[#1f3d64] uppercase text-[10px] mb-1">Registro Fotográfico de Ingreso</h4>
-               <div class="flex gap-2 overflow-hidden h-24 bg-slate-100 p-1 rounded border border-slate-200">
-                  <div v-for="(item, index) in OrdenTrabajo.OT_fotos_ingreso.slice(0, 3)" :key="index" class="relative w-1/3 h-full">
-                     <img :src="item.url" crossorigin="anonymous" class="absolute inset-0 w-full h-full object-cover rounded-sm border border-slate-300">
+                  <div v-if="ot.OT_fotos_ingreso && ot.OT_fotos_ingreso.length > 0">
+                     <h4 class="font-bold uppercase text-[10px] mb-1 text-[#1f3d64]">Registro Fotográfico de Ingreso</h4>
+                     <div class="flex gap-2 overflow-hidden h-24 p-1 rounded border bg-[#f1f5f9] border-[#e2e8f0]">
+                        <div v-for="(item, index) in ot.OT_fotos_ingreso.slice(0, 3)" :key="index" class="relative w-1/3 h-full">
+                           <img :src="item.url" class="absolute inset-0 w-full h-full object-cover rounded-sm border border-[#cbd5e1]">
+                        </div>
+                     </div>
                   </div>
-               </div>
-            </div>
-            <div v-else class="h-24 bg-slate-50 rounded border border-dashed border-slate-300 flex items-center justify-center">
-               <span class="text-xs text-slate-400">Sin registro fotográfico de ingreso</span>
-            </div>
-          </div>
-        </div>
+                  <div v-else class="h-24 rounded border border-dashed flex items-center justify-center bg-[#f8fafc] border-[#cbd5e1]">
+                     <span class="text-xs text-[#94a3b8]">Sin registro fotográfico de ingreso</span>
+                  </div>
+                </div>
+              </div>
 
-          <div v-if="datosEstacionamiento.total > 0" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
-            <span class="font-medium">Estacionamiento</span>
-            <span>{{ formatoPesos(datosEstacionamiento.total) }}</span>
-          </div>
+              <div class="mt-4">
+                 <h3 class="flex items-center gap-3 text-sm font-bold uppercase border-b-2 pb-1 mb-3 break-inside-avoid text-[#1f3d64] border-[#1f3d64]">
+                    Bitácora de Trabajo
+                 </h3>
 
-          <div class="flex justify-between items-center bg-[#1f3d64] text-[#ffffff] p-3 rounded mt-2">
-            <span class="font-bold text-md">TOTAL FINAL</span>
-            <span class="font-bold text-md">{{ formatoPesos(totalFinalCalculado) }}</span>
-          </div>
-        <div class="mt-4">
-           <h3 class="flex items-center gap-3 text-sm font-bold text-[#1f3d64] uppercase border-b-2 border-[#1f3d64] pb-1 mb-3">
-              <span class="bg-[#1f3d64] text-white w-5 h-5 flex items-center justify-center rounded text-[10px]">✔</span>
-              Bitácora de Trabajo
-           </h3>
-
-           <div v-if="bitacoraFiltrada.length > 0" class="space-y-3">
-              <div v-for="(item, index) in bitacoraFiltrada" :key="index" class="flex gap-3">
-                 <div class="flex flex-col items-center">
-                    <div class="w-1.5 h-1.5 rounded-full bg-[#1f3d64] mt-2"></div>
-                    <div class="w-px h-full bg-slate-200 my-1" v-if="index !== bitacoraFiltrada.length - 1"></div>
-                 </div>
-                 <div class="flex-1 border border-l-4 border-l-[#1f3d64] border-gray-100 p-2 rounded shadow-sm">
-                    <div class="flex justify-between items-start mb-1">
-                       <p class="text-[11px] font-bold text-gray-800 uppercase">Hallazgo</p>
-                       <span class="text-[9px] text-gray-400 bg-gray-50 px-2 py-0.5 rounded">{{ formatoFecha(item.created_at) }}</span>
-                    </div>
-                    <p class="text-[11px] text-gray-600 leading-snug mb-2">{{ item.observacion }}</p>
-                    
-                    <div v-if="item.fotos && item.fotos.length > 0" class="flex gap-2 mt-1 pt-2 border-t border-dashed border-gray-100">
-                       <img v-for="(foto, fIdx) in item.fotos" :key="fIdx" :src="foto.url" class="w-16 h-16 object-cover rounded border border-gray-200">
+                 <div v-if="ot.OT_bitacora && ot.OT_bitacora.length > 0">
+                    <div v-for="(item, index) in ot.OT_bitacora.filter(e => e.observacion)" :key="index" class="flex gap-3 mb-4 break-inside-avoid">
+                       <div class="flex flex-col items-center">
+                          <div class="w-2 h-2 rounded-full mt-2 bg-[#1f3d64]"></div>
+                          <div class="w-px flex-grow my-1 bg-[#e2e8f0]" v-if="index !== ot.OT_bitacora.length - 1"></div>
+                       </div>
+                       <div class="flex-1 border border-l-4 p-3 rounded shadow-sm bg-white border-[#f3f4f6] border-l-[#1f3d64]">
+                          <div class="flex justify-between items-start mb-2">
+                             <p class="text-[11px] font-bold uppercase text-[#1f2937]">Detalle de actividad</p>
+                             <span class="text-[9px] px-2 py-0.5 rounded font-mono text-[#9ca3af] bg-[#f9fafb]">{{ formatoFecha(item.created_at) }}</span>
+                          </div>
+                          <p class="text-[11px] leading-snug mb-3 text-[#4b5563]">{{ item.observacion }}</p>
+                          
+                          <div v-if="item.fotos && item.fotos.length > 0" class="flex gap-2 mt-1 pt-2 border-t border-dashed border-[#f3f4f6]">
+                             <img v-for="(foto, fIdx) in item.fotos" :key="fIdx" :src="foto.url" class="w-20 h-20 object-cover rounded border shadow-sm border-[#e5e7eb]">
+                          </div>
+                       </div>
                     </div>
                  </div>
+                 
+                 <div v-else class="text-center py-2 rounded border border-dashed break-inside-avoid bg-[#f8fafc] border-[#f1f5f9]">
+                    <p class="text-xs italic text-[#94a3b8]">No se registraron hallazgos adicionales para este vehículo.</p>
+                 </div>
               </div>
-           </div>
-           
-           <div v-else class="text-center py-6 bg-slate-50 rounded border border-slate-100">
-              <p class="text-xs text-slate-400">No se registraron hallazgos adicionales.</p>
-           </div>
-        </div>
 
-        <div class="absolute bottom-6 left-0 w-full px-10">
-           <div class="flex justify-between items-end pt-4 border-t border-gray-300">
-              <div class="text-center w-40">
-                 <div class="h-8 mb-1"></div> 
-                 <p class="text-[10px] border-t border-gray-400 pt-1 font-bold text-[#1f3d64]">Firma Responsable Taller</p>
+              <div class="mt-6 pt-4 text-center border-t break-inside-avoid border-[#f3f4f6]">
+                <p class="text-[9px] uppercase tracking-widest font-bold text-[#9ca3af]">
+                  ServiML • Soluciones Automotrices de Confianza
+                </p>
               </div>
-              <div class="text-center w-40">
-                 <div class="h-8 mb-1"></div> 
-                 <p class="text-[10px] border-t border-gray-400 pt-1 font-bold text-[#1f3d64]">Firma Cliente</p>
-              </div>
-           </div>
-        </div>
-
+            </div>
+          </div>
+        </template>
       </div>
     </div>
   </div>
 </template>
+
 <style scoped>
 .html2pdf__page-break {
   page-break-before: always;
   break-before: always;
   height: 0;
   display: block;
+  margin: 0;
+  padding: 0;
 }
 
 #elemento-a-imprimir {
