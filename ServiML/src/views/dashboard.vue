@@ -53,6 +53,20 @@ const verTablero = () => {
 const verOT = (id) => {
   router.push({ name: 'ver-orden-de-trabajo', params: { id } })
 }
+const metricas = ref({
+  ocupacion_actual: 0,
+  ticket_promedio: 0,
+  porcentaje_a_tiempo: 0,
+  porcentaje_rechazos: 0
+})
+
+const formatoMoneda = (valor) => {
+  return new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    minimumFractionDigits: 0
+  }).format(valor)
+}
 
 const formatoLocal = (fecha) => {
   const y = fecha.getFullYear()
@@ -88,35 +102,23 @@ const cambiarTaller = async () => {
   await traerFichas()
 }
 
-const traerFichas = async () => {
-  try {
-    const { data, error } = await supabase.from('ficha_de_trabajo').select('*').eq('estado', 1).eq('id_taller', tallerSeleccionado.value)
-    if (error) throw error
-    fichas.value = data
-  } catch (error) {
-    console.error('Error al obtener fichas:', error)
+
+
+
+const traerTodo = async () => {
+  const {data,error} = await supabase.from('ficha_de_trabajo')
+  .select(`*, presupuesto_ficha(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
+  .eq('id_taller', tallerSeleccionado.value)
+  if (error) {
+    console.error('Error al traer datos de la ficha:', error)
   }
+  fichas.value=data
 }
-
-const metricas = ref({
-  ocupacion_actual: 0,
-  ticket_promedio: 0,
-  porcentaje_a_tiempo: 0,
-  porcentaje_rechazos: 0
-})
-
-const formatoMoneda = (valor) => {
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0
-  }).format(valor)
-}
-
 onMounted(async () => {
   interfaz.showLoading()
   await obtenerTalleres()
   await traerFichas()
+  await traerTodo()
   interfaz.hideLoading()
 })
 </script>

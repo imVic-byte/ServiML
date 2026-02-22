@@ -212,22 +212,14 @@ const handleVerificarInformeFinal = async () => {
   return data && data.length > 0
 }
 
-const opciones = {
-    margin: [0, 0, 0, 0],
-    filename: `InformeFinal_${presupuesto.value?.numero_folio}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, // El scale 2 evita que se vea borroso
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }, // Esta línea es CLAVE
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
+
 
 const generarPDF = () => {
-  const elemento = document.getElementById('elemento-a-imprimir')
-  if (!elemento) return
-  html2pdf().set(opciones).from(elemento).save();
+  window.print()
 }
-const estados = ref([])
 
+
+const estados = ref([])
 
 const obtenerEstados = async () => {
   const {data, error} = await supabase.from('tabla_estados_ficha').select('*')
@@ -261,7 +253,7 @@ onMounted(async () => {
   <div class="min-h-screen font-sans bg-white print:absolute print:inset-0 print:z-[9999] print:bg-white">
     
     <div class="print:hidden">
-      <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" />
+      <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" class="navbar" />
       <div class="mt-4 flex w-[70%] mx-auto justify-between">
         <Volver />
         <button @click="generarPDF" class="ml-4 px-4 py-2 bg-[#1f3d64] text-white rounded-lg transition-colors">
@@ -275,9 +267,10 @@ onMounted(async () => {
       <p class="font-bold text-lg">Generando y enviando informe...</p>
       <p class="text-sm opacity-80">Por favor espera un momento.</p>
     </div>
+    <div class="mt-10 mb-10">
     <div 
       id="elemento-a-imprimir" 
-      class="w-[70%] mx-auto mt-10 rounded-md shadow-lg mb-10 overflow-hidden border border-[#dcfce7] bg-white print:w-full print:max-w-none print:m-0 print:border-none print:shadow-none"
+      class="mx-auto overflow-hidden bg-white print:w-full print:max-w-none print:m-0 print:border-none print:shadow-none"
     >
       <div class="px-4 py-2 max-w-[21cm] mx-auto text-xs font-sans leading-normal">
         
@@ -300,7 +293,7 @@ onMounted(async () => {
             <p class="mt-1 text-[11px] text-[#6b7280]">
                 Fecha: {{ formatoFecha(informeFinal?.created_at) }}
             </p>
-            <div :style="{backgroundColor: handleEstados(ficha?.estado).color}" class="mt-2 inline-block text-white px-2 py-1 rounded font-bold text-[10px] uppercase">
+            <div :style="{backgroundColor: handleEstados(ficha?.estado).color}" class="mt-2 pb-2 inline-block text-white px-2 py-1 rounded font-bold text-[10px] uppercase">
               {{ handleEstados(ficha?.estado).estado }}
             </div>
           </div>
@@ -349,7 +342,7 @@ onMounted(async () => {
                    {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} {{ orden.vehiculo.anio }}
                  </p>
                  <p class="text-xs mt-1 text-[#4b5563]">
-                   Patente: <span class="font-bold px-1 rounded bg-[#fef9c3]">{{ orden.vehiculo.patente }}</span>
+                   Patente: <span class="font-bold px-1 rounded pb-2 bg-[#fef9c3]">{{ orden.vehiculo.patente }}</span>
                  </p>
                  <p class="text-[10px] mt-1 text-[#6b7280]">KM Entrada: {{ orden.kilometraje_inicial || '---' }}</p>
                  <p class="text-[10px] mt-1 text-[#6b7280]">Diagnostico: {{ orden.diagnostico || '---' }}</p>
@@ -428,10 +421,8 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-
-        <template v-for="ot in ficha?.orden_trabajo" :key="ot.id">
-          <div class="html2pdf__page-break"></div>
-          <div class="bg-white pt-4 relative">
+        <template v-for="ot in ficha?.orden_trabajo" :key="ot.id" >
+          <div class="bg-white relative" style="page-break-before: always;">
             <div class="w-full h-2 bg-[#1f3d64]"></div>
             
             <div class="p-5">
@@ -544,6 +535,7 @@ onMounted(async () => {
           </div>
         </template>
       </div>
+    </div>
     </div>
   </div>
 </template>
