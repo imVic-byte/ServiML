@@ -253,7 +253,7 @@ onMounted(async () => {
   <div class="min-h-screen font-sans bg-white print:absolute print:inset-0 print:z-[9999] print:bg-white">
     
     <div class="print:hidden">
-      <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" />
+      <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" class="navbar" />
       <div class="mt-4 flex w-[70%] mx-auto justify-between">
         <Volver />
         <button @click="generarPDF" class="ml-4 px-4 py-2 bg-[#1f3d64] text-white rounded-lg transition-colors">

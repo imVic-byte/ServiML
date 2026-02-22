@@ -127,15 +127,7 @@ const handleVerificarPresupuesto = async () => {
 }
 
 const generarPDF = () => {
-  const elemento = document.getElementById('elemento-a-imprimir');
-  const opciones = {
-    margin:       0,
-    filename:     `Presupuesto_${presupuesto.value.numero_folio}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true },
-    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-  };
-  html2pdf().set(opciones).from(elemento).save();
+  window.print()
 }
 
 
@@ -148,13 +140,13 @@ onMounted(async () => {
   if (route.query.generar === 'true') {
     await generarPresupuesto()
   }
-  console.log(presupuesto.value)
   interfaz.hideLoading()
 })
 </script>
 
 <template>
   <div class="servi-white min-h-screen font-sans">
+    <div class="print:hidden mb-10">
     <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Presupuesto" class="navbar" />
     <div class="mt-4 flex w-[70%] mx-auto justify-between">
       <Volver />
@@ -162,10 +154,11 @@ onMounted(async () => {
         Generar PDF
       </button>
     </div>
-  <div class="border border-green-100 w-[70%] mx-auto mt-10 rounded-md">
+    </div>
+  <div class="mx-auto">
   <div 
     id="elemento-a-imprimir" 
-    class="bg-[#ffffff] text-[#000000] p-10 max-w-[21cm] min-h-[27.9cm] mx-auto text-xs font-sans leading-normal"
+    class="bg-[#ffffff] text-[#000000] max-w-[21cm] mx-auto text-xs font-sans leading-normal"
     style="background-color: #ffffff;"
   >
     
