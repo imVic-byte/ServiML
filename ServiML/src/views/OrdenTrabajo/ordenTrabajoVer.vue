@@ -362,7 +362,6 @@ const obtenerOrden = async () => {
   }
   manejarBloqueo(false);
   await handleIsCerrado(orden.value.estado_actual_id);
-  console.log(orden.value);
 };
 
 const obtenerEstados = async () => {

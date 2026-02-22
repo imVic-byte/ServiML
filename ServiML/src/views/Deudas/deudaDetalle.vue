@@ -6,7 +6,7 @@ import navbar from "../../components/componentes/navbar.vue";
 import modal from "../../components/componentes/modal.vue";
 import {useInterfaz} from '../../stores/interfaz'
 import { subirAbonos } from '../../js/subirAbonos'
-
+import volver from '../../components/componentes/volverListaDeudas.vue'
 const route = useRoute();
 const router = useRouter();
 const deudaId = route.params.id;
@@ -27,7 +27,7 @@ const showModalAbono = ref(false);
 const showConfig = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 
-const nuevoAbono = ref(0);
+const nuevoAbono = ref('');
 const abonoObs = ref("");
 const archivoAbono = ref(null);
 
@@ -60,31 +60,6 @@ const activarInputAbono = () => {
 const diasNotificacion = ref(0);
 const procesandoNotificacion = ref(false);
 
-// --- CÁLCULOS ---
-const totalEstacionamiento = computed(() => {
-  return FichasEnDeuda.value.reduce((acc, item) => {
-    return acc + calcularEstacionamientoFicha(item);
-  }, 0);
-});
-
-
-const calcularEstacionamientoFicha = (ficha) => {
-  if (!ficha?.fecha_estacionamiento) return 0;
-
-  const fechaInicio = new Date(ficha.fecha_estacionamiento);
-  const fechaFin = ficha.fecha_termino_estacionamiento
-    ? new Date(ficha.fecha_termino_estacionamiento)
-    : new Date();
-
-  const diasTotales = Math.ceil((fechaFin - fechaInicio) / (1000 * 60 * 60 * 24));
-  let diasACobrar = diasTotales - 3;  
-
-  if (diasACobrar < 0) diasACobrar = 0;
-
-  return diasACobrar * 5000;
-};
-
-
 const totalDeuda = computed(() => {
   return FichasEnDeuda.value.reduce((acc, item) => {
     const presupuesto = Array.isArray(item.presupuesto_ficha) 
@@ -111,7 +86,6 @@ const porcentajePagado = computed(() => {
 
 const esCompletada = computed(() => deuda.value?.estado === "completada");
 
-// --- HELPERS UI ---
 const estadoDeudaUI = computed(() => {
   const esPendiente = (deuda.value?.estado || "").toLowerCase() === "pendiente";
   return {
@@ -140,7 +114,6 @@ const formatearFecha = (fechaString) => {
   });
 };
 
-// --- CARGA DE DATOS ---
 const cargarDatos = async () => {
   loading.value = true;
   const { data: dataDeuda, error } = await supabase
@@ -203,6 +176,7 @@ const buscarFichasDisponibles = async () => {
     .from("ficha_de_trabajo")
     .select("*, cliente(*), presupuesto_ficha(*)")
     .is("id_deuda", null)
+    .eq('presupuesto',true)
     .order("id", { ascending: false });
   if (errDisponibles) {
     modalState.value = {
@@ -434,7 +408,7 @@ const eliminarFichaDeuda = async (item) => {
   }
 
   const { error } = await supabase
-    .from("ficha_de_trabajo") // Cambiado de "orden_trabajo"
+    .from("ficha_de_trabajo")
     .update({ id_deuda: null })
     .eq("id", item.id);
 
@@ -458,7 +432,6 @@ const eliminarFichaDeuda = async (item) => {
   };
 };
 
-
 const pedirConfirmacionCompletar = async () => {
   if (!puedeCompletar.value) {
     modalState.value = {
@@ -481,7 +454,8 @@ const completarDeuda = async () => {
     .from("deudas")
     .update({
       estado: "completada",
-      notificar_cada: 0
+      notificar_cada: 0,
+      total: totalDeuda.value,
     })
     .eq("id", deuda.value.id);
   if (!error) {
@@ -511,8 +485,8 @@ onMounted(cargarDatos);
     <div v-if="loading" class="flex justify-center mt-10">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-700"></div>
     </div>
-
     <div v-else class="max-w-7xl mx-auto px-4 py-8">
+      <volver></volver>
       <div class="servi-adapt-bg card-shadow border border-gray-100 overflow-hidden mb-8">
         <div class="p-6 md:p-8 flex justify-between items-start flex-wrap gap-4 servi-blue">
           <div class="flex flex-col gap-2">
@@ -655,7 +629,7 @@ onMounted(cargarDatos);
                 </RouterLink>
 
                 <!-- Botón eliminar ahora a la derecha -->
-                <button type="button" @click.stop="eliminarFichaDeuda(item)" class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
+                <button type="button" v-if="!esCompletada" @click.stop="eliminarFichaDeuda(item)" class="p-2 rounded-full border border-gray-200 bg-white shadow-sm
            hover:bg-red-50 hover:border-red-200 transition" title="Eliminar Ficha" aria-label="Eliminar Ficha">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-600" viewBox="0 0 20 20"
                     fill="currentColor">

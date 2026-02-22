@@ -104,12 +104,8 @@ onMounted( async () => {
       titulo="ServiML"
       subtitulo="Gestión de Cotizaciones"
       class="sticky top-0 z-50"
-      searchInput="true"
-      @buscar="handleBusqueda"
     />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-      <!-- Stats Desktop -->
       <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
         <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
             <p class="text-xs servi-grey-font uppercase font-bold">Total / mes</p>
@@ -258,7 +254,7 @@ onMounted( async () => {
               <span class="label">Emisión:</span>
               <span class="valor">{{ formatearFecha(item.created_at) }}</span>
             </div>
-            <div class="info-row" v-if="item.cliente">
+            <div class="info-row">
               <span class="label">Cliente:</span>
               <span class="valor">{{ camelCase(item.nombre) + ' ' + camelCase(item.apellido) }}</span>
             </div>
