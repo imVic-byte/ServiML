@@ -1,11 +1,12 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, nextTick } from 'vue';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter, useRoute } from 'vue-router';
 import { useInterfaz } from '@/stores/interfaz';
 import Navbar from '@/components/componentes/navbar.vue';
 import html2pdf from 'html2pdf.js';
 import Volver from '@/components/componentes/volver.vue';
+import { subirFacturas } from '@/js/subirFacturas.js';
 const route = useRoute()
 const router = useRouter()
 const interfaz = useInterfaz()
@@ -90,6 +91,7 @@ const totalFinalFinal = computed(() => {
 const generarPresupuesto = async () => {
   const yaExiste = await handleVerificarPresupuesto()
   if (yaExiste) {
+    console.log('Ya existe un presupuesto para esta ficha')
     return
   }
   if (!ficha.value || !cotizacion.value) {
@@ -108,11 +110,12 @@ const generarPresupuesto = async () => {
   if (error) {
     return
   }
+  presupuesto.value = data
+  await nextTick()
   await supabase
     .from('ficha_de_trabajo')
     .update({presupuesto:true})
     .eq('id', ficha.value.id)
-
   const folio = data?.numero_folio || data?.id || 'sin-folio';
   const opciones = {
     margin:       0,
@@ -125,39 +128,25 @@ const generarPresupuesto = async () => {
   const elemento = document.getElementById('elemento-a-imprimir');
   const pdfBlob = await html2pdf().set(opciones).from(elemento).output('blob');
 
-  let urlDescarga = null;
-  try {
-    const formData = new FormData();
-    formData.append('file', pdfBlob, `Presupuesto_Folio_${folio}.pdf`);
-    formData.append('numero_folio', folio);
-    
-    const res = await fetch('https://upload-pdf.soporte-serviml.workers.dev/', {
-      method: 'POST',
-      body: formData
-    });
-    
-    if (res.ok) {
-      const dataWorker = await res.json();
-      urlDescarga = dataWorker.url;
-    }
-  } catch (err) {
+  const { exito, url, error:errorFactura } = await subirFacturas(data.id, pdfBlob)
+  if (!exito) {
+    console.error('Error al subir la factura:', errorFactura)
+    return
   }
-
-  if (ficha.value.cliente?.email && urlDescarga) {
+  if (ficha.value.cliente?.email && url) {
     try {
       await supabase.functions.invoke('enviar-presupuesto', {
         body: {
           emailCliente: ficha.value.cliente.email,
           nombreCliente: ficha.value.cliente.nombre,
           apellidoCliente: ficha.value.cliente.apellido,
-          urlPdf: urlDescarga, 
+          urlPdf: url,
           folio: folio
         }
       })
     } catch (err) {
     }
   }
-  await cargarDatos()
 }
 
 const presupuesto = ref(null)
@@ -183,7 +172,7 @@ const cargarDatos = async () => {
 }
 
 const handleVerificarPresupuesto = async () => {
-  const {data, error} = await supabase.from('presupuesto').select('*').eq('id_ficha', route.params.id)
+  const {data, error} = await supabase.from('presupuesto_ficha').select('*').eq('id_ficha', route.params.id)
   if (error) {
     console.error('Error al verificar presupuesto:', error)
     return false

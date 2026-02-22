@@ -250,7 +250,7 @@ onMounted(async () => {
 })
 </script>
 <template>
-  <div class="min-h-screen font-sans bg-white print:absolute print:inset-0 print:z-[9999] print:bg-white">
+  <div class="min-h-screen servi-white font-sans print:absolute print:inset-0 print:z-[9999] print:bg-white">
     
     <div class="print:hidden">
       <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" class="navbar" />
@@ -267,12 +267,12 @@ onMounted(async () => {
       <p class="font-bold text-lg">Generando y enviando informe...</p>
       <p class="text-sm opacity-80">Por favor espera un momento.</p>
     </div>
-    <div class="mt-10 mb-10">
+    <div class="mx-auto">
     <div 
       id="elemento-a-imprimir" 
-      class="mx-auto overflow-hidden bg-white print:w-full print:max-w-none print:m-0 print:border-none print:shadow-none"
+      class="mx-auto overflow-hidden max-w-[21cm] max-w-[21cm] bg-white print:w-full print:max-w-none print:m-0 print:border-none print:shadow-none"
     >
-      <div class="px-4 py-2 max-w-[21cm] mx-auto text-xs font-sans leading-normal">
+      <div class="px-4 py-2  mx-auto text-xs font-sans leading-normal">
         
         <div class="flex justify-between pb-4 mb-4 border-b-4 border-[#1f3d64]">
           <div class="flex items-center gap-2">
@@ -429,7 +429,7 @@ onMounted(async () => {
               <div class="flex justify-between items-end border-b border-[#e5e7eb] pb-2 mb-4">
                 <div>
                    <h2 class="text-xl font-bold uppercase tracking-tight text-[#1f3d64]">Informe Técnico Detallado</h2>
-                   <p class="text-xs text-[#6b7280]">Anexo de inspección visual y bitácora de trabajo</p>
+                   <p class="text-xs text-[#6b7280]">Anexo de inspección visual y bitácora de hallazgos</p>
                 </div>
                 <div class="text-right">
                    <p class="text-[10px] font-mono text-[#9ca3af]">OT-{{ ot.id }} / {{ ot.vehiculo.marca }} {{ ot.vehiculo.modelo }}</p>
@@ -498,7 +498,7 @@ onMounted(async () => {
 
               <div class="mt-4">
                  <h3 class="flex items-center gap-3 text-sm font-bold uppercase border-b-2 pb-1 mb-3 break-inside-avoid text-[#1f3d64] border-[#1f3d64]">
-                    Bitácora de Trabajo
+                    Bitácora de hallazgos
                  </h3>
 
                  <div v-if="ot.OT_bitacora && ot.OT_bitacora.length > 0">
@@ -509,7 +509,7 @@ onMounted(async () => {
                        </div>
                        <div class="flex-1 border border-l-4 p-3 rounded shadow-sm bg-white border-[#f3f4f6] border-l-[#1f3d64]">
                           <div class="flex justify-between items-start mb-2">
-                             <p class="text-[11px] font-bold uppercase text-[#1f2937]">Detalle de actividad</p>
+                             <p class="text-[11px] font-bold uppercase text-[#1f2937]">Hallazgo {{ index + 1 }}</p>
                              <span class="text-[9px] px-2 py-0.5 rounded font-mono text-[#9ca3af] bg-[#f9fafb]">{{ formatoFecha(item.created_at) }}</span>
                           </div>
                           <p class="text-[11px] leading-snug mb-3 text-[#4b5563]">{{ item.observacion }}</p>

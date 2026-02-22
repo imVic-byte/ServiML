@@ -214,7 +214,6 @@ const cargarCotizacion = async () => {
   } else {
     console.error(error);
   }
-  console.log(items.value)
   interfaz.hideLoading();
 }
 

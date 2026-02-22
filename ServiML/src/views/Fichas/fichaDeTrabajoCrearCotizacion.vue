@@ -72,11 +72,29 @@ const validarFormulario = () => {
     modalState.value = { visible: true, titulo: "Sin servicios", mensaje: "Agrega al menos un servicio o repuesto.", exito: false };
     return false;
   }
-  for (const item of items.value) {
-    if (!item.descripcion || !item.monto || Number(item.monto) <= 0) {
-      modalState.value = { visible: true, titulo: "Item incompleto", mensaje: "Todos los items deben tener descripción y un monto válido.", exito: false };
+  for (let i = 0; i < items.value.length; i++) {
+    const item = items.value[i]
+    if (!item.descripcion || !item.descripcion.trim()) {
+      modalState.value = { visible: true, titulo: "Descripción vacía", mensaje: `El item #${i + 1} no tiene descripción.`, exito: false };
       return false;
     }
+    if (!item.monto || Number(item.monto) <= 0) {
+      modalState.value = { visible: true, titulo: "Monto inválido", mensaje: `El item "${item.descripcion}" debe tener un monto mayor a $0.`, exito: false };
+      return false;
+    }
+    if (!item.cantidad || Number(item.cantidad) < 1) {
+      modalState.value = { visible: true, titulo: "Cantidad inválida", mensaje: `El item "${item.descripcion}" debe tener una cantidad de al menos 1.`, exito: false };
+      return false;
+    }
+  }
+  const dsc = Number(descuentoPorcentaje.value) || 0
+  if (dsc < 0 || dsc > 100) {
+    modalState.value = { visible: true, titulo: "Descuento inválido", mensaje: "El descuento debe estar entre 0% y 100%.", exito: false };
+    return false;
+  }
+  if (totales.value.total_final <= 0) {
+    modalState.value = { visible: true, titulo: "Total inválido", mensaje: "El total final debe ser mayor a $0.", exito: false };
+    return false;
   }
   return true;
 };
@@ -190,18 +208,18 @@ onMounted(async () => {
               <div class="group relative">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Nombre</label>
-                <p>{{toCamelCase(nombre) }}</p>
+                <p class="servi-grey-font">{{toCamelCase(nombre) }}</p>
               </div>
               <div class="group">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Apellido</label>
-                <p>{{toCamelCase(apellido) }}</p>
+                <p class="servi-grey-font">{{toCamelCase(apellido) }}</p>
               </div>
               <div class="md:col-span-2 group">
                 <label
                   class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Diagnóstico
                   / Descripción</label>
-                <p>{{ diagnostico }}</p>
+                <p class="servi-grey-font">{{ diagnostico }}</p>
               </div>
               <div>
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1 transition-colors group-focus-within:text-blue-800">Comentarios adicionales</label>
