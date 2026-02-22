@@ -68,16 +68,20 @@ const obtenerTalleres = async () => {
     }))
     for (const taller of talleres.value) {
       const { data: otData } = await supabase
-        .from('orden_trabajo')
-        .select('*, vehiculo(*)')
+        .from('ficha_de_trabajo')
+        .select('id, orden_trabajo!inner(id)', { count: 'exact' })
+        .in('estado', [1, 2, 3, 4, 5])
         .eq('id_taller', taller.id)
       if (otData && otData.length > 0) {
-        const enTaller = otData.filter(ot => ot.vehiculo?.en_taller).length
+        const enTaller = otData.reduce((total, ficha) => {
+    return total + (Array.isArray(ficha.orden_trabajo) ? ficha.orden_trabajo.length : 1)
+  }, 0)
         taller.porcentaje = (enTaller / taller.capacidad_maxima) * 100
       }
     }
   }
 }
+
 
 const mostrarModalTaller = ref(false)
 const tallerEditando = ref(null)
@@ -326,9 +330,12 @@ const obtenerDatosEmpresa = async () => {
   if (tels && tels.length > 0) {
     empresa.value.telefonos = tels.map(t => ({
       id: t.id,
-      valor: t.telefono,
+      valor: extraerNumeroSinPrefijo(t.telefono || ''),
       prioritario: t.prioritario || false
     }))
+    // Asegurar que solo 1 sea prioritario
+    const prioIndex = empresa.value.telefonos.findIndex(t => t.prioritario)
+    empresa.value.telefonos.forEach((t, i) => t.prioritario = i === (prioIndex >= 0 ? prioIndex : 0))
   }
 }
 
@@ -376,9 +383,12 @@ const guardarTelefonos = async () => {
   // Insertar los que tengan valor
   const telsValidos = empresa.value.telefonos.filter(t => t.valor.trim() !== '')
   if (telsValidos.length === 0) return
+  // Asegurar solo 1 prioritario
+  const prioIndex = telsValidos.findIndex(t => t.prioritario)
+  telsValidos.forEach((t, i) => t.prioritario = i === (prioIndex >= 0 ? prioIndex : 0))
   const filas = telsValidos.map(t => ({
     id_serviml: 1,
-    telefono: t.valor,
+    telefono: '+569 ' + t.valor.replace(/\D/g, '').slice(-8),
     prioritario: t.prioritario
   }))
   const { error } = await supabase.from('serviml_telefono').insert(filas)
@@ -387,6 +397,14 @@ const guardarTelefonos = async () => {
 
 const agregarTelefono = () => {
   empresa.value.telefonos.push({ valor: '', prioritario: false })
+}
+
+// Extrae los últimos 8 dígitos del teléfono (sin el prefijo +569)
+const extraerNumeroSinPrefijo = (telefono) => {
+  const soloDigitos = telefono.replace(/\D/g, '')
+  // Si tiene 11 dígitos (569XXXXXXXX), tomar los últimos 8
+  if (soloDigitos.length >= 9) return soloDigitos.slice(-8)
+  return soloDigitos
 }
 const eliminarTelefono = async (index) => {
   const tel = empresa.value.telefonos[index]
@@ -556,15 +574,19 @@ onMounted(async () => {
                     </svg>
                   </button>
                   <div class="flex-1">
-                    <input
-                      v-if="editandoEmpresa"
-                      v-model="tel.valor"
-                      type="tel"
-                      class="block w-full rounded-lg border border-gray-100 px-3 py-2.5 text-sm servi-blue text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                      placeholder="+56 9 1234 5678"
-                    />
+                    <div v-if="editandoEmpresa" class="flex items-center rounded-lg border border-gray-100 servi-blue overflow-hidden">
+                      <span class="px-3 py-2.5 text-sm text-gray-300 font-semibold select-none border-r border-gray-600">+569 </span>
+                      <input
+                        v-model="tel.valor"
+                        type="tel"
+                        maxlength="8"
+                        class="block w-full px-3 py-2.5 text-sm servi-blue text-white focus:outline-none transition bg-transparent"
+                        placeholder="12345678"
+                        @input="tel.valor = tel.valor.replace(/\D/g, '').slice(0, 8)"
+                      />
+                    </div>
                     <p v-else class="text-white font-medium text-sm servi-blue rounded-lg px-3 py-2.5">
-                      {{ tel.valor || '—' }}
+                      {{ tel.valor ? '+569 ' + tel.valor : '—' }}
                     </p>
                   </div>
                   <span v-if="!editandoEmpresa && tel.prioritario" class="text-xs font-semibold servi-yellow servi-grey-font px-2 py-0.5 rounded-full whitespace-nowrap">Principal</span>
