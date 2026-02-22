@@ -13,7 +13,7 @@ const interfaz = useInterfaz()
 const route = useRoute()
 const router = useRouter()
 const cotizacion = ref(null)
-const n_cotizacion = ref()
+const n_cotizacion = ref(route.query.numero)
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true })
 const confirmada = ref(false)
 const isPendiente = computed(() => cotizacion.value.estado === 1 || cotizacion.value.estado === 4)
@@ -96,7 +96,6 @@ const cargarDatos = async () => {
       .single()
     if (data) {
         cotizacion.value = data
-        n_cotizacion.value = data.id
         confirmada.value = data.estado === 2
     } else {
         console.log(error)
@@ -258,7 +257,7 @@ onMounted(async () => {
             </div>
         </div>
         <div class="fixed left-[-9999px] top-0">
-            <pdf :cotizacion="cotizacion" :cuentaSeleccionada="cuentaSeleccionada" />
+            <pdf :cotizacion="cotizacion" :cuentaSeleccionada="cuentaSeleccionada" :numero="n_cotizacion"/>
         </div>
 
         <modal 
