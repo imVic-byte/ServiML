@@ -8,7 +8,10 @@ import OTcard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import volver from "../../components/componentes/volveraListaFicha.vue";
 import {useInterfaz} from '../../stores/interfaz.js'
 import { fechaHoyCorta } from '../../js/fechayhora.js'
+import {useUserStore} from '../../stores/user.js'
 
+const userStore = useUserStore()
+const tienePrivilegios = computed(() => userStore.havePrivileges)
 const router = useRouter()
 const route = useRoute()
 const interfaz = useInterfaz()
@@ -46,6 +49,7 @@ const estadoTemporal = ref(null)
 const procesandoEstadoFicha = ref(false)
 
 const isFichaBloqueada = computed(() => {
+  if (!tienePrivilegios.value) return true
   return ficha.value && (Number(ficha.value.estado) === 6 || Number(ficha.value.estado) === 7)
 })
 
@@ -576,7 +580,13 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div v-if="isFichaBloqueada" class="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 text-blue-800 rounded shadow-sm flex items-center gap-3">
+      <div v-if="isFichaBloqueada && !tienePrivilegios" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded shadow-sm flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <p class="font-bold">No tienes permisos para editar esta ficha. Modo solo lectura.</p>
+      </div>
+      <div v-else-if="isFichaBloqueada" class="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 text-blue-800 rounded shadow-sm flex items-center gap-3">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>

@@ -1,0 +1,3 @@
+id,created_at,banco,rut_titular,correo,tipo_cuenta,titular,numero_cuenta,id_serviml
+3,2026-02-17 13:55:36.270701+00,Banco Santander Chile,78.152.783-1,,Cuenta Corriente,ServiML,97766231,1
+4,2026-02-17 13:57:12.004969+00,Banco Santander Chile,21.284.609-0,,Cuenta Corriente,Martin Lopez,81773408,1

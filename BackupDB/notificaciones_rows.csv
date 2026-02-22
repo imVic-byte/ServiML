@@ -1,0 +1,16 @@
+id,created_at,id_empleado,titulo,contenido,leido,id_resource,tipo
+13,2026-02-17 14:05:02.661915+00,dd424484-ce81-4880-8918-808149911b70,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #15,false,15,notificacion
+14,2026-02-17 15:09:59.662692+00,dd424484-ce81-4880-8918-808149911b70,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #16,false,16,notificacion
+15,2026-02-17 15:47:48.027023+00,03647a5d-ca10-4eaa-b9d4-f8889aa0cdd3,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #19,false,19,notificacion
+16,2026-02-17 16:02:40.51545+00,22ace850-7561-424d-aab7-564ccd612a12,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #20,true,20,notificacion
+17,2026-02-18 17:44:13.444755+00,433fab12-b4c4-42e2-877d-87ec95a95363,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #25,true,25,notificacion
+18,2026-02-18 17:51:20.125612+00,dd424484-ce81-4880-8918-808149911b70,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #25,false,25,notificacion
+19,2026-02-18 18:10:06.168581+00,22ace850-7561-424d-aab7-564ccd612a12,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #19,false,19,notificacion
+20,2026-02-18 18:10:09.929552+00,03647a5d-ca10-4eaa-b9d4-f8889aa0cdd3,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #19,false,19,notificacion
+21,2026-02-18 18:14:18.423519+00,dd424484-ce81-4880-8918-808149911b70,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #26,false,26,notificacion
+22,2026-02-18 18:16:46.669883+00,433fab12-b4c4-42e2-877d-87ec95a95363,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #26,true,26,notificacion
+23,2026-02-18 18:19:38.214707+00,dd424484-ce81-4880-8918-808149911b70,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #27,false,27,notificacion
+24,2026-02-18 19:32:09.836931+00,433fab12-b4c4-42e2-877d-87ec95a95363,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #28,true,28,notificacion
+25,2026-02-18 19:43:26.490435+00,03647a5d-ca10-4eaa-b9d4-f8889aa0cdd3,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #29,false,29,notificacion
+26,2026-02-18 19:57:45.682272+00,22ace850-7561-424d-aab7-564ccd612a12,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #30,true,30,notificacion
+27,2026-02-19 12:51:44.872323+00,03647a5d-ca10-4eaa-b9d4-f8889aa0cdd3,Nueva Asignación de OT,Se te ha asignado la orden de trabajo #31,false,31,notificacion

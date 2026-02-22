@@ -1,0 +1,58 @@
+id,ot_id,nuevo_estado_id,tipo_evento,observacion,created_at
+69,15,1,Creacion de OT,,2026-02-17 14:03:07.40726
+70,15,10,Orden asignada a técnico,,2026-02-17 14:05:03.014011
+71,15,11,cambio_estado,,2026-02-17 14:05:13.625645
+72,15,2,cambio_estado,,2026-02-17 14:09:00.2019
+73,15,3,cambio_estado,,2026-02-17 14:09:03.77454
+74,15,6,cambio_estado,,2026-02-17 14:11:31.973804
+75,16,1,Creacion de OT,,2026-02-17 15:09:42.484031
+76,16,10,Orden asignada a técnico,,2026-02-17 15:09:59.928859
+77,16,7,cambio_estado,,2026-02-17 15:10:09.787792
+78,17,1,Creacion de OT,,2026-02-17 15:24:25.20284
+79,18,1,Creacion de OT,,2026-02-17 15:34:01.515144
+80,19,1,Creacion de OT,,2026-02-17 15:47:29.535699
+81,19,10,Orden asignada a técnico,,2026-02-17 15:47:48.285281
+82,19,,observacion,Rayon manilla puerta copiloto delantera,2026-02-17 15:53:09.008131
+83,19,3,cambio_estado,,2026-02-17 15:53:54.125569
+84,19,6,cambio_estado,,2026-02-17 15:54:37.053202
+85,20,1,Creacion de OT,,2026-02-17 16:02:30.011888
+86,20,10,Orden asignada a técnico,,2026-02-17 16:02:40.761121
+87,20,11,cambio_estado,,2026-02-17 16:03:39.848814
+88,20,2,cambio_estado,,2026-02-17 16:07:20.828012
+89,21,1,Creacion de OT,,2026-02-17 17:48:52.280846
+90,20,3,cambio_estado,,2026-02-17 18:33:29.68751
+91,22,1,Creacion de OT,,2026-02-17 19:05:23.654676
+92,23,1,Creacion de OT,,2026-02-18 16:09:11.994962
+93,24,1,Creacion de OT,,2026-02-18 17:29:39.594582
+94,25,1,Creacion de OT,,2026-02-18 17:43:57.881607
+95,25,10,Orden asignada a técnico,,2026-02-18 17:44:13.711088
+96,20,7,cambio_estado,,2026-02-18 17:49:08.397646
+97,25,6,cambio_estado,,2026-02-18 18:07:54.804815
+98,19,6,cambio a trabajador Maximiliano Castro,,2026-02-18 18:10:07.223448
+99,19,6,cambio a trabajador Cristobal Espinoza,,2026-02-18 18:10:10.808137
+100,26,1,Creacion de OT,,2026-02-18 18:14:02.567975
+101,26,10,Orden asignada a técnico,,2026-02-18 18:14:18.666305
+102,26,10,cambio a trabajador Daniel Rivera,,2026-02-18 18:16:47.385694
+103,27,1,Creacion de OT,,2026-02-18 18:19:31.280124
+104,27,10,Orden asignada a técnico,,2026-02-18 18:19:38.450776
+105,27,7,cambio_estado,,2026-02-18 18:19:44.037785
+106,27,6,cambio_estado,,2026-02-18 18:23:20.433881
+107,25,7,cambio_estado,,2026-02-18 18:26:30.360651
+108,27,7,cambio_estado,,2026-02-18 18:26:39.513499
+109,20,6,cambio_estado,,2026-02-18 18:29:32.043267
+110,20,7,cambio_estado,,2026-02-18 18:29:56.967174
+111,28,1,Creacion de OT,,2026-02-18 19:31:56.701769
+112,28,10,Orden asignada a técnico,,2026-02-18 19:32:10.153503
+113,29,1,Creacion de OT,,2026-02-18 19:43:08.613125
+114,29,10,Orden asignada a técnico,,2026-02-18 19:43:26.930777
+115,30,1,Creacion de OT,,2026-02-18 19:57:22.964494
+116,30,10,Orden asignada a técnico,,2026-02-18 19:57:46.055079
+117,30,3,cambio_estado,,2026-02-18 20:09:56.466642
+118,31,1,Creacion de OT,,2026-02-19 12:51:35.51421
+119,29,11,cambio_estado,,2026-02-19 12:51:37.975136
+120,31,10,Orden asignada a técnico,,2026-02-19 12:51:45.144537
+121,31,11,cambio_estado,,2026-02-19 12:52:13.799708
+122,32,1,Creacion de OT,,2026-02-19 12:54:41.792028
+123,31,3,cambio_estado,,2026-02-19 12:58:48.339405
+124,31,,observacion,"Varilla de la selectora rota ",2026-02-19 13:38:43.670759
+125,33,1,Creacion de OT,,2026-02-19 13:41:52.925493

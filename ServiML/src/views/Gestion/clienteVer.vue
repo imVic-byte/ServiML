@@ -15,6 +15,7 @@ const editando = ref(false)
 const vehiculos = ref([])
 const totalOT = ref(0)
 const totalPresupuestos = ref(0)
+const totalFichas = ref(0)
 
 const camelCase = (texto) => {
   if (!texto) return ''
@@ -38,40 +39,38 @@ const obtenerCliente = async () => {
   cliente.value = data
 }
 
-const obtenerVehiculos = async () => {
+const obtenerDatosCliente = async () => {
   const { data, error } = await supabase
-    .from('vehiculo')
-    .select('*')
+    .from('ficha_de_trabajo')
+    .select('id, orden_trabajo(id, vehiculo(id, patente, marca, modelo, en_taller)), presupuesto_ficha(id)')
     .eq('id_cliente', route.params.id)
   if (error) {
-    console.error('Error al obtener vehículos:', error)
+    console.error('Error al obtener datos del cliente:', error)
     return
   }
-  if (data) vehiculos.value = data
-}
-
-const contarOT = async () => {
-  const { count, error } = await supabase
-    .from('orden_trabajo')
-    .select('id', { count: 'exact', head: true })
-    .eq('cliente_id', route.params.id)
-  if (error) {
-    console.error('Error al contar OT:', error)
-    return
+  if (data) {
+    totalFichas.value = data.length
+    // Contar OTs totales
+    let otCount = 0
+    let presCount = 0
+    const vehiculosMap = new Map()
+    data.forEach(ficha => {
+      const ots = Array.isArray(ficha.orden_trabajo) ? ficha.orden_trabajo : (ficha.orden_trabajo ? [ficha.orden_trabajo] : [])
+      otCount += ots.length
+      // Presupuestos
+      const pres = Array.isArray(ficha.presupuesto_ficha) ? ficha.presupuesto_ficha : (ficha.presupuesto_ficha ? [ficha.presupuesto_ficha] : [])
+      presCount += pres.length
+      // Vehículos únicos
+      ots.forEach(ot => {
+        if (ot.vehiculo && !vehiculosMap.has(ot.vehiculo.id)) {
+          vehiculosMap.set(ot.vehiculo.id, ot.vehiculo)
+        }
+      })
+    })
+    totalOT.value = otCount
+    totalPresupuestos.value = presCount
+    vehiculos.value = Array.from(vehiculosMap.values())
   }
-  totalOT.value = count || 0
-}
-
-const contarPresupuestos = async () => {
-  const { count, error } = await supabase
-    .from('presupuesto')
-    .select('id', { count: 'exact', head: true })
-    .eq('id_cliente', route.params.id)
-  if (error) {
-    console.error('Error al contar presupuestos:', error)
-    return
-  }
-  totalPresupuestos.value = count || 0
 }
 
 const iniciarEdicion = () => {
@@ -113,9 +112,7 @@ const guardarCliente = async () => {
 onMounted(async () => {
   interfaz.showLoading()
   await obtenerCliente()
-  await obtenerVehiculos()
-  await contarOT()
-  await contarPresupuestos()
+  await obtenerDatosCliente()
   interfaz.hideLoading()
 })
 </script>
@@ -289,6 +286,10 @@ onMounted(async () => {
             <!-- Estadísticas -->
             <div class="grid grid-cols-2 gap-3">
               <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+                <p class="text-3xl font-bold servi-grey-font">{{ totalFichas }}</p>
+                <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Fichas de Trabajo</p>
+              </div>
+              <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
                 <p class="text-3xl font-bold servi-grey-font">{{ totalOT }}</p>
                 <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Órdenes de Trabajo</p>
               </div>
@@ -296,7 +297,7 @@ onMounted(async () => {
                 <p class="text-3xl font-bold servi-grey-font">{{ totalPresupuestos }}</p>
                 <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Presupuestos</p>
               </div>
-              <div class="col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
+              <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 text-center">
                 <p class="text-3xl font-bold servi-grey-font">{{ vehiculos.length }}</p>
                 <p class="text-xs servi-grey-font mt-1 uppercase font-semibold">Vehículos Registrados</p>
               </div>

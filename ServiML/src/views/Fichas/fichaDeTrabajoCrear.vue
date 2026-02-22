@@ -6,6 +6,7 @@ import navbar from "../../components/componentes/navbar.vue"
 import volver from "../../components/componentes/volveraListaFicha.vue"
 import modal from "../../components/componentes/modal.vue" // <-- IMPORTACIÓN AGREGADA
 import { useInterfaz } from '@/stores/interfaz'
+import { verificarCliente } from '@/js/verificarCliente'
 
 const router = useRouter()
 const interfaz = useInterfaz()
@@ -147,20 +148,15 @@ const guardarNuevaFicha = async () => {
   try {
     let idDelClienteFinal = clienteSeleccionado.value;
     if (!idDelClienteFinal) {
-      const { data: nuevoCliente, error: errCliente } = await supabase
-        .from('cliente')
-        .insert({
-          nombre: nombre.value.trim(),
-          apellido: apellido.value.trim(),
-          telefono: telefono.value.trim(),
-          email: correo.value.trim(),
-          codigo_pais: codigoPais.value
-        })
-        .select('id')
-        .single()
-
-      if (errCliente) throw new Error("Error al registrar el nuevo cliente: " + errCliente.message)
-      idDelClienteFinal = nuevoCliente.id
+      const resultado = await verificarCliente({
+        nombre: nombre.value.trim(),
+        apellido: apellido.value.trim(),
+        telefono: telefono.value.trim(),
+        email: correo.value.trim(),
+        codigo_pais: codigoPais.value
+      })
+      if (!resultado.exito) throw new Error(resultado.mensaje)
+      idDelClienteFinal = resultado.cliente.id
     }
 
     const { data, error } = await supabase

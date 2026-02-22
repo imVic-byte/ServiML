@@ -1,0 +1,6 @@
+id,email,nombre,rol,created_at,apellido,activo,telefono,rut
+03647a5d-ca10-4eaa-b9d4-f8889aa0cdd3,goatman2001.cristobal@gmail.com,Cristobal,Administrador,2026-02-17 15:19:31.358314+00,Espinoza,true,963366152,20.864.270-7
+22ace850-7561-424d-aab7-564ccd612a12,maxicastro281@hotmail.com,Maximiliano,Trabajador,2026-02-17 15:59:42.665899+00,Castro,true,953881829,20.652.599-1
+433fab12-b4c4-42e2-877d-87ec95a95363,janir.rivera@gmail.com,Daniel,Trabajador,2026-02-17 16:09:06.317996+00,Rivera,true,985933305,20.458.400-1
+af4dd296-671b-4501-9c59-654cc2cbe7ac,soporte.serviml@hotmail.com,Soporte,Soporte,2026-01-25 18:10:44+00,,true,,
+dd424484-ce81-4880-8918-808149911b70,gerencia@serviml.cl,Martin,Gerente,2026-02-17 13:38:52.630429+00,Lopez,true,994848882,21.284.609-0

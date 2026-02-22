@@ -362,6 +362,10 @@ const obtenerOrden = async () => {
   }
   manejarBloqueo(false);
   await handleIsCerrado(orden.value.estado_actual_id);
+  // Bloquear si la ficha tiene estado >= 5 (entregada, cancelada, etc.)
+  if (orden.value.ficha_de_trabajo?.estado >= 5) {
+    isCerrado.value = true;
+  }
 };
 
 const obtenerEstados = async () => {
