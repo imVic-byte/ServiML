@@ -89,7 +89,7 @@ const formatearFecha = (fechaString) => {
 }
 </script>
 <template>
-  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-adapt-bg servi-grey-font mx-2 card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
+  <div :class="estado.estado + ' border-t-10'" :style="{ borderTopColor: estado.color }" class="servi-blue servi-grey-font mx-2 card-shadow p-3 mb-3 flex flex-col gap-2 overflow-hidden transition-all hover:shadow-md">
     
     <div class="flex justify-between items-start border-b border-gray-100 pb-2">
       <div class="flex flex-col">
@@ -123,8 +123,8 @@ const formatearFecha = (fechaString) => {
 
     <div class="flex mt-2 pt-2 border-t border-gray-100 items-center justify-between">
       
-      <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: orden.id } }" class="servi-blue servi-white-font p-2 rounded-lg w-full text-center transition-transform hover:scale-110 shadow-sm">
-        <span class="text-white text-sm">Ver Detalles</span>
+      <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: orden.id } }" class="servi-yellow text-black p-2 rounded-lg w-full text-center transition-transform hover:scale-110 shadow-sm">
+        <span class="text-black text-sm">Ver Detalles</span>
       </RouterLink>
     </div>
 

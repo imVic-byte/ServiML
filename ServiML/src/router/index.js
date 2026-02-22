@@ -114,7 +114,7 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
-      path: '/vehiculos-en-taller',
+      path: '/vehiculos-en-taller/:taller',
       name: 'vehiculos-en-taller',
       component: () => import('../views/dashboardCosas/vehiculosEnTaller.vue'),
       meta: { 
@@ -123,7 +123,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/ot-sin-asignar',
+      path: '/ot-sin-asignar/:taller',
       name: 'ot-sin-asignar',
       component: () => import('../views/dashboardCosas/OTsinAsignar.vue'),
       meta: { 
@@ -132,7 +132,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/ot-por-entregar',
+      path: '/ot-por-entregar/:taller',
       name: 'ot-por-entregar',
       component: () => import('../views/dashboardCosas/OTporEntregar.vue'),
       meta: { 
@@ -141,7 +141,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/presupuestos-semana',
+      path: '/presupuestos-semana/:taller',
       name: 'presupuestos-semana',
       component: () => import('../views/dashboardCosas/presupuestosSemana.vue'),
       meta: { 

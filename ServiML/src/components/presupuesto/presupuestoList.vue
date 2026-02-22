@@ -47,33 +47,23 @@ const claseEstado = (estado) => {
     <table class="w-full text-left border-collapse">
       <thead>
         <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
-          <th class="p-4 font-semibold">Folio</th>
+          <th class="p-4 font-semibold">Ficha</th>
           <th class="p-4 font-semibold">Cliente</th>
-          <th class="p-4 font-semibold">Vehículo</th>
-          <th class="p-4 font-semibold">Diagnóstico</th>
+          <th class="p-4 font-semibold">Comentario</th>
           <th class="p-4 font-semibold text-center">Emisión</th>
           <th class="p-4 font-semibold text-right">Monto Total</th>
           <th class="p-4 font-semibold text-center">Estado</th>
-          <th class="p-4 font-semibold text-center">Vencimiento</th>
-          <th class="p-4 font-semibold text-center">Acción</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in servicios" :key="item.id" class="hover:opacity-80 transition-colors cursor-pointer"
-          @click="irADetalle(item.id)">
-          <td class="p-4 font-medium servi-grey-font">#{{ item.numero_folio }}</td>
+        <tr v-for="item in servicios" :key="item.ficha_de_trabajo.id" class="hover:opacity-80 transition-colors cursor-pointer">
+          <td class="p-4 font-medium servi-grey-font">#{{ item.ficha_de_trabajo.id }}</td>
           <td class="p-4 servi-grey-font">
-            <div class="font-medium">{{ camelCase(item.cliente?.nombre) }} {{ camelCase(item.cliente?.apellido) }}</div>
-            <div class="text-xs servi-grey-font">{{ item.cliente?.email }}</div>
+            <div class="font-medium">{{ camelCase(item.ficha_de_trabajo.cliente?.nombre) }} {{ camelCase(item.ficha_de_trabajo.cliente?.apellido) }}</div>
+            <div class="text-xs servi-grey-font">{{ item.ficha_de_trabajo.cliente?.email }}</div>
           </td>
           <td class="p-4 servi-grey-font">
-            <span class="servi-adapt-bg servi-white-font px-2 py-1 rounded text-xs font-bold">{{ item.vehiculo?.patente
-              }}</span>
-            <div class="text-xs servi-grey-font mt-1">{{ item.vehiculo?.marca }} {{ item.vehiculo?.modelo }}</div>
-          </td>
-          <td class="p-4 servi-grey-font">
-            <span class="block max-w-[200px] truncate" :title="item.diagnostico">{{ camelCase(item.diagnostico)
-              }}</span>
+            <span class="block max-w-[200px] truncate" :title="item.comentario">{{ camelCase(item.comentario) || 'Sin comentario' }}</span>
           </td>
           <td class="p-4 text-center whitespace-nowrap">
             <span class="servi-grey-font">{{ formatearFecha(item.created_at) }}</span>
@@ -85,22 +75,6 @@ const claseEstado = (estado) => {
             <span :class="['px-3 py-1 rounded-full text-xs font-medium border', claseEstado(item.estado).clase]">
               {{ claseEstado(item.estado).texto }}
             </span>
-          </td>
-          <td class="p-4 text-center">
-            <span v-if="item.estado === 1" class="servi-grey-font hover:text-blue-600 transition-colors">
-              {{ formatearFecha(item.vencimiento) }}
-            </span>
-            <span v-else class="servi-grey-font hover:text-blue-600 transition-colors">
-              ---
-            </span>
-          </td>
-          <td class="p-4 text-center">
-            <button class="servi-grey-font hover:text-blue-600 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
           </td>
         </tr>
       </tbody>

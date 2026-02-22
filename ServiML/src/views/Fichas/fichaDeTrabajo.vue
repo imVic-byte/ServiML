@@ -61,8 +61,11 @@ const diasEstacionamiento = computed(() => {
 const totalCargoEstacionamiento = computed(() => {
   const dias = diasEstacionamiento.value
   if (dias > 0) {
-    if (isFichaBloqueada.value) return
-    else{ actualizarEstadoEstacionamiento() }
+    if (isFichaBloqueada.value) {
+      return
+    }else{
+      actualizarEstadoEstacionamiento()
+    }
   }
   return dias * 5000
 })
@@ -629,7 +632,7 @@ onMounted(async () => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="w-full">
                     <label class="block text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Origen Ingreso</label>
-                    <select :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-200 rounded-lg p-2 w-full disabled:bg-gray-50 disabled:cursor-not-allowed" v-model="ficha.origen_ingreso">
+                    <select :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-100 rounded-lg p-2 w-full disabled:cursor-not-allowed" v-model="ficha.origen_ingreso">
                       <option value="cliente">Conducido por Cliente</option>
                       <option value="grua">Grúa / Remolque</option>
                       <option value="tercero">Chofer / Tercero</option>
@@ -637,7 +640,7 @@ onMounted(async () => {
                   </div>
                   <div class="w-full">
                     <label class="block text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Taller</label>
-                    <select :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-200 rounded-lg p-2 w-full disabled:bg-gray-50 disabled:cursor-not-allowed" v-model="tallerSeleccionado">
+                    <select :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-100 rounded-lg p-2 w-full disabled:cursor-not-allowed" v-model="tallerSeleccionado">
                       <option v-for="taller in talleres" :key="taller.id" :value="taller.id">{{ taller.nombre }}</option>
                     </select>
                   </div>
@@ -647,11 +650,11 @@ onMounted(async () => {
                 </div>
                 <div class="w-full">
                   <label class="block text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Fecha de Ingreso</label>
-                  <input :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-200 rounded-lg p-2 w-full disabled:bg-gray-50 disabled:cursor-not-allowed" type="datetime-local" v-model="ficha.fecha_ingreso">
+                  <input :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-100 rounded-lg p-2 w-full disabled:cursor-not-allowed" type="datetime-local" v-model="ficha.fecha_ingreso">
                 </div>
                 <div class="w-full">
                   <label class="block text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Fecha de Promesa de Entrega</label>
-                  <input :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-200 rounded-lg p-2 w-full disabled:bg-gray-50 disabled:cursor-not-allowed" type="date" v-model="ficha.fecha_promesa">
+                  <input :disabled="isFichaBloqueada" class="servi-grey-font font-medium border border-gray-100 rounded-lg p-2 w-full disabled:cursor-not-allowed" type="date" v-model="ficha.fecha_promesa">
                 </div>
                 <div class="w-full">
                   <label class="block text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Fecha inicio Estacionamiento</label>
@@ -705,12 +708,12 @@ onMounted(async () => {
                 class="p-4 hover:bg-gray-50 transition-colors cursor-pointer group flex justify-between items-center"
                 :class="{ 'pointer-events-none opacity-70': isFichaBloqueada }">
                 <div>
-                  <p class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">Cotización N°{{ i + 1 }}</p>
-                  <p class="text-xs text-gray-500">{{ formatFecha(cotizacion.created_at) }}</p>
+                  <p class="font-bold servi-grey-font text-sm group-hover:text-blue-600 transition-colors">Cotización N°{{ i + 1 }}</p>
+                  <p class="text-xs servi-grey-font">{{ formatFecha(cotizacion.created_at) }}</p>
                 </div>
                 <div class="text-right flex items-end gap-1 align-center justify-center">
                   <div class="flex flex-col items-center justify-center align-center">
-                    <p class="font-bold text-gray-700 text-sm leading-none">{{ formatMoneda(cotizacion.total_final) }}</p>
+                    <p class="font-bold servi-grey-font text-sm leading-none">{{ formatMoneda(cotizacion.total_final) }}</p>
                     <span class="text-[10px] font-bold uppercase tracking-wide" :class="obtenerColorEstadoCotizacion(cotizacion.estado)">
                       {{ obtenerTextoEstadoCotizacion(cotizacion.estado) }}
                     </span>
@@ -737,12 +740,6 @@ onMounted(async () => {
                 </button>
                 <button v-else-if="ficha.informe_final" @click="irAInforme" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
                   ir al informe
-                </button>
-                <button v-if="diasEstacionamiento > 1 && !isFichaBloqueada" @click="null" class="w-full py-2.5 px-4 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 text-sm font-bold shadow-sm mt-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.546 1.16 3.743.479 4.307-1.373.417-1.369-.445-2.822-1.941-3.352l-.499-.177c-1.496-.53-2.358-1.983-1.941-3.352.564-1.852 2.761-2.533 4.307-1.373L15 6" />
-                  </svg>
-                  Enviar 2do presupuesto
                 </button>
              </div>
           </div>

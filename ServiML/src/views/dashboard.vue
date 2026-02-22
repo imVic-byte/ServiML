@@ -14,11 +14,11 @@ const nombre = userStore.trabajador?.nombre || ''
 const apellido = userStore.trabajador?.apellido || ''
 const nombreCompleto = computed(() => nombre + ' ' + apellido)
 const vehiculosEnTaller = ref(0)
-
 const listaOTRecientes = ref([])
 const otSinAsignar = ref(0)
 const listaPresupuestos = ref([])
 const presupuestosSemana = ref(0)
+const presupuestosHoy = ref(0)
 const aprobadosHoy = ref(0)
 const otPorEntregar = ref(0)
 const capacidadMaxima = ref(15)
@@ -27,23 +27,30 @@ const talleres = ref([])
 const tallerSeleccionado = ref(null)
 const porcentajeCapacidad = computed(() => (vehiculosEnTaller.value / capacidadMaxima.value) * 100)
 const TruncarPorcentaje = computed(() => Math.trunc(porcentajeCapacidad.value))
-
+const vehiculosEstacionados=ref(0)
 const fichas = ref([])
+const aTiempo = ref(0)
+const porcentajeAtiempo = computed(() => Math.trunc((aTiempo.value / fichas.value.length) * 100)) || 0
+const cotizacionesTotales = ref(0)
+const cotizacionesRechazadas = ref(0)
+const porcentajeRechazos = computed(() => Math.trunc((cotizacionesRechazadas.value / cotizacionesTotales.value) * 100)) || 0
+const trabajoReciente = ref([])
+const estados = ref([])
 
 const VehiculosEnTaller = () => {
-  router.push({ name: 'vehiculos-en-taller' })
+  router.push({ name: 'vehiculos-en-taller', params: { taller: tallerSeleccionado.value } })
 }
 
 const SinAsignar = () => {
-  router.push({ name: 'ot-sin-asignar' })
+  router.push({ name: 'ot-sin-asignar', params: { taller: tallerSeleccionado.value } })
 }
 
 const PresupuestosSemana = () => {
-  router.push({ name: 'presupuestos-semana' })
+  router.push({ name: 'presupuestos-semana', params: { taller: tallerSeleccionado.value } })
 }
 
 const ListoParaEntregar = () => {
-  router.push({ name: 'ot-por-entregar' })
+  router.push({ name: 'ot-por-entregar', params: { taller: tallerSeleccionado.value } })
 }
 
 const verTablero = () => {
@@ -68,13 +75,6 @@ const formatoMoneda = (valor) => {
   }).format(valor)
 }
 
-const formatoLocal = (fecha) => {
-  const y = fecha.getFullYear()
-  const m = String(fecha.getMonth() + 1).padStart(2, '0')
-  const d = String(fecha.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
-}
-
 const obtenerTalleres = async () => {
   try {
     const { data, error } = await supabase.from('serviml_taller').select('*').order('id', { ascending: true })
@@ -86,39 +86,179 @@ const obtenerTalleres = async () => {
   }
 }
 
-const handleVehiculos = async () => {
+
+const handleVehiculosEnTaller = async () => {
   try {
-    let query = supabase.from('vehiculo').select('id, en_taller').eq('en_taller', true)
-    const { data, error } = await query
+    const { data, error, count } = await supabase
+      .from('ficha_de_trabajo')
+      .select('id, orden_trabajo!inner(id)', { count: 'exact' })
+      .in('estado', [1, 2, 3, 4, 5])
+      .eq('id_taller', tallerSeleccionado.value)
     if (error) throw error
-    vehiculosEnTaller.value = data.length
+    vehiculosEnTaller.value = data.reduce((total, ficha) => {
+    return total + (Array.isArray(ficha.orden_trabajo) ? ficha.orden_trabajo.length : 1)
+  }, 0)
   } catch (error) {
     console.error('Error al obtener vehiculos:', error)
   }
 }
 
-const cambiarTaller = async () => {
-  await handleVehiculos()
-  await traerFichas()
-}
-
-
-
-
-const traerTodo = async () => {
-  const {data,error} = await supabase.from('ficha_de_trabajo')
-  .select(`*, presupuesto_ficha(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*))),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
-  .eq('id_taller', tallerSeleccionado.value)
-  if (error) {
-    console.error('Error al traer datos de la ficha:', error)
+const handleListosParaEntregar = async () => {
+  try {
+    const { data, error, count } = await supabase
+    .from('ficha_de_trabajo')
+    .select('id,estado', { count: 'exact' })
+    .eq('id_taller', tallerSeleccionado.value)
+    .in('estado', [4, 5])
+    if (error) throw error
+    otPorEntregar.value = count || 0
+  } catch (error) {
+    console.error('Error al obtener ot por entregar:', error)
   }
-  fichas.value=data
 }
+
+const handleCotizaciones = async () => {
+  try{
+    const { data, error, count } = await supabase
+    .from('cotizaciones_ficha')
+      .select('id, estado, ficha_de_trabajo!inner(id_taller)', { count: 'exact' })
+      .eq('ficha_de_trabajo.id_taller', tallerSeleccionado.value)
+      .gt('created_at', fechaInicioSemana.value)
+    if (error) throw error
+    presupuestosSemana.value = count || 0
+    presupuestosHoy.value = data.filter(cotizacion => cotizacion.estado === 2).length
+  } catch (error) {
+    console.error('Error al obtener cotizaciones:', error)
+  }
+}
+
+const obtenerCapacidadMaximaTaller = async () => {
+  const{data, error} = await supabase.from('serviml_taller').select('capacidad_maxima').eq('id', tallerSeleccionado.value).single()
+  if (error) throw error
+  capacidadMaxima.value = data.capacidad_maxima
+}
+
+const handleVehiculosEstacionados = async () => {
+  const {data,error,count} = await supabase
+  .from('ficha_de_trabajo')
+  .select('id, estado, orden_trabajo!inner(id)', { count: 'exact' })
+  .eq('id_taller', tallerSeleccionado.value)
+  .eq('estado', 5)
+  if (error) throw error
+  vehiculosEstacionados.value = data.reduce((total, ficha) => {
+    return total + (Array.isArray(ficha.orden_trabajo) ? ficha.orden_trabajo.length : 1)
+  }, 0)
+}
+
+const handleEntregaATiempo = async () => {
+  const {data,error,count} = await supabase
+  .from('ficha_de_trabajo')
+  .select('id,fecha_promesa,fecha_entrega')
+  .eq('id_taller', tallerSeleccionado.value)
+  if (error) throw error
+  fichas.value = data.filter(ficha => ficha.fecha_promesa && ficha.fecha_entrega) || []
+  aTiempo.value = fichas.value.filter(ficha => ficha.fecha_entrega <= ficha.fecha_promesa).length || 0
+}
+
+const handleStatsCotizaciones = async () => {
+  try {
+    const { data, error, count } = await supabase
+      .from('cotizaciones_ficha')
+      .select('id, estado, total_final, ficha_de_trabajo!inner(id_taller)', { count: 'exact' })
+      .eq('ficha_de_trabajo.id_taller', tallerSeleccionado.value)
+
+    if (error) throw error
+
+    cotizacionesTotales.value = count || 0
+    
+    // 1. Filtrar rechazadas
+    const rechazadas = data.filter(cot => cot.estado === 3)
+    cotizacionesRechazadas.value = rechazadas.length
+
+    // 2. Filtrar aprobadas para el Ticket Promedio
+    const aprobadas = data.filter(cot => cot.estado === 2)
+
+    if (cotizacionesTotales.value > 0) {
+      metricas.value.porcentaje_rechazos = Math.round((rechazadas.length / cotizacionesTotales.value) * 100)
+      
+      // Calculamos promedio solo sobre las aprobadas para que sea un dato útil de negocio
+      if (aprobadas.length > 0) {
+        const sumaTotal = aprobadas.reduce((acc, cot) => acc + (cot.total_final || 0), 0)
+        metricas.value.ticket_promedio = Math.round(sumaTotal / aprobadas.length)
+      } else {
+        metricas.value.ticket_promedio = 0
+      }
+    } else {
+      metricas.value.porcentaje_rechazos = 0
+      metricas.value.ticket_promedio = 0
+    }
+  } catch (error) {
+    console.error('Error al obtener stats de cotizaciones:', error)
+  }
+}
+
+const handleTrabajoReciente = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('ficha_de_trabajo')
+      .select('id, orden_trabajo!inner(*, vehiculo(*))')
+      .eq('id_taller', tallerSeleccionado.value)
+      .order('id', { ascending: false })
+      .limit(10)
+    if (error) throw error
+    const todasLasOTs = data.flatMap(ficha => {
+      return ficha.orden_trabajo.map(ot => ({
+        ...ot,
+        id_ficha: ficha.id
+      }))
+    })
+    trabajoReciente.value = todasLasOTs
+      .sort((a, b) => b.id - a.id)
+      .slice(0, 5)
+
+  } catch (error) {
+    console.error('Error al obtener trabajo reciente:', error)
+  }
+}
+
+const handleTraerEstados = async () => {
+  const {data,error} = await supabase
+  .from('tabla_estados')
+  .select('*')
+  if (error) throw error
+  estados.value = data || []
+}
+
+const handleEstados  = (estado) => {
+  return estados.value.find(e => e.id === estado) || {estado:'Desconocido',color:'#FFFFFF',texto:'#000000'}
+}
+
+const cambiarTaller = async () => {
+  interfaz.showLoadingOverlay()
+  await handleVehiculosEnTaller()
+  await obtenerCapacidadMaximaTaller()
+  await handleListosParaEntregar()
+  await handleCotizaciones()
+  await handleVehiculosEstacionados()
+  await handleEntregaATiempo()
+  await handleStatsCotizaciones()
+  await handleTrabajoReciente()
+  await handleTraerEstados()
+  interfaz.hideLoadingOverlay()
+}
+
 onMounted(async () => {
   interfaz.showLoading()
   await obtenerTalleres()
-  await traerFichas()
-  await traerTodo()
+  await obtenerCapacidadMaximaTaller()
+  await handleVehiculosEnTaller()
+  await handleListosParaEntregar()
+  await handleCotizaciones()
+  await handleVehiculosEstacionados()
+  await handleEntregaATiempo()
+  await handleStatsCotizaciones()
+  await handleTrabajoReciente()
+  await handleTraerEstados()
   interfaz.hideLoading()
 })
 </script>
@@ -148,7 +288,7 @@ onMounted(async () => {
       </div>
 
       <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
-        <div @click="VehiculosEnTaller" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="VehiculosEnTaller" class="servi-blue overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -161,17 +301,17 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="ml-4 w-0 flex-1">
-                <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Vehículos en Taller</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ vehiculosEnTaller }}</dd>
+                <dt class="text-xs sm:text-sm font-medium text-white truncate">Vehículos en Taller</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-white">{{ vehiculosEnTaller }}</dd>
               </div>
             </div>
           </div>
-          <div class="servi-adapt-bg px-4 sm:px-5 py-2.5">
-            <div class="text-xs font-medium servi-grey-font" :class="{ 'text-red-600': TruncarPorcentaje > 80 }">{{ TruncarPorcentaje }}% capacidad</div>
+          <div class="px-4 sm:px-5 py-2.5">
+            <div class="text-xs font-medium text-white" :class="{ 'text-red-600': TruncarPorcentaje > 80 }">{{ TruncarPorcentaje }}% capacidad</div>
           </div>
         </div>
 
-        <div @click="SinAsignar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="SinAsignar" class="servi-blue overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -182,23 +322,23 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="ml-4 w-0 flex-1">
-                <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Sin Asignar</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ otSinAsignar }}</dd>
+                <dt class="text-xs sm:text-sm font-medium text-white truncate">Vehiculos Estacionados</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-white">{{ vehiculosEstacionados }}</dd>
               </div>
             </div>
           </div>
-          <div v-if="otSinAsignar>5" class="servi-adapt-bg px-4 sm:px-5 py-2.5">
+          <div v-if="vehiculosEstacionados>2" class="px-4 sm:px-5 py-2.5">
             <span class="text-xs font-bold text-red-600">Requiere acción</span>
           </div>
-          <div v-else class="servi-adapt-bg px-4 sm:px-5 py-2.5">
+          <div v-else class="px-4 sm:px-5 py-2.5">
             <span class="text-xs font-bold text-green-600">Todo en orden</span>
           </div>
         </div>
 
-        <div @click="PresupuestosSemana" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="PresupuestosSemana" class="servi-blue overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
-              <div class="flex-shrink-0">
+              <div class="flex-shrink-0"> 
                 <div class="p-2.5 sm:p-3 rounded-lg bg-green-50 text-green-600">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -206,18 +346,18 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="ml-4 w-0 flex-1">
-                <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Presupuestos Semana</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ presupuestosSemana }}</dd>
+                <dt class="text-xs sm:text-sm font-medium text-white truncate">Cotizaciones / Semana</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-white">{{ presupuestosSemana }}</dd>
               </div>
             </div>
           </div>
-          <div class="servi-adapt-bg px-4 sm:px-5 py-2.5 flex justify-between items-center">
-            <div class="text-xs servi-grey-font">Aprobados hoy</div>
-            <div class="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">+{{ aprobadosHoy }}</div>
+          <div class="px-4 sm:px-5 py-2.5 flex justify-between items-center">
+            <div class="text-xs text-white">Aprobados hoy</div>
+            <div class="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">+{{ presupuestosHoy }}</div>
           </div>
         </div>
 
-        <div @click="ListoParaEntregar" class="servi-adapt-bg overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
+        <div @click="ListoParaEntregar" class="servi-blue overflow-hidden cursor-pointer rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-95">
           <div class="p-4 sm:p-5">
             <div class="flex items-center">
               <div class="flex-shrink-0">
@@ -228,12 +368,12 @@ onMounted(async () => {
                 </div>
               </div>
               <div class="ml-4 w-0 flex-1">
-                <dt class="text-xs sm:text-sm font-medium servi-grey-font truncate">Listos para Entrega</dt>
-                <dd class="text-xl sm:text-2xl font-bold servi-grey-font">{{ otPorEntregar }}</dd>
+                <dt class="text-xs sm:text-sm font-medium text-white truncate">Trabajos por Entregar</dt>
+                <dd class="text-xl sm:text-2xl font-bold text-white">{{ otPorEntregar }}</dd>
               </div>
             </div>
           </div>
-          <div class="servi-adapt-bg px-4 sm:px-5 py-2.5">
+          <div class="px-4 sm:px-5 py-2.5">
             <div class="text-xs font-medium text-yellow-400">Contactar clientes</div>
           </div>
         </div>
@@ -244,13 +384,13 @@ onMounted(async () => {
         
         <!-- Flujo de trabajo reciente (2/3) -->
         <div class="lg:col-span-2 servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-5 border-b border-gray-100 flex justify-between items-center">
-            <h2 class="text-lg font-bold servi-grey-font">Flujo de Trabajo Reciente</h2>
-            <button @click="verTablero" class="text-sm cursor-pointer servi-grey-font hover:text-blue-800 font-medium">Ver tablero</button>
+          <div class="p-5 border-b border-gray-100 servi-blue flex justify-between items-center">
+            <h2 class="text-lg font-bold text-white">Flujo de Trabajo Reciente</h2>
+            <button @click="verTablero" class="text-sm cursor-pointer text-white hover:text-blue-800 font-medium">Ver tablero</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left">
-              <thead class="text-xs servi-grey-font uppercase servi-adapt-bg">
+              <thead class="text-xs text-white servi-blue uppercase">
                 <tr>
                   <th class="px-5 py-3">Orden</th>
                   <th class="px-5 py-3">Vehículo</th>
@@ -259,15 +399,15 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
-                <tr v-for="ot in listaOTRecientes" @click="verOT(ot.id)" :key="ot.id" class="hover:opacity-80 transition-colors cursor-pointer">
+                <tr v-for="ot in trabajoReciente" @click="verOT(ot.id)" :key="ot.id" class="hover:opacity-80 transition-colors cursor-pointer">
                   <td class="px-5 py-3.5 font-medium servi-grey-font">#{{ ot.id }}</td>
-                  <td class="px-5 py-3.5 servi-grey-font">{{ ot.vehiculo.patente }}</td>
+                  <td class="px-5 py-3.5 servi-grey-font">{{ ot.vehiculo?.patente }}</td>
                   <td class="px-5 py-3.5 servi-grey-font truncate max-w-[100px] sm:max-w-none">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
                   <td class="px-5 py-3.5">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleOrdenarEstado(ot.estado_actual_id).color, color: handleOrdenarEstado(ot.estado_actual_id).texto }">{{ handleOrdenarEstado(ot.estado_actual_id).estado }}</span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleEstados(ot.estado_actual_id).color, color:'white' }">{{ handleEstados(ot.estado_actual_id).estado }}</span>
                   </td>
                 </tr>
-                <tr v-if="listaOTRecientes.length === 0" class="hover:opacity-80 transition-colors cursor-pointer">
+                <tr v-if="trabajoReciente.length === 0" class="hover:opacity-80 transition-colors cursor-pointer">
                   <td class="px-5 py-3.5 font-medium servi-grey-font">No hay OT recientes</td>
                 </tr>
               </tbody>
@@ -279,8 +419,8 @@ onMounted(async () => {
           
           <div class="space-y-6">
   <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="p-5 border-b border-gray-100">
-      <h3 class="font-bold servi-grey-font">Métricas de Eficiencia</h3>
+    <div class="p-5 servi-blue border-b border-gray-100">
+      <h3 class="font-bold text-white">Métricas de Eficiencia</h3>
     </div>
     <div class="p-5 space-y-5">
       
@@ -290,7 +430,7 @@ onMounted(async () => {
             Ocupación Taller ({{ vehiculosEnTaller }}/{{ capacidadMaxima }})
           </span>
           <span class="text-sm font-bold servi-grey-font">
-            {{ Math.min(Math.round((vehiculosEnTaller / capacidadMaxima) * 100), 100) }}%
+            {{ TruncarPorcentaje }}%
           </span>
         </div>
         <div class="w-full servi-blue rounded-full h-2.5">
@@ -305,13 +445,13 @@ onMounted(async () => {
         <div class="flex justify-between mb-2">
           <span class="text-sm font-medium servi-grey-font">Entrega a Tiempo</span>
           <span class="text-sm font-bold text-green-600">
-            {{ metricas.porcentaje_a_tiempo }}%
+            {{ porcentajeAtiempo || 0 }}%
           </span>
         </div>
         <div class="w-full servi-adapt-bg rounded-full h-2.5">
           <div 
             class="bg-green-500 h-2.5 rounded-full transition-all duration-500" 
-            :style="{ width: `${metricas.porcentaje_a_tiempo}%` }">
+            :style="{ width: `${porcentajeAtiempo || 0}%` }">
           </div>
         </div>
       </div>
@@ -326,7 +466,7 @@ onMounted(async () => {
         <div class="text-center p-3 servi-adapt-bg rounded-lg">
           <div class="text-xs servi-grey-font uppercase tracking-wider">Rechazos</div>
           <div class="font-bold text-red-500 mt-1">
-            {{ metricas.porcentaje_rechazos }}%
+            {{ porcentajeRechazos || 0 }}%
           </div>
         </div>
       </div>
