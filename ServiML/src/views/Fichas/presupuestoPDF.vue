@@ -93,7 +93,6 @@ const generarPresupuesto = async () => {
     return
   }
   if (!ficha.value || !cotizacion.value) {
-    console.error('Falta ficha o cotización aprobada para generar el presupuesto')
     return
   }
   const {data, error} = await supabase
@@ -107,11 +106,56 @@ const generarPresupuesto = async () => {
     .select()
     .single()
   if (error) {
-    console.error('Error al generar presupuesto:', error)
+    return
   }
-  const {error:errorPresupuesto} = await supabase.from('ficha_de_trabajo').update({presupuesto:true}).eq('id',ficha.value.id)
-  if (errorPresupuesto) {
-    console.error('Error al generar presupuesto:', errorPresupuesto)
+  await supabase
+    .from('ficha_de_trabajo')
+    .update({presupuesto:true})
+    .eq('id', ficha.value.id)
+
+  const folio = data?.numero_folio || data?.id || 'sin-folio';
+  const opciones = {
+    margin:       0,
+    filename:     `Presupuesto_Folio_${folio}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+  
+  const elemento = document.getElementById('elemento-a-imprimir');
+  const pdfBlob = await html2pdf().set(opciones).from(elemento).output('blob');
+
+  let urlDescarga = null;
+  try {
+    const formData = new FormData();
+    formData.append('file', pdfBlob, `Presupuesto_Folio_${folio}.pdf`);
+    formData.append('numero_folio', folio);
+    
+    const res = await fetch('https://upload-pdf.soporte-serviml.workers.dev/', {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (res.ok) {
+      const dataWorker = await res.json();
+      urlDescarga = dataWorker.url;
+    }
+  } catch (err) {
+  }
+
+  if (ficha.value.cliente?.email && urlDescarga) {
+    try {
+      await supabase.functions.invoke('enviar-presupuesto', {
+        body: {
+          emailCliente: ficha.value.cliente.email,
+          nombreCliente: ficha.value.cliente.nombre,
+          apellidoCliente: ficha.value.cliente.apellido,
+          urlPdf: urlDescarga, 
+          folio: folio
+        }
+      })
+    } catch (err) {
+    }
   }
   await cargarDatos()
 }
