@@ -241,7 +241,7 @@ onMounted(() => {
         <div v-if="deudas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100">
           <div class="servi-grey-font mb-2">
             <p class="servi-grey-font text-lg">No hay deudas creadas</p>
-            <p class="text-sm servi-grey-font">Crea una deuda para agrupar OTs y registrar abonos.</p>
+            <p class="text-sm servi-grey-font">Crea una deuda para agrupar fichas y registrar abonos.</p>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-12 w-12 mx-auto mt-6"
@@ -420,7 +420,7 @@ onMounted(() => {
         class="servi-blue servi-yellow-font rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         <div class="px-6 py-4 border-b border-white/10">
           <h2 class="text-lg font-bold servi-yellow-font">Abrir Nueva Deuda</h2>
-          <p class="text-sm text-white/80">Crea una deuda para agrupar OTs y registrar abonos.</p>
+          <p class="text-sm text-white/80">Crea una deuda para agrupar fichas y registrar abonos.</p>
         </div>
 
         <div class="p-6">

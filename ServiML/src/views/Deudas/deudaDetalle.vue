@@ -86,11 +86,12 @@ const calcularEstacionamientoFicha = (ficha) => {
 
 
 const totalDeuda = computed(() => {
-  const totalFichas = FichasEnDeuda.value.reduce((acc, item) =>
-    acc + (item.presupuesto?.total_final || 0), 0
-  );
-
-  return totalFichas + totalEstacionamiento.value;
+  return FichasEnDeuda.value.reduce((acc, item) => {
+    const presupuesto = Array.isArray(item.presupuesto_ficha) 
+      ? item.presupuesto_ficha[0] 
+      : item.presupuesto_ficha;
+    return acc + (presupuesto?.total_final || 0);
+  }, 0);
 });
 
 const totalPagado = computed(() => {
@@ -144,7 +145,7 @@ const cargarDatos = async () => {
   loading.value = true;
   const { data: dataDeuda, error } = await supabase
     .from("deudas")
-    .select("*")
+    .select("*") 
     .eq("id", deudaId)
     .single();
 
@@ -158,7 +159,7 @@ const cargarDatos = async () => {
 
   const { data: dataItems } = await supabase
     .from("ficha_de_trabajo")
-    .select(`*, presupuesto(*), cliente(*)`) 
+    .select(`*, presupuesto_ficha(*), cliente(*)`) 
     .eq("id_deuda", deudaId)
     .order("id", { ascending: false });
   FichasEnDeuda.value = dataItems || [];
@@ -200,14 +201,14 @@ const guardarConfigNotificacion = async () => {
 const buscarFichasDisponibles = async () => {
   const { data: disponibles, error: errDisponibles } = await supabase
     .from("ficha_de_trabajo")
-    .select("*, cliente(*)")
+    .select("*, cliente(*), presupuesto_ficha(*)")
     .is("id_deuda", null)
     .order("id", { ascending: false });
   if (errDisponibles) {
     modalState.value = {
       visible: true,
       titulo: "Error",
-      mensaje: "No se pudo validar OTs disponibles: " + errDisponibles.message,
+      mensaje: "No se pudo validar fichas disponibles: " + errDisponibles.message,
       exito: false,
     };
     return;
@@ -413,11 +414,11 @@ const abrirModalAbono = () => {
   showModalAbono.value = true;
 };
 
-const eliminarFichaDeuda = async (id) => {
-  const ok = window.confirm(`¿Deseas desvincular la ficha de trabajo #${id} de esta deuda?`);
+const eliminarFichaDeuda = async (item) => {
+  const ok = window.confirm(`¿Deseas desvincular la ficha de trabajo #${item.id} de esta deuda?`);
   if (!ok) return;
 
-  const montoOT = deudaItem?.presupuesto?.total_final || 0;
+  const montoOT = item?.presupuesto?.total_final || 0;
   const nuevoTotal = totalDeuda.value - montoOT;
   const nuevoSaldo = nuevoTotal - totalPagado.value;
 
@@ -433,9 +434,9 @@ const eliminarFichaDeuda = async (id) => {
   }
 
   const { error } = await supabase
-    .from("orden_trabajo")
+    .from("ficha_de_trabajo") // Cambiado de "orden_trabajo"
     .update({ id_deuda: null })
-    .eq("id", id);
+    .eq("id", item.id);
 
   if (error) {
     modalState.value = {
@@ -452,7 +453,7 @@ const eliminarFichaDeuda = async (id) => {
   modalState.value = {
     visible: true,
     titulo: "Ficha de trabajo eliminada",
-    mensaje: `La ficha de trabajo #${id} fue desvinculada correctamente.`,
+    mensaje: `La ficha de trabajo #${item.id} fue desvinculada correctamente.`,
     exito: true,
   };
 };
@@ -640,15 +641,13 @@ onMounted(cargarDatos);
                 <span class="p-4 text-right font-bold text-white">
                   {{
                     formatearDinero(
-                      (item.presupuesto?.total_final || 0) +
-                      calcularEstacionamientoFicha(item)
-                    )
+                      ((Array.isArray(item.presupuesto_ficha) ? item.presupuesto_ficha[0]?.total_final : item.presupuesto_ficha?.total_final) || 0))
                   }}
                 </span>
 
-                <RouterLink :to="{ name: 'ver-orden-de-trabajo', params: { id: item.id } }"
+                <RouterLink :to="{ name: 'ficha-de-trabajo', params: { id: item.id } }"
                   class="servi-blue servi-white-font p-2 rounded-full transition-transform hover:scale-110 shadow-sm"
-                  aria-label="Ver OT">
+                  aria-label="Ver Ficha">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
                     stroke="currentColor" class="size-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -738,15 +737,10 @@ onMounted(cargarDatos);
                   :class="FichasSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
                   Ficha #{{ ot.id }}
                 </span>
-                <div class="text-xs truncate"
-                  :class="FichasSeleccionadas.includes(ot.id) ? 'text-white/80' : 'text-white'">
-                  {{ ot.vehiculo?.modelo }} - {{ ot.vehiculo?.patente }}
-                </div>
               </div>
             </div>
-
-            <span class="font-bold" :class="FichasSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
-              {{ formatearDinero(ot.presupuesto?.total_final) }}
+            <span class="font-bold block truncate" :class="FichasSeleccionadas.includes(ot.id) ? 'text-white' : 'text-white'">
+              {{ formatearDinero(Array.isArray(ot.presupuesto_ficha) ? ot.presupuesto_ficha[0]?.total_final : ot.presupuesto_ficha?.total_final) }}
             </span>
           </button>
         </div>

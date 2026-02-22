@@ -33,6 +33,10 @@ const irADetalle = (id) => {
   router.push({ name: "ficha-de-trabajo", params: { id } });
 };
 
+const irACrear = () => {
+  router.push({ name: "crear-ficha-de-trabajo" });
+};
+
 const camelCase = (texto) => {
   if (!texto) return "---";
   return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
@@ -51,16 +55,6 @@ const stats = computed(() => {
   const terminadas = fichasOriginales.value.filter(f => f.estado === 3).length;
   return { total, ingresadas, enProceso, terminadas };
 });
-
-const claseEstadoCard = (estado) => {
-  switch (Number(estado)) {
-    case 3: return { clase: "badge-aprobada", texto: "Terminada", contenedor: "confirmado" };
-    case 4: return { clase: "badge-cerrada", texto: "Entregada", contenedor: "cerrado" };
-    case 2: return { clase: "badge-proceso", texto: "En Proceso", contenedor: "proceso" };
-    case 1: return { clase: "badge-pendiente", texto: "Ingresada", contenedor: "en-espera" };
-    default: return { clase: "badge-pendiente", texto: "Pendiente", contenedor: "en-espera" };
-  }
-};
 
 const obtenerFichas = async () => {
   try {
@@ -84,9 +78,44 @@ const obtenerFichas = async () => {
   }
 };
 
+const estadosFicha = ref([]);
+
+const obtenerEstadosFicha = async () => {
+  try{
+    const {data,error} = await supabase
+    .from('tabla_estados_ficha')
+    .select('*')
+    if(error) throw error
+    estadosFicha.value = data
+  }
+  catch(error){
+    console.error("Error al obtener estados de ficha:", error);
+    estadosFicha.value = []
+  }
+}
+
+const handleEstados = (estado) => {
+  const estadoEncontrado = estadosFicha.value.find(e => e.id === estado);
+  if(estadoEncontrado){
+    return {
+      estado: estadoEncontrado.estado,
+      color: estadoEncontrado.color,
+      texto: estadoEncontrado.texto
+    }
+  }
+  else{
+    return {
+      estado: "Desconocido",
+      color: "#ffffff",
+      texto: "#000000"
+    }
+  }
+}
+
 onMounted(async () => {
   interfaz.showLoading();
   await obtenerFichas();
+  await obtenerEstadosFicha();
   interfaz.hideLoading();
 });
 </script>
@@ -146,11 +175,17 @@ onMounted(async () => {
         <div>
             <h2 class="text-xl font-bold servi-grey-font">Listado de Fichas</h2>
             <p class="text-sm servi-grey-font">Administra las fichas de trabajo del taller</p>
-            <p>mi primera pagina web</p>
-            <p>no se que poner</p>
-            <p>hola</p>
         </div>
+        
         <div class="flex items-center gap-2">
+          <button 
+            @click="irACrear" 
+            class="servi-yellow servi-grey-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
+          >
+            <span class="text-xl leading-none mb-1">+</span>
+            <span class="hidden sm:inline">Nueva Ficha</span>
+          </button>
+
           <button 
             @click="showStats = !showStats" 
             class="md:hidden servi-adapt-bg servi-grey-font font-bold py-2 px-4 rounded-lg shadow-sm border border-gray-100 hover:opacity-80 transition-all flex items-center gap-2"
@@ -204,9 +239,9 @@ onMounted(async () => {
                 <span class="servi-grey-font">{{ formatearFecha(item.fecha_ingreso) }}</span>
               </td>
               <td class="p-4 text-center">
-                <span :class="claseEstadoCard(item.estado).clase">
-                  {{ claseEstadoCard(item.estado).texto }}
-                </span>
+                <span class="px-2 py-1 rounded-full text-xs font-semibold" :style="{backgroundColor: handleEstados(item.estado).color, color: 'white'}">
+                  {{ handleEstados(item.estado).estado }}
+                </span> 
               </td>
               <td class="p-4 text-center">
                 <button class="servi-grey-font hover:text-blue-600 transition-colors">
@@ -236,11 +271,10 @@ onMounted(async () => {
           :key="item.id"
           :to="{ name: 'ficha-de-trabajo', params: { id: item.id } }" 
           class="card-container servi-adapt-bg servi-grey-font"
-          :class="claseEstadoCard(item.estado).contenedor"
         >
           <div class="card-header servi-grey-font">
             <span class="folio">Ficha #{{ item.id }}</span>
-            <span :class="claseEstadoCard(item.estado).clase">{{ claseEstadoCard(item.estado).texto }}</span>
+            <span class="px-2 py-1 rounded-full text-xs font-semibold" :style="{backgroundColor: handleEstados(item.estado).color, color: 'white'}">{{ handleEstados(item.estado).estado }}</span>
           </div>
           <div class="card-body servi-grey-font">
             <div class="info-row">
