@@ -63,7 +63,6 @@ const handleCotizaciones = async () => {
       .order('created_at', { ascending: false })
     if (error) throw error
     cotizaciones.value = data || []
-    console.log(cotizaciones.value)
   } catch (error) {
     console.error('Error cargando cotizaciones:', error.message)
   }

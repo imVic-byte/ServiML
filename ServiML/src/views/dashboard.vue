@@ -36,6 +36,7 @@ const cotizacionesRechazadas = ref(0)
 const porcentajeRechazos = computed(() => Math.trunc((cotizacionesRechazadas.value / cotizacionesTotales.value) * 100)) || 0
 const trabajoReciente = ref([])
 const estados = ref([])
+const misOTs = ref([])
 
 const VehiculosEnTaller = () => {
   router.push({ name: 'vehiculos-en-taller', params: { taller: tallerSeleccionado.value } })
@@ -229,6 +230,21 @@ const handleTraerEstados = async () => {
   estados.value = data || []
 }
 
+const handleMisOTs = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('orden_trabajo')
+      .select('id, estado_actual_id, diagnostico, vehiculo(patente, marca, modelo), ficha_de_trabajo!inner(id, estado, id_taller)')
+      .eq('id_empleado', userStore.user.id)
+      .in('ficha_de_trabajo.estado', [1, 2, 3, 4])
+      .order('id', { ascending: false })
+    if (error) throw error
+    misOTs.value = data || []
+  } catch (error) {
+    console.error('Error al obtener mis OTs:', error)
+  }
+}
+
 const handleEstados  = (estado) => {
   return estados.value.find(e => e.id === estado) || {estado:'Desconocido',color:'#FFFFFF',texto:'#000000'}
 }
@@ -259,6 +275,7 @@ onMounted(async () => {
   await handleStatsCotizaciones()
   await handleTrabajoReciente()
   await handleTraerEstados()
+  await handleMisOTs()
   interfaz.hideLoading()
 })
 </script>
@@ -375,6 +392,62 @@ onMounted(async () => {
           </div>
           <div class="px-4 sm:px-5 py-2.5">
             <div class="text-xs font-medium text-yellow-400">Contactar clientes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mis OTs asignadas -->
+      <div v-if="misOTs.length > 0" class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        <div class="p-5 border-b border-gray-100 servi-blue flex justify-between items-center">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Mis OTs Asignadas
+          </h2>
+          <span class="text-xs font-bold servi-yellow-font bg-white/10 px-2.5 py-1 rounded-full">{{ misOTs.length }}</span>
+        </div>
+
+        <!-- Table (desktop) -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs text-white servi-blue uppercase">
+              <tr>
+                <th class="px-5 py-3">OT</th>
+                <th class="px-5 py-3">Patente</th>
+                <th class="px-5 py-3">Vehículo</th>
+                <th class="px-5 py-3">Diagnóstico</th>
+                <th class="px-5 py-3">Estado</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <tr v-for="ot in misOTs" :key="ot.id" @click="verOT(ot.id)" class="hover:opacity-80 transition-colors cursor-pointer">
+                <td class="px-5 py-3.5 font-bold servi-grey-font">#{{ ot.id }}</td>
+                <td class="px-5 py-3.5">
+                  <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ ot.vehiculo?.patente || 'S/P' }}</span>
+                </td>
+                <td class="px-5 py-3.5 servi-grey-font">{{ ot.vehiculo?.marca }} {{ ot.vehiculo?.modelo }}</td>
+                <td class="px-5 py-3.5 servi-grey-font truncate max-w-[200px]">{{ ot.diagnostico || 'Sin diagnóstico' }}</td>
+                <td class="px-5 py-3.5">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleEstados(ot.estado_actual_id).color, color:'white' }">{{ handleEstados(ot.estado_actual_id).estado }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Cards (mobile) -->
+        <div class="md:hidden divide-y divide-gray-100">
+          <div v-for="ot in misOTs" :key="ot.id" @click="verOT(ot.id)" class="p-4 hover:opacity-80 transition-colors cursor-pointer">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold servi-grey-font">#{{ ot.id }}</span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold" :style="{ backgroundColor: handleEstados(ot.estado_actual_id).color, color:'white' }">{{ handleEstados(ot.estado_actual_id).estado }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-1 bg-yellow-100 text-yellow-800 font-bold rounded text-xs">{{ ot.vehiculo?.patente || 'S/P' }}</span>
+              <span class="text-sm servi-grey-font">{{ ot.vehiculo?.marca }} {{ ot.vehiculo?.modelo }}</span>
+            </div>
+            <p class="text-xs servi-grey-font mt-2 truncate">{{ ot.diagnostico || 'Sin diagnóstico' }}</p>
           </div>
         </div>
       </div>

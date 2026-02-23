@@ -6,6 +6,7 @@ import navbar from "../../components/componentes/navbar.vue"
 import volver from "../../components/componentes/volveraListaFicha.vue"
 import modal from "../../components/componentes/modal.vue" // <-- IMPORTACIÓN AGREGADA
 import { useInterfaz } from '@/stores/interfaz'
+import { verificarCliente } from '@/js/verificarCliente'
 
 const router = useRouter()
 const interfaz = useInterfaz()
@@ -40,6 +41,7 @@ const cargarDatosBase = async () => {
   try {
     const { data: dataTalleres } = await supabase.from('serviml_taller').select('id, nombre')
     talleres.value = dataTalleres || []
+    if (talleres.value.length > 0) tallerSeleccionado.value = talleres.value[0].id
   } catch (error) {
     console.error("Error al cargar datos:", error)
   } finally {
@@ -93,13 +95,51 @@ const redirigir = () => {
 
 // 5. Función principal para guardar
 const guardarNuevaFicha = async () => {
-  if (!nombre.value || !apellido.value) {
-    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Por favor ingresa el nombre y apellido del cliente.", exito: false };
+  // Validar nombre
+  if (!nombre.value || nombre.value.trim().length < 2) {
+    modalState.value = { visible: true, titulo: "Nombre inválido", mensaje: "El nombre del cliente debe tener al menos 2 caracteres.", exito: false };
     return
   }
-  if (!tallerSeleccionado.value || !motivoIngreso.value) {
-    modalState.value = { visible: true, titulo: "Datos incompletos", mensaje: "Por favor completa el Taller y el Motivo de Ingreso.", exito: false };
+  // Validar apellido
+  if (!apellido.value || apellido.value.trim().length < 2) {
+    modalState.value = { visible: true, titulo: "Apellido inválido", mensaje: "El apellido del cliente debe tener al menos 2 caracteres.", exito: false };
     return
+  }
+  // Validar teléfono (opcional, pero si se ingresa debe ser válido)
+  if (telefono.value && telefono.value.trim()) {
+    const soloDigitos = telefono.value.replace(/\D/g, '')
+    if (soloDigitos.length < 8 || soloDigitos.length > 12) {
+      modalState.value = { visible: true, titulo: "Teléfono inválido", mensaje: "El teléfono debe tener entre 8 y 12 dígitos.", exito: false };
+      return
+    }
+  }
+  // Validar correo (opcional, pero si se ingresa debe ser válido)
+  if (correo.value && correo.value.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(correo.value.trim())) {
+      modalState.value = { visible: true, titulo: "Correo inválido", mensaje: "Por favor ingresa un correo electrónico válido.", exito: false };
+      return
+    }
+  }
+  // Validar taller
+  if (!tallerSeleccionado.value) {
+    modalState.value = { visible: true, titulo: "Taller requerido", mensaje: "Por favor selecciona un taller.", exito: false };
+    return
+  }
+  // Validar motivo de ingreso
+  if (!motivoIngreso.value || motivoIngreso.value.trim().length < 5) {
+    modalState.value = { visible: true, titulo: "Motivo de ingreso inválido", mensaje: "El motivo de ingreso debe tener al menos 5 caracteres.", exito: false };
+    return
+  }
+  // Validar fecha promesa (si se ingresa, no puede ser en el pasado)
+  if (fechaPromesa.value) {
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    const fecha = new Date(fechaPromesa.value + 'T00:00:00')
+    if (fecha < hoy) {
+      modalState.value = { visible: true, titulo: "Fecha inválida", mensaje: "La fecha promesa no puede ser anterior a hoy.", exito: false };
+      return
+    }
   }
 
   loading.value = true
@@ -108,20 +148,15 @@ const guardarNuevaFicha = async () => {
   try {
     let idDelClienteFinal = clienteSeleccionado.value;
     if (!idDelClienteFinal) {
-      const { data: nuevoCliente, error: errCliente } = await supabase
-        .from('cliente')
-        .insert({
-          nombre: nombre.value.trim(),
-          apellido: apellido.value.trim(),
-          telefono: telefono.value.trim(),
-          email: correo.value.trim(),
-          codigo_pais: codigoPais.value
-        })
-        .select('id')
-        .single()
-
-      if (errCliente) throw new Error("Error al registrar el nuevo cliente: " + errCliente.message)
-      idDelClienteFinal = nuevoCliente.id
+      const resultado = await verificarCliente({
+        nombre: nombre.value.trim(),
+        apellido: apellido.value.trim(),
+        telefono: telefono.value.trim(),
+        email: correo.value.trim(),
+        codigo_pais: codigoPais.value
+      })
+      if (!resultado.exito) throw new Error(resultado.mensaje)
+      idDelClienteFinal = resultado.cliente.id
     }
 
     const { data, error } = await supabase
@@ -261,7 +296,6 @@ onMounted(() => {
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1">Taller *</label>
                 <div class="relative">
                   <select v-model="tallerSeleccionado" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-base transition-colors appearance-none cursor-pointer">
-                    <option value="" disabled selected>Seleccione un taller...</option>
                     <option v-for="t in talleres" :key="t.id" :value="t.id">{{ t.nombre }}</option>
                   </select>
                   <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center text-gray-400">
@@ -274,7 +308,7 @@ onMounted(() => {
                 <label class="block text-xs font-bold servi-grey-font uppercase tracking-wide mb-1">Origen Ingreso</label>
                 <div class="relative">
                   <select v-model="origenIngreso" class="w-full py-2 servi-adapt-bg servi-grey-font border-b border-gray-100 focus:border-blue-900 focus:outline-none text-base transition-colors appearance-none cursor-pointer">
-                    <option value="cliente">Conducido por Cliente</option>
+                    <option value="cliente" >Conducido por Cliente</option>
                     <option value="grua">Grúa / Remolque</option>
                     <option value="tercero">Chofer / Tercero</option>
                   </select>

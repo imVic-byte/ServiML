@@ -8,7 +8,10 @@ import OTcard from "../../components/ordenTrabajo/ordendetrabajoCard.vue";
 import volver from "../../components/componentes/volveraListaFicha.vue";
 import {useInterfaz} from '../../stores/interfaz.js'
 import { fechaHoyCorta } from '../../js/fechayhora.js'
+import {useUserStore} from '../../stores/user.js'
 
+const userStore = useUserStore()
+const tienePrivilegios = computed(() => userStore.havePrivileges)
 const router = useRouter()
 const route = useRoute()
 const interfaz = useInterfaz()
@@ -47,6 +50,7 @@ const estadoTemporal = ref(null)
 const procesandoEstadoFicha = ref(false)
 
 const isFichaBloqueada = computed(() => {
+  if (!tienePrivilegios.value) return true
   return ficha.value && (Number(ficha.value.estado) === 6 || Number(ficha.value.estado) === 7)
 })
 
@@ -612,7 +616,13 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div v-if="isFichaBloqueada" class="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 text-blue-800 rounded shadow-sm flex items-center gap-3">
+      <div v-if="isFichaBloqueada && !tienePrivilegios" class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded shadow-sm flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <p class="font-bold">No tienes permisos para editar esta ficha. Modo solo lectura.</p>
+      </div>
+      <div v-else-if="isFichaBloqueada" class="mb-6 p-4 bg-blue-100 border-l-4 border-blue-600 text-blue-800 rounded shadow-sm flex items-center gap-3">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
@@ -867,7 +877,7 @@ onMounted(async () => {
     <!-- Modal de Advertencia (Bloqueo de Ficha) -->
     <div v-if="mostrarModalAdvertencia" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
 
-      <div class="servi-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 border-2 border-amber-500">
+      <div class="servi-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
         
         <div class="bg-amber-500 px-6 py-4 flex justify-between items-center text-white">
             <h3 class="text-lg font-bold flex items-center gap-2">
@@ -884,15 +894,15 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-4">
-            <p class="text-gray-700 font-medium">
+            <p class="servi-grey-font font-medium">
               Al cambiar el estado a <span class="font-bold underline">{{ estadoTemporal === 6 ? 'Entregado' : 'Cancelado' }}</span>, la ficha se bloqueará PERMANENTEMENTE y no se podrán realizar más cambios.
             </p>
-            <p class="text-sm text-gray-500">
+            <p class="text-sm servi-grey-font">
               ¿Estás seguro de que deseas continuar con esta acción?
             </p>
         </div>
-        <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
-            <button @click="mostrarModalAdvertencia = false" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-lg transition-colors">
+        <div class="servi-blue px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+            <button @click="mostrarModalAdvertencia = false" class="px-4 py-2 text-sm font-medium text-white hover:bg-gray-200 rounded-lg transition-colors">
                 Cancelar
             </button>
             <button 
@@ -909,9 +919,9 @@ onMounted(async () => {
 
     <!-- Modal de Confirmación Listo para Entrega -->
     <div v-if="mostrarModalListoEntrega" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity">
-      <div class="servi-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 border-2 border-blue-500">
+      <div class="servi-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
         
-        <div class="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
+        <div class="servi-blue px-6 py-4 flex justify-between items-center text-white">
             <h3 class="text-lg font-bold flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -926,22 +936,22 @@ onMounted(async () => {
         </div>
 
         <div class="p-6 space-y-4">
-            <p class="text-gray-700 font-medium">
+            <p class="servi-grey-font font-medium">
               ¿Confirmas que el vehículo está <span class="font-bold text-blue-600">Listo para Entrega</span>?
             </p>
-            <p class="text-sm text-gray-500">
+            <p class="text-sm servi-grey-font">
               Esta acción establecerá la fecha de inicio de estacionamiento para dentro de 3 días.
             </p>
         </div>
 
-        <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
-            <button @click="mostrarModalListoEntrega = false" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 rounded-lg transition-colors">
+        <div class="servi-blue px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+            <button @click="mostrarModalListoEntrega = false" class="px-4 py-2 text-sm font-medium text-white hover:bg-gray-200 rounded-lg transition-colors">
                 Cancelar
             </button>
             <button 
                 @click="confirmarListoEntrega" 
                 :disabled="procesandoEstadoFicha"
-                class="px-5 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md transition-all flex items-center gap-2 disabled:opacity-70">
+                class="px-5 py-2 text-sm font-bold text-black servi-yellow rounded-lg shadow-md transition-all flex items-center gap-2 disabled:opacity-70">
                 <svg v-if="procesandoEstadoFicha" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 Confirmar
             </button>
@@ -974,12 +984,12 @@ onMounted(async () => {
               </p>
             </div>
           </div>
-          <p class="text-sm text-gray-600">
+          <p class="text-sm servi-grey-font">
             ¿Deseas proceder con la generación del presupuesto final?
           </p>
         </div>
-        <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3">
-          <button @click="mostrarModalConfirmarPresupuesto = false" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors">
+        <div class="px-6 py-4 servi-blue flex justify-end gap-3">
+          <button @click="mostrarModalConfirmarPresupuesto = false" class="px-4 py-2 text-sm font-medium text-white hover:text-gray-800 transition-colors">
             Cancelar
           </button>
           <button @click="ejecutarGenerarPresupuesto" class="px-5 py-2 text-sm font-bold text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors shadow-sm">

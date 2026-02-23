@@ -1,0 +1,12 @@
+id,orden,estado,finaliza,color,texto
+1,1,Pendiente,false,#FAF17F,
+2,4,En Revisión,false,#039BE5,
+3,6,En Reparación,false,#1E88E5,
+4,5,Repuesto Pendiente,false,#FDD835,
+5,7,Pruebas de Control,false,#3949AB,#FFFFFF
+6,8,Completado,false,#43A047,#FFFFFF
+7,10,Entregado,true,#2E7D32,#FFFFFF
+8,11,Cancelado,true,#D32F2F,#FFFFFF
+9,9,En Estacionamiento,false,#8E24AA,#FFFFFF
+10,2,En Espera,false,#FB8C00,#FFFFFF
+11,3,Ingreso,false,#039BE5,#FFFFFF

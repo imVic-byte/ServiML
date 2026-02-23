@@ -250,7 +250,7 @@ onMounted(async () => {
                         </button> 
                         <div v-if="isPendiente" class="w-full">
                         <button @click="confirmarCotizacion" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-blue text-white border border-gray-200 hover:bg-blue-800 transition-colors text-sm font-medium">Confirmar</button>
-                        <button @click="descartarCotizacion" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-white text-black hover:bg-blue-800 transition-colors text-sm font-medium">Descartar</button>
+                        <button @click="descartarCotizacion" class="w-full mt-2 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-grey-font hover:bg-blue-800 transition-colors text-sm font-medium">Descartar</button>
                         </div>
                     </div>
                 </div>

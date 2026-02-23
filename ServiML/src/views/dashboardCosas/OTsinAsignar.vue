@@ -35,7 +35,6 @@ const handleVehiculosEnTaller = async () => {
       }))
     })
     vehiculosEnTaller.value = listaAplanada.sort((a, b) => b.id - a.id)
-    console.log(vehiculosEnTaller.value)
 
   } catch (error) {
     console.error('Error al obtener OTs activas:', error)

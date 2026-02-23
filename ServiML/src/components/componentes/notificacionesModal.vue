@@ -44,7 +44,7 @@ const handleIrADeuda = (notifId, deudaId) => {
 <template>
   <Transition name="modal">
     <div class="modal-overlay" @click.self="emit('cerrar')">
-      <div class="modal-panel servi-white servi-grey-font">
+      <div class="modal-panel pt-15 servi-white servi-grey-font">
         <!-- Header -->
         <div class="modal-header servi-blue">
           <div class="modal-header-left ">

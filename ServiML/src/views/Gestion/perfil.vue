@@ -20,7 +20,7 @@ const otCanceladas = ref(0)
 const handleTraerOT = async () => {
     const { data, error } = await supabase
         .from('orden_trabajo')
-        .select('*')
+        .select('id,estado_actual_id,ficha_de_trabajo(id,estado)')
         .eq('id_empleado', userStore.user.id)
     if (error) {
         console.error(error)
@@ -28,14 +28,15 @@ const handleTraerOT = async () => {
         listOT.value = data
         handleFiltrarOTs()
     }
+    console.log(listOT.value)
 }
 
 const handleFiltrarOTs = () => {
     if (!listOT.value) return
-    otFinalizadas.value = listOT.value.filter(ot => ot.estado_actual_id === 7).length
-    otPendientes.value = listOT.value.filter(ot => ot.estado_actual_id === 10).length
-    otEnProceso.value = listOT.value.filter(ot => [11, 2, 3, 4, 5, 6].includes(ot.estado_actual_id)).length
-    otCanceladas.value = listOT.value.filter(ot => ot.estado_actual_id === 8).length
+    otFinalizadas.value = listOT.value.filter(ot => [4, 5,6].includes(ot.ficha_de_trabajo.estado)).length
+    otPendientes.value = listOT.value.filter(ot => [1].includes(ot.ficha_de_trabajo.estado)).length
+    otEnProceso.value = listOT.value.filter(ot => [2,3].includes(ot.ficha_de_trabajo.estado)).length
+    otCanceladas.value = listOT.value.filter(ot => [7,8].includes(ot.ficha_de_trabajo.estado)).length
 }
 
 onMounted(async () => {
@@ -113,12 +114,6 @@ onMounted(async () => {
                     </svg>
                     Métricas de OTs
                 </h2>
-                <button class="text-sm servi-grey-font font-semibold hover:underline flex items-center gap-1" @click="$router.push('/perfil/historial')">
-                    Ver historial completo
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
             </div>
 
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
