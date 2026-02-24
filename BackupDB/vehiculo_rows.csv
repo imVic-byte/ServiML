@@ -1,7 +1,6 @@
 id,id_cliente,patente,marca,modelo,cilindrada,ano,en_taller
 20,19,SRRT13,RENAULT,EXPRESS,,,true
 21,20,FGHH40,SSANGYONG,ACTYON SPORT,,,false
-22,21,ASDASD,ASDASD,ASDASDAS,,,false
 23,22,UB6541,SUZUKI,GRAND VITARA,,,false
 24,19,LZPZ24,CITROEN,BERLINGO,,,false
 25,23,HXKR96,PEUGUEOT,208,,,false
