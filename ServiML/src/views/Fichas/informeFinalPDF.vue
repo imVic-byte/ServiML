@@ -275,7 +275,7 @@ onMounted(async () => {
           <!-- Título del documento -->
           <div class="mb-8">
             <div class="inline-block bg-[#1f3d64] text-white px-8 py-3 rounded-lg shadow-md">
-              <h2 class="text-2xl font-bold tracking-wide uppercase">Informe Final</h2>
+              <h2 class="text-2xl font-bold uppercase">Informe Final</h2>
             </div>
             <div class="mt-3">
               <p class="text-lg font-mono font-bold text-[#dc2626]">Folio N° {{ presupuesto?.numero_folio || '---' }}</p>
