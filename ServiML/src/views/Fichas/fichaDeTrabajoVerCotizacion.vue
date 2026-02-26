@@ -96,7 +96,7 @@ const cargarDatos = async () => {
       .single()
     if (data) {
         cotizacion.value = data
-        confirmada.value = data.estado === 2
+        confirmada.value = Number(data.estado) === 2
     } else {
         console.log(error)
     }

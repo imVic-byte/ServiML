@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { supabase } from '../../lib/supabaseClient'
 import navbar from "../../components/componentes/navbar.vue";
@@ -17,6 +17,9 @@ const route = useRoute()
 const interfaz = useInterfaz()
 const fichaId = route.params.id
 const cargando = ref(true)
+const autoGuardando = ref(false)
+const autoGuardadoExito = ref(false)
+let debounceTimer = null
 const error = ref(null)
 const ficha = ref(null)
 const cotizacionConfirmada = ref(null)
@@ -363,7 +366,8 @@ const handleEstados = (estado) => {
 }
 
 const guardarFicha = async () => {
-  interfaz.showLoadingOverlay()
+  autoGuardando.value = true
+  autoGuardadoExito.value = false
   try {
     const { data, error } = await supabase
       .from('ficha_de_trabajo')
@@ -375,14 +379,22 @@ const guardarFicha = async () => {
       })
       .eq('id', fichaId)
     if (error) throw error
+    autoGuardadoExito.value = true
+    setTimeout(() => { autoGuardadoExito.value = false }, 2000)
   } catch (err) {
     console.error("Error al guardar la ficha:", err)
-  }
-  finally{
-    await cargarDatos()
-    interfaz.hideLoadingOverlay()
+  } finally {
+    autoGuardando.value = false
   }
 }
+
+const debouncedGuardarFicha = () => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    guardarFicha()
+  }, 800)
+}
+
 
 const generarPresupuesto = async () => {
   if (!cotizacionConfirmada.value){
@@ -416,6 +428,20 @@ const irAInforme = async () => {
 const talleres = ref([])
 
 const tallerSeleccionado = ref(null)
+
+// Autosave watchers
+watch(() => ficha.value?.origen_ingreso, (newVal, oldVal) => {
+  if (oldVal !== undefined && newVal !== oldVal && !cargando.value) debouncedGuardarFicha()
+})
+watch(() => ficha.value?.fecha_ingreso, (newVal, oldVal) => {
+  if (oldVal !== undefined && newVal !== oldVal && !cargando.value) debouncedGuardarFicha()
+})
+watch(() => ficha.value?.fecha_promesa, (newVal, oldVal) => {
+  if (oldVal !== undefined && newVal !== oldVal && !cargando.value) debouncedGuardarFicha()
+})
+watch(tallerSeleccionado, (newVal, oldVal) => {
+  if (oldVal !== undefined && newVal !== oldVal && !cargando.value) debouncedGuardarFicha()
+})
 
 const cargarTalleres = async () => {
   try{
@@ -636,7 +662,18 @@ onMounted(async () => {
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-3 border-b border-gray-100 flex justify-between items-center">
               <h2 class="text-white font-bold text-lg">Datos de la Ficha</h2>
-              <button v-if="!isFichaBloqueada" @click="guardarFicha" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs uppercase tracking-wider flex items-center gap-1 transition-colors">Guardar</button>
+              <div class="flex items-center gap-2 min-h-[32px]">
+                <transition name="fade">
+                  <span v-if="autoGuardando" class="text-white text-xs flex items-center gap-1 animate-pulse">
+                    <svg class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Guardando...
+                  </span>
+                  <span v-else-if="autoGuardadoExito" class="text-green-300 text-xs flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    Guardado
+                  </span>
+                </transition>
+              </div>
             </div>
             <div class="p-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -710,16 +747,16 @@ onMounted(async () => {
                 Cotizaciones
                 <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">{{ cotizaciones.length }}</span>
               </h2>
-              <button v-if="!cotizacionConfirmada && !isFichaBloqueada" @click="crearCotizacion" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs uppercase tracking-wider flex items-center gap-1 transition-colors">Crear</button>
+              <button v-if="!isFichaBloqueada" @click="crearCotizacion" class="text-black servi-yellow p-2 rounded-lg hover:text-gray-200 text-xs uppercase tracking-wider flex items-center gap-1 transition-colors">Crear</button>
             </div>
             <div v-if="cotizaciones.length > 0" class="divide-y divide-gray-100 max-h-60 overflow-y-auto custom-scrollbar">
               <div v-for="(cotizacion, i) in cotizaciones" :key="cotizacion.id"
                 @click="irACotizacion(cotizacion.id,i+1)"
-                class="p-4 hover:bg-gray-50 transition-colors cursor-pointer group flex justify-between items-center"
+                class="p-4  hover:text-black transition-colors cursor-pointer group flex justify-between items-center"
                 :class="{ 'pointer-events-none opacity-70': isFichaBloqueada }">
                 <div>
-                  <p class="font-bold servi-grey-font text-sm group-hover:text-blue-600 transition-colors">Cotización N°{{ i + 1 }}</p>
-                  <p class="text-xs servi-grey-font">{{ formatFecha(cotizacion.created_at) }}</p>
+                  <p class="font-bold  servi-grey-font text-sm group-hover:text-blue-600 transition-colors">Cotización N°{{ i + 1 }}</p>
+                  <p class="text-xs   servi-grey-font">{{ formatFecha(cotizacion.created_at) }}</p>
                 </div>
                 <div class="text-right flex items-end gap-1 align-center justify-center">
                   <div class="flex flex-col items-center justify-center align-center">
@@ -745,7 +782,7 @@ onMounted(async () => {
                 <button v-else-if="cotizacionConfirmada && !isFichaBloqueada" @click="generarPresupuesto" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
                   Generar presupuesto
                 </button>
-                <button v-if="ficha.presupuesto && !ficha.informe_final && !isFichaBloqueada" @click="GenerarInforme" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
+                <button v-if="!ficha.informe_final && !isFichaBloqueada" @click="GenerarInforme" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">
                   Generar informe
                 </button>
                 <button v-else-if="ficha.informe_final" @click="irAInforme" class="w-full py-2.5 px-4 servi-blue text-white rounded-lg hover:bg-gray-900 transition-colors flex items-center justify-center gap-2 text-sm font-medium">

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, computed } from "vue";
 import { supabase } from "../../lib/supabaseClient.js";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, onBeforeRouteLeave } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
 import modal from "../../components/componentes/modal.vue";
 import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
@@ -42,6 +42,12 @@ const fechaToDatetimeLocal = (fechaStr) => {
 
 const isCerrado = ref(false);
 const sinEmpleado = ref(false);
+const autoGuardando = ref(false);
+const autoGuardadoExito = ref(false);
+const mostrarModalSalir = ref(false);
+let resolverNavegacion = null;
+let debounceTimer = null;
+const datosCargados = ref(false);
 const modalState = ref({ visible: false, titulo: "", mensaje: "", exito: true });
 const redirigir = () => { modalState.value.visible = false; };
 const interfaz = useInterfaz();
@@ -382,50 +388,24 @@ const openModal = (estado) => {
   showModal.value = true;
 };
 
-const closeModal = () => {
-  showModal.value = false;
-  showSecondModal.value = false;
-  showThirdModal.value = false;
-  selectedEstado.value = null;
-};
-
-const verificarCambioEstado = (estado_id) => {
-  if (estado_id === orden.value.estado_actual_id) return false;
-  if (estado_id === 1) return false;
-  if (verificarEstadoCerrado()) return false;
-  return true;
-}
-
-const confirmarCambioEstado = () => {
-  if (selectedEstado.value) {
-    if (selectedEstado.value.id === 7 || selectedEstado.value.id === 8) {
-      showModal.value = false;
-      showSecondModal.value = true;
-      return;
-    }
-    if (selectedEstado.value.id === 6) {
-      showThirdModal.value = true;
-      return;
-    }
-    ejecutarCambioReal();
-  }
-};
-
-const ejecutarCambioReal = async () => {
+const cambiarEstadoDirecto = async (estado) => {
+  if (estado.id === orden.value.estado_actual_id) return;
+  if (verificarEstadoCerrado()) return;
+  selectedEstado.value = estado;
   manejarBloqueo(true);
   interfaz.showLoadingOverlay();
   const { error: errorBitacora } = await supabase.from("OT_bitacora").insert({
     ot_id: route.params.id,
-    nuevo_estado_id: selectedEstado.value.id,
+    nuevo_estado_id: estado.id,
     tipo_evento: "cambio_estado",
   });
   if (errorBitacora) {
     console.error(errorBitacora);
   }
-  closeModal();
   await obtenerOrden();
   interfaz.hideLoadingOverlay();
   manejarBloqueo(false);
+  selectedEstado.value = null;
 }
 
 const trabajadores = ref([])
@@ -472,6 +452,95 @@ const actualizarBitacora = async (nuevoId) => {
   }
 }
 
+// --- Autosave: solo campos simples ---
+const autoGuardarCampos = async () => {
+  if (soloLectura.value || isCerrado.value) return;
+  autoGuardando.value = true;
+  autoGuardadoExito.value = false;
+  try {
+    const { error } = await supabase
+      .from('orden_trabajo')
+      .update({
+        kilometraje_inicial: orden.value.kilometraje_inicial,
+        combustible_inicial: nivelCombustible.value,
+        prioridad: orden.value.prioridad,
+        tipo_trabajo: orden.value.tipo_trabajo,
+        diagnostico: orden.value.diagnostico,
+        trae_documentos: orden.value.trae_documentos,
+        trae_llaves: orden.value.trae_llaves,
+        trae_candado_seguridad: orden.value.trae_candado_seguridad,
+        trae_panel_radio: orden.value.trae_panel_radio,
+        trae_rueda_repuesto: orden.value.trae_rueda_repuesto,
+        trae_encendedor: orden.value.trae_encendedor
+      })
+      .eq('id', route.params.id);
+    if (error) throw error;
+    autoGuardadoExito.value = true;
+    setTimeout(() => { autoGuardadoExito.value = false; }, 2000);
+  } catch (err) {
+    console.error('Error en autoguardado:', err);
+  } finally {
+    autoGuardando.value = false;
+  }
+};
+
+const debouncedAutoGuardar = () => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    autoGuardarCampos();
+  }, 800);
+};
+
+// Watchers para autosave de campos simples
+const camposSimples = [
+  () => orden.value?.prioridad,
+  () => orden.value?.tipo_trabajo,
+  () => orden.value?.kilometraje_inicial,
+  () => orden.value?.diagnostico,
+  () => orden.value?.trae_documentos,
+  () => orden.value?.trae_llaves,
+  () => orden.value?.trae_candado_seguridad,
+  () => orden.value?.trae_panel_radio,
+  () => orden.value?.trae_rueda_repuesto,
+  () => orden.value?.trae_encendedor,
+];
+camposSimples.forEach(getter => {
+  watch(getter, (newVal, oldVal) => {
+    if (oldVal !== undefined && newVal !== oldVal && datosCargados.value) debouncedAutoGuardar();
+  });
+});
+watch(nivelCombustible, (newVal, oldVal) => {
+  if (oldVal !== undefined && newVal !== oldVal && datosCargados.value) debouncedAutoGuardar();
+});
+
+// Computed: hay cambios pendientes (observaciones o fotos nuevas sin guardar)
+const tieneCambiosPendientes = computed(() => {
+  const obsNuevas = observaciones.value.some(o => o.isNew);
+  const fotosNuevas = fotosRecepcion.value.some(f => f.isNew);
+  return obsNuevas || fotosNuevas;
+});
+
+// Navigation guard
+onBeforeRouteLeave((to, from, next) => {
+  if (tieneCambiosPendientes.value) {
+    mostrarModalSalir.value = true;
+    resolverNavegacion = next;
+  } else {
+    next();
+  }
+});
+
+const confirmarSalir = () => {
+  mostrarModalSalir.value = false;
+  if (resolverNavegacion) resolverNavegacion();
+};
+
+const cancelarSalir = () => {
+  mostrarModalSalir.value = false;
+  if (resolverNavegacion) resolverNavegacion(false);
+  resolverNavegacion = null;
+};
+
 onMounted(async () => {
   interfaz.showLoading();
   await obtenerTalleres();
@@ -480,6 +549,8 @@ onMounted(async () => {
   traerObservaciones();
   traerFotosRecepcion();
   if (userStore.havePrivileges) handleTrabajadores();
+  // Marcar datos como cargados para habilitar autosave
+  setTimeout(() => { datosCargados.value = true; }, 500);
 });
 </script>
 
@@ -506,7 +577,7 @@ onMounted(async () => {
       <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4 mb-6 overflow-x-auto">
         <div class="flex flex-nowrap md:flex-wrap items-center justify-start md:justify-center gap-2 min-w-max md:min-w-0">
           <div v-for="estado in estados" :key="estado.id" class="flex flex-col items-center group">
-            <div v-if="estado.id !== 1 && estado.id !== 8 && estado.id !== 7 && estado.id !== 9 && estado.id !== 11" @click="verificarCambioEstado(estado.id) ? openModal(estado) : null"
+            <div v-if="estado.id !== 1 && estado.id !== 8 && estado.id !== 7 && estado.id !== 9 && estado.id !== 11" @click="cambiarEstadoDirecto(estado)"
               class="relative px-6 py-2 cursor-pointer transition-transform hover:scale-105 active:scale-95"
               :class="{ 'opacity-50 hover:opacity-100': estado.id !== orden.estado_actual_id }">
               <div class="absolute inset-0 transform -skew-x-12 rounded shadow-sm" :style="{ backgroundColor: estado.color }"></div>
@@ -544,6 +615,18 @@ onMounted(async () => {
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="servi-blue px-6 py-4 flex justify-between items-center">
               <h1 class="servi-yellow-font font-bold text-lg tracking-wide">DATOS DE RECEPCIÓN</h1>
+              <div class="flex items-center gap-2 min-h-[32px]">
+                <transition name="fade">
+                  <span v-if="autoGuardando" class="text-white text-xs flex items-center gap-1 animate-pulse">
+                    <svg class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Guardando...
+                  </span>
+                  <span v-else-if="autoGuardadoExito" class="text-green-300 text-xs flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    Guardado
+                  </span>
+                </transition>
+              </div>
             </div>
 
             <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -800,8 +883,9 @@ onMounted(async () => {
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                 </svg>
-                Guardar Todo
+                Guardar Observaciones y Fotos
               </button>
+              <p v-if="!soloLectura && !isCerrado" class="text-xs servi-grey-font text-center mt-1 opacity-70">Los demás campos se guardan automáticamente</p>
 
               <div v-if="soloLectura" class="text-center py-3 text-sm servi-grey-font font-medium">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -816,44 +900,6 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div v-if="showModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm">
-      <div class="servi-adapt-bg servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
-        <h3 class="text-xl font-bold servi-grey-font mb-2">Confirmar cambio</h3>
-        <p class="servi-grey-font text-sm mb-6">¿Confirmas cambiar el estado a <span class="font-bold servi-grey-font">"{{ selectedEstado?.estado }}"</span>?</p>
-        <div class="flex justify-end gap-3">
-          <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
-          <button @click="confirmarCambioEstado()" class="px-4 py-2 servi-blue text-white rounded-md font-bold hover:bg-blue-700">Confirmar</button>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="showSecondModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-md">
-      <div class="servi-adapt-bg rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg></div>
-          <h3 class="text-xl font-bold servi-grey-font">Finalizar Orden</h3>
-        </div>
-        <p class="servi-grey-font text-sm mb-6">Estás a punto de cerrar esta orden permanentemente.</p>
-        <div class="flex justify-end gap-3">
-          <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
-          <button @click="ejecutarCambioReal()" class="px-4 py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700">Sí, Finalizar</button>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="showThirdModal" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/70 backdrop-blur-md">
-      <div class="servi-adapt-bg servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl border-l-4 border-red-600">
-        <div class="flex items-center gap-2 mb-4">
-           <div class="p-2 bg-red-100 rounded-full text-red-600"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div>
-          <h3 class="text-xl font-bold servi-grey-font">Generar Informe</h3>
-        </div>
-        <p class="servi-grey-font text-sm mb-6">Esto cambiará el estado a "{{ selectedEstado?.estado }}", generará el PDF y lo enviará al cliente.</p>
-        <div class="flex justify-end gap-3">
-          <button @click="closeModal()" class="px-4 py-2 servi-grey-font hover:opacity-80 rounded-md font-medium">Cancelar</button>
-          <button @click="ejecutarCambioReal()" class="px-4 py-2 bg-red-600 text-white rounded-md font-bold hover:bg-red-700">Sí, Generar</button>
-        </div>
-      </div>
-    </div>
 
     <div v-if="showCambiarTrabajador" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm">
       <div class="servi-white servi-grey-font rounded-lg p-6 max-w-sm w-full shadow-2xl">
@@ -875,6 +921,33 @@ onMounted(async () => {
     </div>
 
     <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="redirigir" />
+
+    <!-- Modal: Cambios pendientes al salir -->
+    <div v-if="mostrarModalSalir" class="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black/60 backdrop-blur-sm">
+      <div class="servi-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="bg-amber-500 px-6 py-4 flex justify-between items-center text-white">
+          <h3 class="text-lg font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            Cambios sin guardar
+          </h3>
+          <button @click="cancelarSalir" class="text-white hover:text-amber-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="p-6 space-y-3">
+          <p class="servi-grey-font font-medium">Tienes observaciones o fotos nuevas que aún no se han guardado.</p>
+          <p class="text-sm servi-grey-font">Si sales ahora, se perderán estos datos. ¿Deseas continuar?</p>
+        </div>
+        <div class="servi-blue px-6 py-4 flex justify-end gap-3 border-t border-gray-100">
+          <button @click="cancelarSalir" class="px-4 py-2 text-sm font-medium text-white hover:bg-gray-200 hover:text-gray-800 rounded-lg transition-colors">Quedarme</button>
+          <button @click="confirmarSalir" class="px-5 py-2 text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-md transition-all">Salir sin guardar</button>
+        </div>
+      </div>
+    </div>
 
 
   </div>

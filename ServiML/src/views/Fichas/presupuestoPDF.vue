@@ -64,7 +64,8 @@ const traerTelefono = async () => {
 }
 
 const cuentaSeleccionada = computed(() => {
-  return cotizacion.value?.serviml_cuenta || null
+  if (!cotizaciones.value || cotizaciones.value.length === 0) return null
+  return cotizaciones.value[0]?.serviml_cuenta || null
 })
 
 const diasEstacionamientoPDF = computed(() => {
@@ -80,8 +81,28 @@ const totalCargoEstacionamientoPDF = computed(() => {
   return diasEstacionamientoPDF.value * 5000
 })
 
+const subtotalAgregado = computed(() => {
+  if (!cotizaciones.value) return 0
+  return cotizaciones.value.reduce((sum, c) => sum + (c.subtotal || 0), 0)
+})
+
+const totalNetoAgregado = computed(() => {
+  if (!cotizaciones.value) return 0
+  return cotizaciones.value.reduce((sum, c) => sum + (c.total_neto || 0), 0)
+})
+
+const ivaAgregado = computed(() => {
+  if (!cotizaciones.value) return 0
+  return cotizaciones.value.reduce((sum, c) => sum + (c.iva || 0), 0)
+})
+
+const totalFinalAgregado = computed(() => {
+  if (!cotizaciones.value) return 0
+  return cotizaciones.value.reduce((sum, c) => sum + (c.total_final || 0), 0)
+})
+
 const totalFinalFinal = computed(() => {
-  let total = cotizacion.value?.total_final || 0
+  let total = totalFinalAgregado.value
   if (diasEstacionamientoPDF.value > 1) {
     total += totalCargoEstacionamientoPDF.value
   }
@@ -94,16 +115,17 @@ const generarPresupuesto = async () => {
     console.log('Ya existe un presupuesto para esta ficha')
     return
   }
-  if (!ficha.value || !cotizacion.value) {
+  if (!ficha.value || !cotizaciones.value || cotizaciones.value.length === 0) {
     return
   }
+  const primeraCotizacion = cotizaciones.value[0]
   const {data, error} = await supabase
     .from('presupuesto_ficha')
     .insert({
       total_final: totalFinalFinal.value,
       id_ficha: ficha.value.id,
-      id_cuenta: cotizacion.value.serviml_cuenta.id,
-      id_cotizacion: cotizacion.value.id,
+      id_cuenta: primeraCotizacion.serviml_cuenta?.id,
+      id_cotizacion: primeraCotizacion.id,
     })
     .select()
     .single()
@@ -151,7 +173,7 @@ const generarPresupuesto = async () => {
 
 const presupuesto = ref(null)
 const ficha = ref(null)
-const cotizacion = ref(null)
+const cotizaciones = ref([])
 
 const cargarDatos = async () => {
     const {data, error} = await supabase
@@ -162,8 +184,8 @@ const cargarDatos = async () => {
 
     if (data) {
       ficha.value = data
-      presupuesto.value = data.presupuesto_ficha[0]
-      cotizacion.value = data.cotizaciones_ficha?.find(c => c.estado === 2) || null
+      presupuesto.value = data.presupuesto_ficha
+      cotizaciones.value = data.cotizaciones_ficha?.filter(c => Number(c.estado) === 2) || []
     }
 
     if (error) {
@@ -239,9 +261,9 @@ onMounted(async () => {
         </p>
       </div>
     </div>
-    <div v-if="!cotizacion" class="p-10 text-center border-2 border-dashed border-red-300 rounded-xl my-10">
-      <p class="text-red-500 font-bold">No hay cotización seleccionada para previsualizar.</p>
-      <p class="text-gray-500 text-xs mt-2">Asegúrate de que la cotización esté aprobada para ver el presupuesto.</p>
+    <div v-if="cotizaciones.length === 0" class="p-10 text-center border-2 border-dashed border-red-300 rounded-xl my-10">
+      <p class="text-red-500 font-bold">No hay cotizaciones aprobadas para previsualizar.</p>
+      <p class="text-gray-500 text-xs mt-2">Asegúrate de que al menos una cotización esté aprobada para ver el presupuesto.</p>
     </div>
     <div v-else class="grid grid-cols-2 gap-10 mb-8">
       <div>
@@ -272,8 +294,8 @@ onMounted(async () => {
         </ul>
       </div>
     </div>
-    <h3 v-if="cotizacion" class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">Resumen</h3>
-    <div v-if="cotizacion" class="mb-4 flex justify-between">
+    <h3 v-if="cotizaciones.length > 0" class="font-bold text-[#1f3d64] border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase">Resumen</h3>
+    <div v-if="cotizaciones.length > 0" class="mb-4 flex justify-between">
       <ul class="text-[#374151] flex-row w-full">
         <li class="w-[53%]">
           <span class="font-bold text-left align-left text-[#111827] text-start">Motivo Ingreso:</span> 
@@ -283,10 +305,6 @@ onMounted(async () => {
           <span class="font-bold text-left align-left text-[#111827] text-start">Fecha Ingreso:</span> 
           <p>{{ formatoFechaYHora(ficha?.fecha_ingreso) }}</p>
         </li>
-        <li>
-          <span class="font-bold text-left align-left text-[#111827] text-start">Comentarios adicionales:</span> 
-          <p>{{ cotizacion?.comentario || '---' }}</p>
-        </li>
       </ul>
       <ul class="text-[#374151] flex-row w-full h-full align-top">
         <li>
@@ -295,11 +313,12 @@ onMounted(async () => {
             - {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} 
             <span class="p-1 mt-1 font-bold text-[#1f3d64] rounded-lg"> {{ orden.vehiculo.patente }} </span>
           </p>
-          
         </li>
       </ul>
     </div>
-    <div v-if="cotizacion" class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden">
+
+    <!-- Tabla de items: una sección por cotización -->
+    <div v-if="cotizaciones.length > 0" class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden">
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-[#1f3d64] text-[#ffffff] text-[10px] uppercase tracking-wider">
@@ -310,17 +329,25 @@ onMounted(async () => {
           </tr>
         </thead>
         <tbody class="text-[#1f2937] text-[11px]">
-          
-          <tr 
-            v-for="(item, index) in cotizacion?.detalle_cotizaciones_ficha || []" 
-            :key="index"
-            class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64] "
-          >
-            <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
-            <td class="p-3 text-right font-bold">{{ formatoPesos(item.monto) }}</td>
-            <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
-            <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
-          </tr>
+          <template v-for="(cot, ci) in cotizaciones" :key="cot.id">
+            <!-- Separador con título si hay más de una cotización -->
+            <tr v-if="cotizaciones.length > 1" class="bg-[#f1f5f9]">
+              <td colspan="4" class="p-2 font-bold text-[#1f3d64] text-[10px] uppercase tracking-wider">
+                Cotización N°{{ ci + 1 }}
+                <span v-if="cot.comentario" class="font-normal text-[#6b7280] ml-2">— {{ cot.comentario }}</span>
+              </td>
+            </tr>
+            <tr 
+              v-for="(item, index) in cot.detalle_cotizaciones_ficha || []" 
+              :key="cot.id + '-' + index"
+              class="bg-[#ffffff] shadow-lg border-b border-[#1f3d64]"
+            >
+              <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
+              <td class="p-3 text-right font-bold">{{ formatoPesos(item.monto) }}</td>
+              <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
+              <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
+            </tr>
+          </template>
           <!-- Anexo de Estacionamiento -->
           <tr v-if="diasEstacionamientoPDF > 1" class="bg-amber-50 shadow-lg border-b border-[#1f3d64]">
             <td class="p-3 font-medium text-[#1f3d64]">Servicio de Estacionamiento ({{ diasEstacionamientoPDF }} días)</td>
@@ -328,7 +355,7 @@ onMounted(async () => {
             <td class="p-3 text-right font-bold">{{ diasEstacionamientoPDF }}</td>
             <td class="p-3 text-right font-bold">{{ formatoPesos(totalCargoEstacionamientoPDF) }}</td>
           </tr>
-          <tr v-if="!cotizacion?.detalle_cotizaciones_ficha || cotizacion.detalle_cotizaciones_ficha.length < 5" class="h-24">
+          <tr v-if="cotizaciones.reduce((sum, c) => sum + (c.detalle_cotizaciones_ficha?.length || 0), 0) < 5" class="h-24">
             <td colspan="4"></td>
           </tr>
         </tbody>
@@ -336,7 +363,7 @@ onMounted(async () => {
     </div>
 
     <!-- Totales + cuenta bancaria -->
-    <div v-if="cotizacion" class="flex justify-between items-start gap-8">
+    <div v-if="cotizaciones.length > 0" class="flex justify-between items-start gap-8">
       
       <div v-if="cuentaSeleccionada" class="w-3/5 bg-[#f8fafc] p-4 rounded-lg border border-[#e2e8f0]">
         <h4 class="font-bold text-[#1f3d64] uppercase text-[10px] mb-2 flex items-center gap-2">
@@ -355,20 +382,16 @@ onMounted(async () => {
       <div :class="cuentaSeleccionada ? 'w-2/5' : 'w-2/5 ml-auto'">
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">Subtotal</span>
-          <span>{{ formatoPesos(cotizacion?.subtotal || 0) }}</span>
+          <span>{{ formatoPesos(subtotalAgregado) }}</span>
         </div>
         
-        <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
-          <span class="font-medium">Descuento</span>
-          <span>- {{ cotizacion?.descuento || 0 }}%</span>
-        </div>
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">Total Neto</span>
-          <span>{{ formatoPesos(cotizacion?.total_neto || 0) }}</span>
+          <span>{{ formatoPesos(totalNetoAgregado) }}</span>
         </div>
         <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium">IVA 19%</span>
-          <span>{{ formatoPesos(cotizacion?.iva || 0) }}</span>
+          <span>{{ formatoPesos(ivaAgregado) }}</span>
         </div>
 
         <div v-if="diasEstacionamientoPDF > 1" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">

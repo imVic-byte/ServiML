@@ -13,24 +13,7 @@ const interfaz = useInterfaz()
 const loading = ref(true);
 const enviandoCorreo = ref(false);
 
-const formatoPesos = (valor) => {
-  if (valor === undefined || valor === null) return '$0';
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor);
-};
 
-const formatoFechaYHora = (fecha) => {
-  if (!fecha) return '---';
-  return new Date(fecha).toLocaleString('es-CL');
-};
-
-const formatoFecha = (fecha) => {
-  if (!fecha) return '---';
-  return new Date(fecha).toLocaleDateString('es-CL');
-};
-
-const TotalItem = (item) => {
-  return formatoPesos(Number(item.monto) * Number(item.cantidad))
-};
 
 const datosEmpresa = ref({})
 
@@ -64,9 +47,15 @@ const traerTelefono = async () => {
   }
 }
 
-const cuentaSeleccionada = computed(() => {
-  return cotizacion.value?.serviml_cuenta || null
-})
+const formatoFecha = (fecha) => {
+  if (!fecha) return '---';
+  return new Date(fecha).toLocaleDateString('es-CL');
+};
+
+const formatoFechaYHora = (fecha) => {
+  if (!fecha) return '---';
+  return new Date(fecha).toLocaleString('es-CL');
+};
 
 const generarYsubir = async () => {
   enviandoCorreo.value = true;
@@ -250,7 +239,7 @@ onMounted(async () => {
 })
 </script>
 <template>
-  <div class="min-h-screen servi-white font-sans print:absolute print:inset-0 print:z-[9999] print:bg-white">
+  <div class="min-h-screen pb-20 servi-white font-sans print:absolute print:inset-0 print:z-[9999] print:bg-white">
     
     <div class="print:hidden">
       <Navbar :titulo="'Ficha N°' + (ficha?.id || '...')" subtitulo="Informe Final" class="navbar" />
@@ -273,152 +262,102 @@ onMounted(async () => {
       class="mx-auto overflow-hidden max-w-[21cm] max-w-[21cm] bg-white print:w-full print:max-w-none print:m-0 print:border-none print:shadow-none"
     >
       <div class="px-4 py-2  mx-auto text-xs font-sans leading-normal">
-        
-        <div class="flex justify-between pb-4 mb-4 border-b-4 border-[#1f3d64]">
-          <div class="flex items-center gap-2">
-            <span class="w-24 h-24 rounded-full overflow-hidden border border-[#e5e7eb]">
-                <img class="w-full h-full object-cover" src="../../img/Logo.jpg" alt="Logo">
+        <div class="flex flex-col items-center justify-center min-h-[90vh] text-center">
+          <!-- Logo y branding -->
+          <div class="mb-8">
+            <span class="w-32 h-32 rounded-full overflow-hidden border-2 border-[#1f3d64] mx-auto block">
+              <img class="w-full h-full object-cover" src="../../img/Logo.jpg" alt="Logo">
             </span>
-            <div>
-                <h1 class="text-2xl font-black tracking-tighter italic text-[#1f3d64]">SERVIML</h1>
-                <p class="font-bold uppercase text-[11px] tracking-widest mt-1 text-[#4b5563]">Servicios Mecánicos</p>
+            <h1 class="text-4xl font-black tracking-tighter italic text-[#1f3d64] mt-4">SERVIML</h1>
+            <p class="font-bold uppercase text-[13px] tracking-[0.3em] text-[#4b5563] mt-1">Servicios Mecánicos</p>
+          </div>
+
+          <!-- Título del documento -->
+          <div class="mb-8">
+            <div class="inline-block bg-[#1f3d64] text-white px-8 py-3 rounded-lg shadow-md">
+              <h2 class="text-2xl font-bold tracking-wide uppercase">Informe Final</h2>
+            </div>
+            <div class="mt-3">
+              <p class="text-lg font-mono font-bold text-[#dc2626]">Folio N° {{ presupuesto?.numero_folio || '---' }}</p>
+              <p class="text-sm text-[#6b7280] mt-1">{{ formatoFecha(informeFinal?.created_at) }}</p>
+              <div :style="{backgroundColor: handleEstados(ficha?.estado).color}" class="mt-2 inline-block text-white px-3 py-1 rounded font-bold text-[11px] uppercase">
+                {{ handleEstados(ficha?.estado).estado }}
+              </div>
             </div>
           </div>
 
-          <div class="text-right">
-            <h2 class="text-lg font-bold text-[#1f3d64]">INFORME FINAL</h2>
-            <p class="text-md font-mono font-bold text-[#dc2626]">
-                Folio N° {{ presupuesto?.numero_folio || '---' }}
-            </p>
-            <p class="mt-1 text-[11px] text-[#6b7280]">
-                Fecha: {{ formatoFecha(informeFinal?.created_at) }}
-            </p>
-            <div :style="{backgroundColor: handleEstados(ficha?.estado).color}" class="mt-2 pb-2 inline-block text-white px-2 py-1 rounded font-bold text-[10px] uppercase">
-              {{ handleEstados(ficha?.estado).estado }}
-            </div>
-          </div>
-        </div>
+          <!-- Separador -->
+          <div class="w-24 h-1 bg-[#1f3d64] rounded mx-auto mb-8"></div>
 
-        <div v-if="!cotizacion" class="p-10 text-center border-2 border-dashed border-[#fca5a5] rounded-xl my-10">
-          <p class="font-bold text-[#ef4444]">No hay una cotización aprobada para este informe.</p>
-        </div>
-        
-        <div v-else>
-          <div class="grid grid-cols-2 gap-10 mb-8">
+          <!-- Info empresa y cliente lado a lado -->
+          <div class="grid grid-cols-2 gap-10 text-left w-full max-w-lg mx-auto mb-8">
             <div>
-              <h3 class="font-bold border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">De: ServiML</h3>
-              <ul class="space-y-1 text-[#374151]">
+              <h3 class="font-bold border-b-2 border-[#1f3d64] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">De: ServiML</h3>
+              <ul class="space-y-1 text-[#374151] text-xs">
                 <li><span class="font-bold text-[#111827]">Dirección:</span> {{ datosEmpresa?.dirección || '...' }}</li>
                 <li><span class="font-bold text-[#111827]">Ciudad:</span> {{ datosEmpresa?.ciudad || '...' }}</li>
                 <li><span class="font-bold text-[#111827]">Teléfono:</span> {{ datosEmpresa?.telefono || 'Sin Teléfono' }}</li>
                 <li><span class="font-bold text-[#111827]">Email:</span> {{ datosEmpresa?.email || '...' }}</li>
               </ul>
             </div>
-
             <div>
-              <h3 class="font-bold border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">Para: Cliente</h3>
-              <ul class="space-y-1 text-[#374151]">
+              <h3 class="font-bold border-b-2 border-[#1f3d64] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">Para: Cliente</h3>
+              <ul class="space-y-1 text-[#374151] text-xs">
                 <li>
-                  <span class="font-bold text-[#111827]">Cliente:</span> 
+                  <span class="font-bold text-[#111827]">Cliente:</span>
                   {{ ficha?.cliente ? (ficha.cliente.nombre + ' ' + ficha.cliente.apellido) : 'Sin Nombre' }}
                 </li>
                 <li>
-                  <span class="font-bold text-[#111827]">Teléfono:</span> 
+                  <span class="font-bold text-[#111827]">Teléfono:</span>
                   {{ ficha?.cliente ? ('+' + ficha.cliente.codigo_pais + ' ' + ficha.cliente.telefono) : 'Sin Teléfono' }}
                 </li>
                 <li>
-                  <span class="font-bold text-[#111827]">Email:</span> 
+                  <span class="font-bold text-[#111827]">Email:</span>
                   {{ ficha?.cliente?.email || 'Sin Email' }}
                 </li>
               </ul>
             </div>
           </div>
 
-          <div class="mb-6">
-            <h3 class="font-bold border-b border-[#cbd5e1] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">Lista de vehiculos</h3>
-            <div class="grid grid-cols-2 gap-4 break-inside-avoid">
-              <div v-for="orden in ficha?.orden_trabajo" :key="orden.id" class="p-3 rounded-lg border border-[#f3f4f6] bg-[#f9fafb]">
-                 <p class="font-bold uppercase text-sm text-[#1f3d64]">
-                   {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} {{ orden.vehiculo.anio }}
-                 </p>
-                 <p class="text-xs mt-1 text-[#4b5563]">
-                   Patente: <span class="font-bold px-1 rounded pb-2 bg-[#fef9c3]">{{ orden.vehiculo.patente }}</span>
-                 </p>
-                 <p class="text-[10px] mt-1 text-[#6b7280]">KM Entrada: {{ orden.kilometraje_inicial || '---' }}</p>
-                 <p class="text-[10px] mt-1 text-[#6b7280]">Diagnostico: {{ orden.diagnostico || '---' }}</p>
-              </div>
-            </div>
+          <!-- Motivo de ingreso -->
+          <div class="w-full max-w-lg mx-auto text-left mb-6">
+            <h3 class="font-bold border-b-2 border-[#1f3d64] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">Motivo de Ingreso</h3>
+            <p class="text-sm text-[#374151] leading-relaxed">{{ ficha?.motivo_ingreso || 'No especificado' }}</p>
+            <p class="text-xs text-[#6b7280] mt-1">Fecha de Ingreso: {{ formatoFechaYHora(ficha?.fecha_ingreso) }}</p>
           </div>
 
-          <div class="mb-8 border border-[#e5e7eb] rounded-lg overflow-hidden break-inside-avoid">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="text-white text-[10px] uppercase tracking-wider bg-[#1f3d64]">
-                  <th class="p-3 font-semibold">Descripción del Servicio / Repuesto</th>
-                  <th class="p-3 text-right w-28">P. Unitario</th>
-                  <th class="p-3 text-right w-20">Cant.</th>
-                  <th class="p-3 text-right w-28">Total</th>
-                </tr>
-              </thead>
-              <tbody class="text-[11px] text-[#1f2937]">
-                <tr 
-                  v-for="(item, index) in cotizacion?.detalle_cotizaciones_ficha || []" 
-                  :key="index"
-                  class="border-b border-[#f3f4f6] last:border-0 bg-white break-inside-avoid"
-                >
-                  <td class="p-3 font-medium text-[#1f3d64]">{{ item.descripcion }}</td>
-                  <td class="p-3 text-right font-bold">{{ formatoPesos(item.monto) }}</td>
-                  <td class="p-3 text-right font-bold">{{ item.cantidad }}</td>
-                  <td class="p-3 text-right font-bold">{{ TotalItem(item) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="flex justify-between items-start gap-8 break-inside-avoid">
-            <div class="w-3/5">
-              <div class="p-4 rounded-lg border border-[#f3f4f6] bg-[#f9fafb]">
-                <h4 class="font-bold uppercase text-[10px] mb-2 text-[#1f3d64]">Comentarios del Informe</h4>
-                <p class="italic text-[11px] leading-relaxed text-[#4b5563]">
-                  {{ cotizacion?.comentario || 'Servicio realizado satisfactoriamente según lo presupuestado.' }}
+          <!-- Vehículos -->
+          <div class="w-full max-w-lg mx-auto text-left mb-8">
+            <h3 class="font-bold border-b-2 border-[#1f3d64] mb-2 pb-1 text-[11px] uppercase text-[#1f3d64]">Vehículos</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div v-for="orden in ficha?.orden_trabajo" :key="orden.id" class="p-3 rounded-lg border border-[#e2e8f0] bg-[#f8fafc]">
+                <p class="font-bold uppercase text-sm text-[#1f3d64]">
+                  {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }} {{ orden.vehiculo.anio }}
                 </p>
-              </div>
-              
-              <div class="mt-8 flex gap-12">
-                <div class="text-center w-32">
-                   <div class="h-10 border-b border-[#d1d5db] mb-1"></div>
-                   <p class="text-[9px] font-bold text-[#9ca3af]">FIRMA TALLER</p>
-                </div>
-                <div class="text-center w-32">
-                   <div class="h-10 border-b border-[#d1d5db] mb-1"></div>
-                   <p class="text-[9px] font-bold text-[#9ca3af]">FIRMA CLIENTE</p>
-                </div>
+                <p class="text-xs mt-1 text-[#4b5563]">
+                  Patente: <span class="font-bold px-1 rounded bg-[#fef9c3]">{{ orden.vehiculo.patente }}</span>
+                </p>
+                <p class="text-[10px] mt-1 text-[#6b7280]">KM: {{ orden.kilometraje_inicial || '---' }}</p>
+                <p class="text-[10px] mt-0.5 text-[#6b7280]">Diagnóstico: {{ orden.diagnostico || '---' }}</p>
               </div>
             </div>
+          </div>
 
-            <div class="w-2/5">
-              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
-                <span class="font-medium">Subtotal</span>
-                <span>{{ formatoPesos(cotizacion?.subtotal || 0) }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#16a34a]">
-                <span class="font-medium">Descuento ({{ cotizacion?.descuento || 0 }}%)</span>
-                <span>- {{ formatoPesos((cotizacion?.subtotal || 0) * (cotizacion?.descuento || 0) / 100) }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
-                <span class="font-medium">Total Neto</span>
-                <span>{{ formatoPesos(cotizacion?.total_neto || 0) }}</span>
-              </div>
-              <div class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
-                <span class="font-medium">IVA 19%</span>
-                <span>{{ formatoPesos(cotizacion?.iva || 0) }}</span>
-              </div>
-
-              <div class="flex justify-between items-center text-white p-3 rounded mt-2 shadow-md bg-[#1f3d64]">
-                <span class="font-bold text-md tracking-tighter uppercase">Total Final</span>
-                <span class="font-bold text-lg">{{ formatoPesos(cotizacion?.total_final || 0) }}</span>
-              </div>
+          <!-- Firmas -->
+          <div class="flex gap-16 justify-center mt-4">
+            <div class="text-center w-36">
+              <div class="h-12 border-b-2 border-[#d1d5db] mb-1"></div>
+              <p class="text-[9px] font-bold text-[#9ca3af] uppercase">Firma Taller</p>
             </div>
+            <div class="text-center w-36">
+              <div class="h-12 border-b-2 border-[#d1d5db] mb-1"></div>
+              <p class="text-[9px] font-bold text-[#9ca3af] uppercase">Firma Cliente</p>
+            </div>
+          </div>
+
+          <!-- Footer portada -->
+          <div class="mt-8 text-center">
+            <p class="text-[9px] uppercase tracking-widest font-bold text-[#9ca3af]">ServiML • Soluciones Automotrices de Confianza</p>
           </div>
         </div>
         <template v-for="ot in ficha?.orden_trabajo" :key="ot.id" >
