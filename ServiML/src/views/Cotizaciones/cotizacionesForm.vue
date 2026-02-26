@@ -145,7 +145,7 @@ const totales = computed(() => {
   const dsc = descuentoPorcentaje.value || 0;
   const total_neto = subtotal - (subtotal * (dsc / 100));
   const pctIva = ivaBoolean.value ? 19 : 0;
-  const iva = total_neto * (pctIva / 100);
+  const iva = Math.trunc(total_neto * (pctIva / 100));
   const total_final = total_neto + iva;
 
   return { subtotal, descuento: dsc, total_neto, iva, total_final };

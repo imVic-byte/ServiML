@@ -228,18 +228,6 @@ const router = createRouter({
       meta: { requiresAuth: true, allowedRoles: ['Administrador', 'Gerente', 'Soporte'] }
     },
     {
-      path: '/finanzas',
-      name: 'finanzas',
-      component: () => import('../views/Gestion/finanzas.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
-    },
-    {
-      path: '/gastos',
-      name: 'gastos',
-      component: () => import('../views/Gestion/gastos.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
-    },
-    {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('../views/notFound.vue')
@@ -290,49 +278,79 @@ const router = createRouter({
       path:'/ficha-de-trabajo/:id',
       name: 'ficha-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajo.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
     },
     {
       path:'/ficha-de-trabajo',
       name: 'listado-fichas-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoListado.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
     },
     {
       path:'/ficha-de-trabajo/crear',
       name: 'crear-ficha-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoCrear.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
     },
     {
       path:'/ficha-de-trabajo/:id/crear-ot',
       name: 'crear-ot-ficha-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoCrearOT.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
     },
     {
       path:'/ficha-de-trabajo/:id/crear-cotizacion',
       name: 'crear-cotizacion-ficha-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoCrearCotizacion.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
     },
     {
       path:'/ficha-de-trabajo/:id/ver-cotizacion/:cotizacion_id',
       name: 'ver-cotizacion-ficha-de-trabajo',
       component: () => import('../views/Fichas/fichaDeTrabajoVerCotizacion.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
     },
     {
       path:'/ficha-de-trabajo/:id/presupuesto',
       name: 'ver-presupuesto-ficha-de-trabajo',
       component: () => import('../views/Fichas/presupuestoPDF.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
     },
     {
       path:'/ficha-de-trabajo/:id/informe',
       name: 'ver-informe-ficha-de-trabajo',
       component: () => import('../views/Fichas/informeFinalPDF.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador'] }
+    },
+    {
+      path: '/finanzas',
+      name: 'finanzas',
+      component: () => import('../views/Gestion/finanzas.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+    },
+    {
+      path: '/gastos',
+      name: 'gastos',
+      component: () => import('../views/gastosMensuales/gastosMensuales.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+    },
+    {
+      path: '/gastos/crear',
+      name: 'crear-gasto',
+      component: () => import('../views/gastosMensuales/gastosMensualesCrear.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+    },
+    {
+      path: '/gastos/editar/:id',
+      name: 'editar-gasto',
+      component: () => import('../views/gastosMensuales/gastosMensualesEditar.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+    },
+    {
+      path: '/gastos/ver/:id',
+      name: 'ver-gasto',
+      component: () => import('../views/gastosMensuales/gastosMensualesVer.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
     }
   ],
 })
