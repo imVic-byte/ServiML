@@ -13,8 +13,6 @@ const interfaz = useInterfaz()
 const loading = ref(true);
 const enviandoCorreo = ref(false);
 
-
-
 const datosEmpresa = ref({})
 
 const traerDatosEmpresa = async () => {
@@ -63,7 +61,7 @@ const generarYsubir = async () => {
   if (!elemento) return
   const opciones = {
     margin: [10, 10, 10, 10],
-    filename: `InformeFinal_${presupuesto.value?.numero_folio}.pdf`,
+    filename: `InformeFinal_${ficha.value?.numero_folio}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, scrollY: 0 }, // El scale 2 evita que se vea borroso
     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }, // Esta línea es CLAVE
@@ -71,7 +69,7 @@ const generarYsubir = async () => {
   };
   try {
     const pdfBlob = await html2pdf().set(opciones).from(elemento).output('blob');
-    const {exito,error} = await enviarInformeFinal(ficha.value.cliente.id,informeFinal.value.id, presupuesto.value.numero_folio, pdfBlob)
+    const {exito,error} = await enviarInformeFinal(ficha.value.cliente.id,informeFinal.value.id, ficha.value.numero_folio, pdfBlob)
     if (error) {
       console.error('Error al subir el informe final:', error)
     }
@@ -87,8 +85,8 @@ const generarInformeFinal = async () => {
   if (yaExiste) {
     return
   }
-  if (!ficha.value || !cotizacion.value) {
-    console.error('Falta ficha o cotización aprobada para generar el informe final')
+  if (!ficha.value) {
+    console.error('Falta ficha para generar el informe final')
     return
   }
   const {data, error} = await supabase
@@ -98,7 +96,6 @@ const generarInformeFinal = async () => {
       cliente_apellido: ficha.value.cliente.apellido,
       cliente_telefono: ficha.value.cliente.telefono,
       cliente_email: ficha.value.cliente.email,
-      total_final: cotizacion.value.total_final,
       cliente_codigo_pais: ficha.value.cliente.codigo_pais,
       id_ficha: ficha.value.id,
     })
@@ -120,21 +117,17 @@ const generarInformeFinal = async () => {
 
 const informeFinal = ref(null)
 const ficha = ref(null)
-const cotizacion = ref(null)
-const presupuesto = ref(null)
 
 const cargarDatos = async () => {
     const {data, error} = await supabase
     .from('ficha_de_trabajo')
-    .select(`*, informe_final(*),presupuesto_ficha(*), cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*)), OT_bitacora(*), OT_fotos_ingreso(*)),cotizaciones_ficha(*,detalle_cotizaciones_ficha(*),serviml_cuenta(*))`) 
+    .select(`*, informe_final(*),cliente (*),orden_trabajo (*, trabajadores(*),vehiculo(*,cliente(*)), OT_bitacora(*), OT_fotos_ingreso(*)))`) 
     .eq('id', route.params.id)
     .single()
 
     if (data) {
       ficha.value = data
-      presupuesto.value = data.presupuesto_ficha[0]
       informeFinal.value = data.informe_final[0]
-      cotizacion.value = data.cotizaciones_ficha?.find(c => c.estado === 2) || null
       
       // Fetch bitácora photos
       for (const ot of ficha.value.orden_trabajo) {
@@ -274,11 +267,11 @@ onMounted(async () => {
 
           <!-- Título del documento -->
           <div class="mb-8">
-            <div class="inline-block bg-[#1f3d64] text-white px-8 py-3 rounded-lg shadow-md">
-              <h2 class="text-2xl font-bold tracking-wide uppercase">Informe Final</h2>
+            <div class="inline-block text-white px-8 py-3 rounded-lg">
+              <h2 class="text-2xl font-bold tracking-wide uppercase text-[#1f3d64]">Informe Final</h2>
             </div>
             <div class="mt-3">
-              <p class="text-lg font-mono font-bold text-[#dc2626]">Folio N° {{ presupuesto?.numero_folio || '---' }}</p>
+              <p class="text-lg font-mono font-bold text-[#dc2626]">Folio N° {{ ficha?.numero_folio || '---' }}</p>
               <p class="text-sm text-[#6b7280] mt-1">{{ formatoFecha(informeFinal?.created_at) }}</p>
               <div :style="{backgroundColor: handleEstados(ficha?.estado).color}" class="mt-2 inline-block text-white px-3 py-1 rounded font-bold text-[11px] uppercase">
                 {{ handleEstados(ficha?.estado).estado }}
