@@ -182,7 +182,6 @@ const cargarMetricas = async () => {
     
     if (data) {
       metricas.value = data
-      console.log(metricas.value)
     }
 
   } catch (error) {

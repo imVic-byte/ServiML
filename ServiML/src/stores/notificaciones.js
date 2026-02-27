@@ -13,7 +13,6 @@ export function useNotifications(currentUserId) {
       .limit(10)
     
     if (data) notifications.value = data
-    console.log(notifications.value)
   }
 
   const handleNewNotification = (payload) => {
