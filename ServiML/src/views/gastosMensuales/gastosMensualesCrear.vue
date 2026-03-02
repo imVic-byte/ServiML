@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { supabase } from '@/lib/supabaseClient.js';
 import navbar from '@/components/componentes/navbar.vue';
 import volver from '@/components/componentes/volver.vue';
+import modal from '@/components/componentes/modal.vue';
 
 const router = useRouter();
 
@@ -24,6 +25,8 @@ const archivoFisico = ref(null);
 const previewUrl = ref(null);
 const tipoArchivo = ref(null);
 
+const modalState = ref({ visible: false, titulo: '', mensaje: '', exito: true, rutaDestino: null });
+
 const activarInputComprobante = (tipo) => {
   const id = tipo === 'camara' ? 'input-camara-comprobante' : 'input-galeria-comprobante';
   document.getElementById(id).click();
@@ -34,7 +37,7 @@ const procesarComprobante = (event) => {
   if (!file) return;
 
   if (file.size > 5 * 1024 * 1024) {
-    alert("El archivo es muy pesado. Máximo 5MB.");
+    modalState.value = { visible: true, titulo: 'Archivo muy pesado', mensaje: 'El archivo supera el máximo de 5MB.', exito: false, rutaDestino: null };
     event.target.value = '';
     return;
   }
@@ -43,6 +46,14 @@ const procesarComprobante = (event) => {
   previewUrl.value = URL.createObjectURL(file);
   tipoArchivo.value = file.type.startsWith('image/') ? 'imagen' : 'pdf';
   event.target.value = '';
+};
+
+const cerrarModal = () => {
+  modalState.value.visible = false;
+  if (modalState.value.rutaDestino) {
+    router.push(modalState.value.rutaDestino);
+    modalState.value.rutaDestino = null;
+  }
 };
 
 const removerComprobante = () => {
@@ -54,7 +65,7 @@ const removerComprobante = () => {
 
 const agregarGasto = () => {
   if (!concepto.value || !monto.value || !fechaEmision.value) {
-    alert('Por favor, completa Concepto, Monto y Fecha.');
+    modalState.value = { visible: true, titulo: 'Campos incompletos', mensaje: 'Por favor, completa Concepto, Monto y Fecha.', exito: false, rutaDestino: null };
     return;
   }
 
@@ -98,7 +109,7 @@ const formatearDinero = (valor) => {
 
 const cerrarMes = async () => {
   if (listaGastos.value.length === 0) {
-    alert('Debes agregar al menos un gasto para registrar el mes.');
+    modalState.value = { visible: true, titulo: 'Acción no permitida', mensaje: 'Debes agregar al menos un gasto para registrar el mes.', exito: false, rutaDestino: null };
     return;
   }
 
@@ -201,7 +212,7 @@ const cerrarMes = async () => {
           </h1>
           <div class="flex gap-2 w-full md:w-auto">
             <button @click="cerrarMes" :disabled="cargando" class="flex-1 md:flex-none servi-blue text-white px-5 py-2 rounded shadow-md font-semibold text-sm disabled:opacity-50">
-              {{ cargando ? 'Guardando...' : 'Cerrar Mes' }}
+              {{ cargando ? 'Guardando...' : 'Crear Mes' }}
             </button>
           </div>
         </div>
@@ -384,5 +395,6 @@ const cerrarMes = async () => {
         
       </div>
     </div>
+    <modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="cerrarModal" />
   </div>
 </template>
