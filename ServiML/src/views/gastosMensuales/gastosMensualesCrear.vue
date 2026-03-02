@@ -96,7 +96,6 @@ const formatearDinero = (valor) => {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor || 0);
 };
 
-// --- GUARDAR EN BASE DE DATOS (CON NUEVO WORKER R2) ---
 const cerrarMes = async () => {
   if (listaGastos.value.length === 0) {
     alert('Debes agregar al menos un gasto para registrar el mes.');
@@ -105,6 +104,7 @@ const cerrarMes = async () => {
 
   cargando.value = true;
   try {
+    // 1. Insertar la cabecera en BD
     const { data: cabeceraData, error: cabeceraError } = await supabase
       .from('gastos_fijos')
       .insert([{
@@ -120,10 +120,8 @@ const cerrarMes = async () => {
     if (cabeceraError) throw cabeceraError;
     const idGastosFijos = cabeceraData.id;
 
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !sessionData.session) throw new Error("No hay sesión activa");
-    const token = sessionData.session.access_token;
-
+    // 2. Subir las fotos usando el Worker Universal de tu compañero
+    const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/';
     const detallesAInsertar = [];
 
     for (const g of listaGastos.value) {
@@ -132,46 +130,33 @@ const cerrarMes = async () => {
       if (g.archivoRaw) {
         try {
           const archivoReal = g.archivoRaw;
-
-          const resWorker = await fetch('/api/get-upload-url-gastos', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              filename: archivoReal.name,
-              fileType: archivoReal.type,
-              mesOperacion: mesFichaBD
-            })
-          });
-
-          if (!resWorker.ok) {
-            const errorText = await resWorker.text();
-            throw new Error(`Worker rechazó la solicitud: ${errorText.substring(0, 50)}`);
-          }
+          const nombreLimpio = archivoReal.name.replace(/[^a-zA-Z0-9.-]/g, '_');
           
-          const { uploadUrl, key } = await resWorker.json();
+          // Creamos un nombre único para que no choque con las OT
+          const nombreUnico = `GASTO-${idGastosFijos}-${Date.now()}-${nombreLimpio}`;
+          
+          const formData = new FormData();
+          formData.append('file', archivoReal, nombreUnico);
+          // Le pasamos un folio inventado porque el worker de él parece pedirlo
+          formData.append('numero_folio', `GASTOS-${mesFichaBD}`); 
 
-          const uploadRes = await fetch(uploadUrl, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': archivoReal.type
-            },
-            body: archivoReal
+          const resWorker = await fetch(WORKER_URL, { 
+            method: 'POST', 
+            body: formData 
           });
 
-          if (!uploadRes.ok) throw new Error("Error subiendo el archivo al Storage");
-
-          const publicDomain = import.meta.env.VITE_STORAGE_PUBLIC_URL;
-          urlComprobante = `${publicDomain}/${key}`;
+          if (!resWorker.ok) throw new Error("Worker rechazó la imagen");
+          
+          const data = await resWorker.json();
+          urlComprobante = data.url; // ¡El worker nos da el link directo!
 
         } catch (uploadError) {
-          console.error("Error en proceso de subida:", uploadError);
+          console.error("Error subiendo foto:", uploadError);
           throw new Error(`Fallo al subir el comprobante de: ${g.descripcion}`);
         }
       }
 
+      // Preparamos la fila del detalle
       detallesAInsertar.push({
         descripcion: g.descripcion,
         monto: g.monto,
@@ -182,6 +167,7 @@ const cerrarMes = async () => {
       });
     }
 
+    // 3. Insertar detalle completo en BD
     const { error: detalleError } = await supabase
       .from('detalle_gastos_fijos')
       .insert(detallesAInsertar);
@@ -198,6 +184,8 @@ const cerrarMes = async () => {
     cargando.value = false;
   }
 };
+
+
 </script>
 
 <template>
