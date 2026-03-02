@@ -96,6 +96,7 @@ const formatearDinero = (valor) => {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor || 0);
 };
 
+// --- GUARDAR EN BASE DE DATOS (CON NUEVO WORKER R2) ---
 const cerrarMes = async () => {
   if (listaGastos.value.length === 0) {
     alert('Debes agregar al menos un gasto para registrar el mes.');
@@ -119,33 +120,55 @@ const cerrarMes = async () => {
     if (cabeceraError) throw cabeceraError;
     const idGastosFijos = cabeceraData.id;
 
-    const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/';
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !sessionData.session) throw new Error("No hay sesión activa");
+    const token = sessionData.session.access_token;
+
     const detallesAInsertar = [];
 
     for (const g of listaGastos.value) {
       let urlComprobante = null;
 
       if (g.archivoRaw) {
-        const archivoReal = g.archivoRaw;
-        const nombreLimpio = archivoReal.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const nombreUnico = `GASTO-${idGastosFijos}-${Date.now()}-${nombreLimpio}`;
-        
-        const formData = new FormData();
-        formData.append('file', archivoReal, nombreUnico);
-        formData.append('numero_folio', `Gastos-${mesFichaBD}`); 
-
         try {
-          const res = await fetch(WORKER_URL, { method: 'POST', body: formData });
-          if (res.ok) {
-            const data = await res.json();
-            urlComprobante = data.url;
-          } else {
-            console.error("Error del Worker:", await res.text());
-            throw new Error(`El servidor de archivos rechazó el comprobante de: ${g.descripcion}`);
+          const archivoReal = g.archivoRaw;
+
+          const resWorker = await fetch('/api/get-upload-url-gastos', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              filename: archivoReal.name,
+              fileType: archivoReal.type,
+              mesOperacion: mesFichaBD
+            })
+          });
+
+          if (!resWorker.ok) {
+            const errorText = await resWorker.text();
+            throw new Error(`Worker rechazó la solicitud: ${errorText.substring(0, 50)}`);
           }
+          
+          const { uploadUrl, key } = await resWorker.json();
+
+          const uploadRes = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': archivoReal.type
+            },
+            body: archivoReal
+          });
+
+          if (!uploadRes.ok) throw new Error("Error subiendo el archivo al Storage");
+
+          const publicDomain = import.meta.env.VITE_STORAGE_PUBLIC_URL;
+          urlComprobante = `${publicDomain}/${key}`;
+
         } catch (uploadError) {
-          console.error("Error subiendo al Worker:", uploadError);
-          throw new Error("No se pudo conectar con el servidor de subida de archivos.");
+          console.error("Error en proceso de subida:", uploadError);
+          throw new Error(`Fallo al subir el comprobante de: ${g.descripcion}`);
         }
       }
 
@@ -170,7 +193,7 @@ const cerrarMes = async () => {
 
   } catch (error) {
     console.error("Error general:", error.message);
-    alert(`Hubo un error al guardar la ficha: \n${error.message}`);
+    alert(`Hubo un error al guardar: \n${error.message}`);
   } finally {
     cargando.value = false;
   }
