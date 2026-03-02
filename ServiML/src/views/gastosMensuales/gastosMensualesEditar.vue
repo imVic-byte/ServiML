@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { supabase } from '@/lib/supabaseClient.js';
 import navbar from '@/components/componentes/navbar.vue';
-import volver from '@/components/componentes/volver.vue';
+import modal from '@/components/componentes/modal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -29,6 +29,18 @@ const tipoArchivo = ref(null);
 
 const listaGastos = ref([]);
 
+//modal
+
+const modalState = ref({ visible: false, titulo: '', mensaje: '', exito: true, rutaDestino: null });
+
+const cerrarModal = () => {
+  modalState.value.visible = false;
+  if (modalState.value.rutaDestino) {
+    router.push(modalState.value.rutaDestino);
+    modalState.value.rutaDestino = null;
+  }
+};
+
 // --- CARGAR DATOS EXISTENTES ---
 const cargarFicha = async () => {
   cargandoDatos.value = true;
@@ -42,7 +54,7 @@ const cargarFicha = async () => {
     if (errorCabecera) throw errorCabecera;
 
     if (cabecera.estado !== 1) {
-      alert("Esta ficha ya está cerrada y no se puede editar.");
+      modalState.value = { visible: true, titulo: 'Acción no permitida', mensaje: 'Esta ficha ya está cerrada y no se puede editar.', exito: false, rutaDestino: `/gastos/ver/${idFicha}` };
       router.push(`/gastos/ver/${idFicha}`);
       return;
     }
@@ -80,7 +92,7 @@ const cargarFicha = async () => {
 
   } catch (error) {
     console.error("Error al cargar:", error.message);
-    router.push('/gastos');
+    modalState.value = { visible: true, titulo: 'Error', mensaje: 'No se pudo cargar la información.', exito: false, rutaDestino: '/gastos' };
   } finally {
     cargandoDatos.value = false;
   }
@@ -101,7 +113,7 @@ const procesarComprobante = (event) => {
   if (!file) return;
 
   if (file.size > 5 * 1024 * 1024) {
-    alert("El archivo es muy pesado. Máximo 5MB.");
+    modalState.value = { visible: true, titulo: 'Archivo muy pesado', mensaje: 'El archivo supera el máximo de 5MB.', exito: false, rutaDestino: null };
     event.target.value = '';
     return;
   }
@@ -156,7 +168,7 @@ const formatearDinero = (valor) => new Intl.NumberFormat('es-CL', { style: 'curr
 // --- GUARDAR CAMBIOS EN BASE DE DATOS ---
 const guardarCambios = async () => {
   if (listaGastos.value.length === 0) {
-    alert('La ficha debe tener al menos un gasto.');
+    modalState.value = { visible: true, titulo: 'Atención', mensaje: 'La ficha debe tener al menos un gasto.', exito: false, rutaDestino: null };
     return;
   }
 
@@ -228,7 +240,7 @@ const guardarCambios = async () => {
 
   } catch (error) {
     console.error("Error BD:", error.message);
-    alert('Hubo un error al guardar los cambios.');
+    modalState.value = { visible: true, titulo: 'Error', mensaje: 'Hubo un error al guardar los cambios.', exito: false, rutaDestino: null };
   } finally {
     guardando.value = false;
   }
@@ -409,5 +421,6 @@ const guardarCambios = async () => {
         </div>
       </div>
     </div>
+<modal v-if="modalState.visible" :titulo="modalState.titulo" :mensaje="modalState.mensaje" :exito="modalState.exito" @cerrar="cerrarModal" />
   </div>
 </template>
