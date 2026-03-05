@@ -138,7 +138,7 @@ const generarPresupuesto = async () => {
     .from('ficha_de_trabajo')
     .update({presupuesto:true})
     .eq('id', ficha.value.id)
-  const folio = data?.numero_folio || data?.id || 'sin-folio';
+  const folio = ficha.value?.numero_folio || ficha.value?.id || 'sin-folio';
   const opciones = {
     margin:       0,
     filename:     `Presupuesto_Folio_${folio}.pdf`,
@@ -254,7 +254,7 @@ onMounted(async () => {
       <div class="text-right">
         <h2 class="text-lg font-bold text-[#1f3d64]">Presupuesto</h2>
         <p class="text-md font-mono text-[#dc2626] font-bold">
-            N° {{ presupuesto?.numero_folio || '---' }}
+            N° {{ ficha?.numero_folio || '---' }}
         </p>
         <p class="text-[#6b7280] mt-1 text-[11px]">
             Fecha: {{ formatoFecha(presupuesto?.created_at) }}

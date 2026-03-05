@@ -325,7 +325,19 @@ const router = createRouter({
     {
       path: '/finanzas',
       name: 'finanzas',
-      component: () => import('../views/Gestion/finanzas.vue'),
+      component: () => import('../views/Finanzas/finanzas.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+    },
+    {
+      path: '/finanzas/crear',
+      name: 'crear-finanza',
+      component: () => import('../views/Finanzas/finanzasCrear.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+    },
+    {
+      path: '/finanzas/ver/:id',
+      name: 'ver-finanza',
+      component: () => import('../views/Finanzas/finanzasVer.vue'),
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
     },
     {
