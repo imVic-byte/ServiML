@@ -222,7 +222,7 @@ const cerrarMes = async () => {
         <div class="lg:col-span-2 space-y-6">
           
           <div class="servi-adapt-bg rounded-lg shadow-sm overflow-hidden border border-gray-100">
-            <div class="servi-blue px-6 py-4 flex justify-between items-center">
+            <div class="servi-blue px-6 py-4 flex justify-between items-center border-yellow-500 border-b-4">
               <h2 class="text-lg font-bold text-white tracking-wide">Registrar Nuevo Gasto</h2>
             </div>
             
@@ -334,15 +334,15 @@ const cerrarMes = async () => {
               <table class="min-w-full">
                 <thead>
                   <tr>
-                    <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase bg-slate-50">Concepto</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase bg-slate-50">Fecha</th>
-                    <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase bg-slate-50">Categoría</th>
-                    <th class="px-6 py-3 text-right text-xs font-bold servi-grey-font uppercase bg-slate-50">Monto</th>
-                    <th class="px-6 py-3 bg-slate-50"></th>
+                    <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase">Concepto</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase">Fecha</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase">Categoría</th>
+                    <th class="px-6 py-3 text-right text-xs font-bold servi-grey-font uppercase">Monto</th>
+                    <th class="px-6 py-3 text-center text-xs font-bold servi-grey-font uppercase">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="gasto in listaGastos" :key="gasto.id_temporal" class="border-t border-gray-100 hover:bg-slate-50">
+                  <tr v-for="gasto in listaGastos" :key="gasto.id_temporal" class="border-t border-gray-100">
                     <td class="px-6 py-4 text-sm servi-grey-font font-medium flex items-center gap-3">
                       <img v-if="gasto.tipoArchivo === 'imagen'" :src="gasto.previewUrl" class="w-8 h-8 rounded object-cover border" />
                       <div v-else-if="gasto.tipoArchivo === 'pdf'" class="w-8 h-8 rounded bg-gray-100 border flex items-center justify-center text-red-500" title="Archivo PDF">
@@ -370,8 +370,8 @@ const cerrarMes = async () => {
         </div>
 
         <div class="lg:col-span-1 order-first lg:order-none">
-          <div class="servi-adapt-bg rounded-xl shadow-lg border-t-4 border-yellow-500 p-4 md:p-6 lg:sticky lg:top-6">
-            <h2 class="text-lg md:text-xl font-bold mb-4 md:mb-6 servi-grey-font uppercase tracking-wide">Resumen del Mes</h2>
+          <div class="servi-adapt-bg rounded-xl shadow-lg p-4 md:p-6 lg:sticky lg:top-6">
+            <h2 class="border-yellow-500 border-b-4 text-lg md:text-xl font-bold mb-4 md:mb-6 servi-grey-font uppercase tracking-wide">Resumen del Mes</h2>
             
             <div class="space-y-3 md:space-y-4 mb-6 md:mb-8">
               <div class="flex justify-between items-center border-b border-gray-200 pb-2">

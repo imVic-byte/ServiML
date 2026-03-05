@@ -240,14 +240,14 @@ const irAEditar = () => {
                 <table class="min-w-full">
                   <thead>
                     <tr>
-                      <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase bg-slate-50">Concepto
+                      <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase">Concepto
                       </th>
-                      <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase bg-slate-50">Fecha</th>
-                      <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase bg-slate-50">Categoría
+                      <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase">Fecha</th>
+                      <th class="px-6 py-3 text-left text-xs font-bold servi-grey-font uppercase">Categoría
                       </th>
-                      <th class="px-6 py-3 text-center text-xs font-bold servi-grey-font uppercase bg-slate-50">Adjunto
+                      <th class="px-6 py-3 text-center text-xs font-bold servi-grey-font uppercase">Adjunto
                       </th>
-                      <th class="px-6 py-3 text-right text-xs font-bold servi-grey-font uppercase bg-slate-50">Monto
+                      <th class="px-6 py-3 text-right text-xs font-bold servi-grey-font uppercase">Monto
                       </th>
                     </tr>
                   </thead>
