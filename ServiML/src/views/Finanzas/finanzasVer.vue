@@ -7,8 +7,7 @@ import navbar from '@/components/componentes/navbar.vue'
 import volver from '@/components/componentes/volver.vue'
 const route = useRoute()
 const router = useRouter()
-const transaccion = ref(null)
-const cargando = ref(true)
+const transaccion = ref({})
 const errorMensaje = ref('')
 const interfaz = useInterfaz()
 
@@ -28,12 +27,6 @@ const obtenerTransaccion = async () => {
   }
 }
 
-onMounted(async () => {
-    interfaz.showLoading()
-  await obtenerTransaccion()
-    interfaz.hideLoading()
-})
-
 const formatearDinero = (monto) => {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto || 0)
 }
@@ -43,6 +36,16 @@ const formatearFecha = (fechaString) => {
   const fecha = new Date(fechaString + 'T00:00:00')
   return fecha.toLocaleDateString('es-CL', { year: 'numeric', month: 'long', day: 'numeric' })
 }
+
+const irAFicha = () => {
+  router.push({ name: 'ver-gasto', params: { id: transaccion.value.id_ficha_gastos } })
+}
+
+onMounted(async () => {
+    interfaz.showLoading()
+  await obtenerTransaccion()
+    interfaz.hideLoading()
+})
 </script>
 
 <template>
@@ -50,9 +53,13 @@ const formatearFecha = (fechaString) => {
     <navbar titulo="ServiML" subtitulo="Detalle de Transacción" class="navbar"></navbar>
     
     <div class="max-w-4xl mx-auto space-y-6 pt-5 pb-30 px-4 md:px-8">
-      <volver></volver>
+      <div class="flex justify-between">
+        <volver></volver>
+        <button @click="irAFicha()" class="servi-yellow text-black p-2 rounded-xl">ir a Ficha</button>
+      </div>
 
-      <div class="servi-adapt-bg rounded-lg shadow-xl pb-2">
+      <template v-if="transaccion">
+      <div class="servi-adapt-bg rounded-lg shadow-xl pb-20">
         <div class="flex rounded-t-lg border-b-4 border-yellow-500 flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 p-6 servi-blue text-white">
           <h1 class="text-2xl font-bold">
             Transacción #{{ transaccion.id }}
@@ -128,7 +135,8 @@ const formatearFecha = (fechaString) => {
             <p class="text-lg font-bold servi-grey-font">{{ formatearDinero(transaccion.precio_costo_unitario) }}</p>
           </div>
         </div>
-        </div>
+      </div>
+      </template>
     </div>
   </div>
 </template>

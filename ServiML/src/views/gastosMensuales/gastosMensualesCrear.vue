@@ -230,24 +230,24 @@ const cerrarMes = async () => {
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Concepto / Descripción *</label>
-                  <input v-model="concepto" type="text" required class="w-full servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm" placeholder="Ej. Pago de internet">
+                  <input v-model="concepto" type="text" required class="w-full servi-grey-font servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm" placeholder="Ej. Pago de internet">
                 </div>
                 
                 <div class="flex flex-col">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Monto *</label>
-                  <input v-model="monto" type="number" required min="1" class="w-full servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm" placeholder="0">
+                  <input v-model="monto" type="number" required min="1" class="w-full servi-grey-font servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm" placeholder="0">
                 </div>
                 
                 <div class="flex flex-col">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Categoría *</label>
-                  <select v-model="categoria" class="w-full servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm">
+                  <select v-model="categoria" class="w-full servi-grey-font servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm">
                     <option v-for="cat in categoriasDisponibles" :key="cat" :value="cat">{{ cat }}</option>
                   </select>
                 </div>
                 
                 <div class="flex flex-col">
                   <label class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-1">Fecha de Emisión *</label>
-                  <input v-model="fechaEmision" type="date" required class="w-full servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm">
+                  <input v-model="fechaEmision" type="date" required class="w-full servi-grey-font servi-adapt-bg border border-gray-100 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 font-medium text-sm">
                 </div>
 
                 <div class="col-span-1 md:col-span-2 flex flex-col mt-2">
@@ -281,7 +281,7 @@ const cerrarMes = async () => {
                       </svg>
                       <span class="text-[10px] text-gray-500 truncate px-1 w-full text-center">{{ archivoFisico.name }}</span>
                     </div>
-                    <button type="button" @click="removerComprobante" class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm" title="Quitar archivo">
+                    <button type="button" @click="removerComprobante" class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white p-1 rounded-lg  group-hover:opacity-100 transition-opacity shadow-sm" title="Quitar archivo">
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
                       </svg>

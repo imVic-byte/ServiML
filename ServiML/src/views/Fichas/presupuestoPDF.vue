@@ -393,7 +393,12 @@ onMounted(async () => {
           <span class="font-medium">IVA 19%</span>
           <span>{{ formatoPesos(ivaAgregado) }}</span>
         </div>
-
+        <div v-for="cotizacion in cotizaciones" :key="cotizacion.id">
+          <div v-if="cotizacion.descuento > 0" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
+            <span class="font-medium">Descuento</span>
+            <span>{{cotizacion.descuento}}%</span>
+          </div>
+        </div>
         <div v-if="diasEstacionamientoPDF > 1" class="flex justify-between items-center py-2 border-b border-[#e5e7eb] text-[#374151]">
           <span class="font-medium text-amber-600">Cargo Estacionamiento</span>
           <span class="font-bold text-amber-600">+ {{ formatoPesos(totalCargoEstacionamientoPDF) }}</span>
