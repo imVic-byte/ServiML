@@ -364,9 +364,9 @@ const registrarAbono = async () => {
         documento: 'Abono a deuda',
         nro_documento: fechaSinGuiones,
         proveedor: 'ServiML',
-        forma_pago: 'Abono a deuda',
+        forma_pago: 'Transferencia',
         tipo: 'ABONO',
-        observacion: 'Abono a deuda',
+        observacion: abonoObs.value,
         id_deuda: deudaId
       })
       .select()
