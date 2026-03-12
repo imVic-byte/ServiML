@@ -340,6 +340,12 @@ const registrarAbono = async () => {
     }
   }
 
+  const {data:DataTransaccion, error:ErrorTransaccion} = await supabase
+  .from('transacciones')
+  .insert({
+    
+  })
+
   await cargarDatos();
   showModalAbono.value = false;
   interfaz.hideLoadingOverlay();

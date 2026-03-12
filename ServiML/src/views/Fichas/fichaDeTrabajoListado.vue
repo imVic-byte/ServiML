@@ -8,25 +8,45 @@ import { useInterfaz } from "@/stores/interfaz";
 const router = useRouter();
 const interfaz = useInterfaz();
 const showStats = ref(false);
+const filtroEstado = ref(null);
 let searchTimeout = null;
 
 const fichas = ref([]);
 const fichasOriginales = ref([]);
+const textoBusqueda = ref('');
+
+const aplicarFiltros = () => {
+  let resultado = [...fichasOriginales.value];
+
+  // Filtro por estado
+  if (filtroEstado.value !== null) {
+    resultado = resultado.filter(f => f.estado === filtroEstado.value);
+  }
+
+  // Filtro por búsqueda
+  if (textoBusqueda.value && textoBusqueda.value.trim() !== '') {
+    const busqueda = textoBusqueda.value.toLowerCase();
+    resultado = resultado.filter(f =>
+      f.id?.toString().includes(busqueda) ||
+      f.cliente?.nombre?.toLowerCase().includes(busqueda) ||
+      f.cliente?.apellido?.toLowerCase().includes(busqueda)
+    );
+  }
+
+  fichas.value = resultado;
+};
 
 const handleBusqueda = (texto) => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
-    if (!texto || texto.trim() === '') {
-      fichas.value = [...fichasOriginales.value];
-    } else {
-      const busqueda = texto.toLowerCase();
-      fichas.value = fichasOriginales.value.filter(f =>
-        f.id?.toString().includes(busqueda) ||
-        f.cliente?.nombre?.toLowerCase().includes(busqueda) ||
-        f.cliente?.apellido?.toLowerCase().includes(busqueda)
-      );
-    }
+    textoBusqueda.value = texto;
+    aplicarFiltros();
   }, 300);
+};
+
+const handleFiltroEstado = (estado) => {
+  filtroEstado.value = estado;
+  aplicarFiltros();
 };
 
 const irADetalle = (id) => {
@@ -112,10 +132,42 @@ const handleEstados = (estado) => {
   }
 }
 
+const verificarEstacionamiento = async () => {
+  const ahora = new Date();
+  const tresDiasMs = 3 * 24 * 60 * 60 * 1000;
+  const idsParaActualizar = [];
+
+  fichasOriginales.value.forEach(ficha => {
+    if (ficha.fecha_estacionamiento && ficha.estado === 4) {
+      const fechaEstacionamiento = new Date(ficha.fecha_estacionamiento);
+      if (ahora - fechaEstacionamiento >= tresDiasMs) {
+        ficha.estado = 5;
+        idsParaActualizar.push(ficha.id);
+      }
+    }
+  });
+
+  if (idsParaActualizar.length > 0) {
+    try {
+      const { error } = await supabase
+        .from('ficha_de_trabajo')
+        .update({ estado: 5 })
+        .in('id', idsParaActualizar);
+
+      if (error) throw error;
+      console.log(`Estado actualizado a 5 para fichas: ${idsParaActualizar.join(', ')}`);
+    } catch (error) {
+      console.error('Error al actualizar estados de estacionamiento:', error);
+    }
+    aplicarFiltros();
+  }
+};
+
 onMounted(async () => {
   interfaz.showLoading();
   await obtenerFichas();
   await obtenerEstadosFicha();
+  await verificarEstacionamiento();
   interfaz.hideLoading();
 });
 </script>
@@ -171,7 +223,7 @@ onMounted(async () => {
         </div>
       </Transition>
 
-      <div class="flex justify-between items-center mb-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
             <h2 class="text-xl font-bold servi-grey-font">Listado de Fichas</h2>
             <p class="text-sm servi-grey-font">Administra las fichas de trabajo del taller</p>
@@ -205,6 +257,27 @@ onMounted(async () => {
             </svg>
           </button>
         </div>
+      </div>
+
+      <!-- Filtro por Estado -->
+      <div class="flex flex-wrap items-center gap-2 mb-6">
+        <button
+          @click="handleFiltroEstado(null)"
+          class="px-3 py-1.5 rounded-full text-xs font-bold transition-all border"
+          :class="filtroEstado === null ? 'servi-blue text-white border-transparent shadow-sm' : 'servi-adapt-bg servi-grey-font border-gray-200 hover:opacity-80'"
+        >
+          Todos
+        </button>
+        <button
+          v-for="estado in estadosFicha.filter(e => e.id >= 1 && e.id <= 7)"
+          :key="estado.id"
+          @click="handleFiltroEstado(estado.id)"
+          class="px-3 py-1.5 rounded-full text-xs font-bold transition-all border"
+          :class="filtroEstado === estado.id ? 'text-white border-transparent shadow-sm' : 'servi-adapt-bg servi-grey-font border-gray-200 hover:opacity-80'"
+          :style="filtroEstado === estado.id ? { backgroundColor: estado.color } : {}"
+        >
+          {{ estado.estado }}
+        </button>
       </div>
 
       <div class="hidden md:block servi-adapt-bg rounded-xl shadow-sm overflow-hidden">
