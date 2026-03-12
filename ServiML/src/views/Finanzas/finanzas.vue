@@ -51,7 +51,7 @@ const transaccionesFiltradas = computed(() => {
 
 const totalIngresos = computed(() => {
   return transaccionesFiltradas.value
-    .filter(t => t.tipo === 'VENTA')
+    .filter(t => t.tipo === 'VENTA' || t.tipo === 'ABONO')
     .reduce((acc, t) => acc + Number(t.valor_iva_incluido || 0), 0)
 })
 
@@ -106,6 +106,7 @@ const claseTipo = (tipo) => {
   if (tipo === 'VENTA') return 'bg-green-100 text-green-800'
   if (tipo === 'COMPRA') return 'bg-blue-100 text-blue-800'
   if (tipo === 'PAGO') return 'bg-yellow-100 text-yellow-800'
+  if (tipo === 'ABONO') return 'bg-purple-100 text-purple-800'
   return 'bg-gray-100 text-gray-800'
 }
 
@@ -248,7 +249,7 @@ const handleRegistrar = () => {
                   <td colspan="6" class="px-6 py-4 text-center text-gray-500 font-medium">No hay transacciones disponibles.</td>
                 </tr>
                 
-                <tr v-for="t in transaccionesPaginadas" :key="t.id" class=" transition-colors">
+                <tr @click="handleRedirigir(t.id)" v-for="t in transaccionesPaginadas" :key="t.id" class=" transition-colors">
                   <td class="px-4 py-4 whitespace-nowrap text-sm font-medium servi-grey-font">{{ formatearFecha(t.fecha) }}</td>
                   <td class="px-4 py-4 text-sm servi-grey-font max-w-xs truncate" :title="t.descripcion">{{ t.descripcion }}</td>
                   <td class="px-4 py-4 text-sm servi-grey-font max-w-xs truncate" :title="t.proveedor">{{ t.proveedor }}</td>
