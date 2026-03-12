@@ -6,6 +6,7 @@ import navbar from "../../components/componentes/navbar.vue";
 import modal from "../../components/componentes/modal.vue";
 import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
 import {subirFotos} from "../../js/subirFotos.js";
+import {comprimirImagen} from "../../js/comprimirFotos.js";
 import { useInterfaz } from "@/stores/interfaz.js";
 import { useUserStore } from "../../stores/user.js";
 import volver from "../../components/componentes/volver.vue";
@@ -79,18 +80,29 @@ const activarInputRecepcion = (tipo) => {
   if (inputElement) inputElement.click();
 };
 
-const procesarFotos = (event, index) => {
+const procesarFotos = async (event, index) => {
   const files = event.target.files;
   if (!files.length) return;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const previewUrl = URL.createObjectURL(file);
-    observaciones.value[index].fotos.push({
-      file: file,
-      url: previewUrl,
-      nombre: file.name
-    });
+    try {
+      const comprimido = await comprimirImagen(file);
+      const previewUrl = URL.createObjectURL(comprimido);
+      observaciones.value[index].fotos.push({
+        file: comprimido,
+        url: previewUrl,
+        nombre: file.name
+      });
+    } catch (err) {
+      console.error('Error al comprimir foto de observación:', err);
+      const previewUrl = URL.createObjectURL(file);
+      observaciones.value[index].fotos.push({
+        file: file,
+        url: previewUrl,
+        nombre: file.name
+      });
+    }
   }
   event.target.value = '';
 };
@@ -100,17 +112,28 @@ const removerFotoObservacion = (obsIndex, fotoIndex) => {
   observaciones.value[obsIndex].fotos.splice(fotoIndex, 1);
 };
 
-const procesarFotosRecepcion = (event) => {
+const procesarFotosRecepcion = async (event) => {
   const files = event.target.files;
   if (!files.length) return;
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    fotosRecepcion.value.push({
-      file: file,
-      url: URL.createObjectURL(file),
-      nombre: file.name,
-      isNew: true
-    });
+    try {
+      const comprimido = await comprimirImagen(file);
+      fotosRecepcion.value.push({
+        file: comprimido,
+        url: URL.createObjectURL(comprimido),
+        nombre: file.name,
+        isNew: true
+      });
+    } catch (err) {
+      console.error('Error al comprimir foto de recepción:', err);
+      fotosRecepcion.value.push({
+        file: file,
+        url: URL.createObjectURL(file),
+        nombre: file.name,
+        isNew: true
+      });
+    }
   }
   event.target.value = '';
 };
