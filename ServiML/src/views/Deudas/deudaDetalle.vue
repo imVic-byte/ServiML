@@ -239,6 +239,15 @@ const agregarFichasMasivas = async () => {
   }
 };
 
+const obtenerFechaSimple = () => {
+  const fecha = new Date();
+  const yyyy = fecha.getFullYear();
+  const mm = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dd = String(fecha.getDate()).padStart(2, '0');
+  
+  return `${yyyy}${mm}${dd}`;
+};
+
 // --- GESTIÓN DE ABONOS ---
 const registrarAbono = async () => {
   // Validaciones antes de mostrar overlay
@@ -323,23 +332,59 @@ const registrarAbono = async () => {
     };
     return;
   }
+  
   if (data) {
     const abonoId = data.id;
+    let urlUpload = null;
+
     if (archivoAbono.value) {
-      const {exito: exitoUpload, error: errorUpload } = await subirAbonos(deudaId, abonoId, archivoAbono.value);
-      if (!exitoUpload) {
+      const resultado = await subirAbonos(deudaId, abonoId, archivoAbono.value);
+      if (!resultado.exito) {
         interfaz.hideLoadingOverlay();
         modalState.value = {
           visible: true,
           titulo: "Error",
-          mensaje: errorUpload,
+          mensaje: resultado.error,
           exito: false,
         };
         return;
       }
+      urlUpload = resultado.url;
+    }
+
+    const fechaSinGuiones = obtenerFechaSimple();
+
+    const { data: dataTransaccion, error: errorTransaccion } = await supabase
+      .from('transacciones')
+      .insert({
+        fecha: new Date().toISOString(),
+        descripcion: `Abono a deuda ${deuda.value.nombre}`,
+        cantidad: 1,
+        valor_iva_incluido: monto,
+        documento: 'Abono a deuda',
+        nro_documento: fechaSinGuiones,
+        proveedor: 'ServiML',
+        forma_pago: 'Transferencia',
+        tipo: 'ABONO',
+        observacion: abonoObs.value,
+        id_deuda: deudaId
+      })
+      .select()
+      .single();
+
+    if (errorTransaccion) throw errorTransaccion;
+
+    if (urlUpload) {
+      const { error: errorDetalle } = await supabase
+        .from('transacciones_detalle')
+        .insert({
+          id_transaccion: dataTransaccion.id,
+          url: urlUpload
+        });
+
+      if (errorDetalle) throw errorDetalle;
     }
   }
-
   await cargarDatos();
   showModalAbono.value = false;
   interfaz.hideLoadingOverlay();

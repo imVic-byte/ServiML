@@ -93,7 +93,7 @@ const formatearFecha = (fechaString) => {
     
     <div class="flex justify-between items-start border-b border-gray-100 pb-2">
       <div class="flex flex-col">
-        <span class="font-bold text-white text-xl">#{{ index + 1 || '---' }}</span>
+        <span class="font-bold text-white text-xl">#{{ orden.id || '---' }}</span>
       </div>
       <span :style="{ backgroundColor: estado.color, color: estado.texto }" class="px-2 py-1 rounded text-xs font-bold uppercase tracking-wider shadow-sm">
         {{ estado.estado }}
@@ -101,8 +101,8 @@ const formatearFecha = (fechaString) => {
     </div>
     <div class="flex flex-col gap-1 text-sm">
       <div class="flex justify-between items-center">
-        <span class="text-white">Cliente:</span>
-        <span class="font-semibold text-white text-right truncate w-40">{{ orden.vehiculo?.cliente?.nombre + ' ' + orden.vehiculo?.cliente?.apellido || 'Sin Cliente' }}</span>
+        <span class="text-white">Ficha de Trabajo:</span>
+        <span class="font-semibold text-white text-right truncate w-40">{{ orden.ficha_de_trabajo?.numero_folio || 'Sin Ficha' }}</span>
       </div>
       
       <div class="flex justify-between items-center">
