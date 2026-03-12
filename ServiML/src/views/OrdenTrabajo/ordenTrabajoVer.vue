@@ -6,6 +6,7 @@ import navbar from "../../components/componentes/navbar.vue";
 import modal from "../../components/componentes/modal.vue";
 import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
 import {subirFotos} from "../../js/subirFotos.js";
+import {comprimirImagen} from "../../js/comprimirFotos.js";
 import { useInterfaz } from "@/stores/interfaz.js";
 import { useUserStore } from "../../stores/user.js";
 import volver from "../../components/componentes/volver.vue";
@@ -79,18 +80,29 @@ const activarInputRecepcion = (tipo) => {
   if (inputElement) inputElement.click();
 };
 
-const procesarFotos = (event, index) => {
+const procesarFotos = async (event, index) => {
   const files = event.target.files;
   if (!files.length) return;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const previewUrl = URL.createObjectURL(file);
-    observaciones.value[index].fotos.push({
-      file: file,
-      url: previewUrl,
-      nombre: file.name
-    });
+    try {
+      const comprimido = await comprimirImagen(file);
+      const previewUrl = URL.createObjectURL(comprimido);
+      observaciones.value[index].fotos.push({
+        file: comprimido,
+        url: previewUrl,
+        nombre: file.name
+      });
+    } catch (err) {
+      console.error('Error al comprimir foto de observación:', err);
+      const previewUrl = URL.createObjectURL(file);
+      observaciones.value[index].fotos.push({
+        file: file,
+        url: previewUrl,
+        nombre: file.name
+      });
+    }
   }
   event.target.value = '';
 };
@@ -100,17 +112,28 @@ const removerFotoObservacion = (obsIndex, fotoIndex) => {
   observaciones.value[obsIndex].fotos.splice(fotoIndex, 1);
 };
 
-const procesarFotosRecepcion = (event) => {
+const procesarFotosRecepcion = async (event) => {
   const files = event.target.files;
   if (!files.length) return;
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    fotosRecepcion.value.push({
-      file: file,
-      url: URL.createObjectURL(file),
-      nombre: file.name,
-      isNew: true
-    });
+    try {
+      const comprimido = await comprimirImagen(file);
+      fotosRecepcion.value.push({
+        file: comprimido,
+        url: URL.createObjectURL(comprimido),
+        nombre: file.name,
+        isNew: true
+      });
+    } catch (err) {
+      console.error('Error al comprimir foto de recepción:', err);
+      fotosRecepcion.value.push({
+        file: file,
+        url: URL.createObjectURL(file),
+        nombre: file.name,
+        isNew: true
+      });
+    }
   }
   event.target.value = '';
 };
@@ -753,7 +776,9 @@ onMounted(async () => {
               <!-- Photo grid -->
               <div v-if="fotosRecepcion && fotosRecepcion.length > 0" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                 <div v-for="(foto, fIndex) in fotosRecepcion" :key="fIndex" class="relative aspect-square rounded-xl overflow-hidden border border-gray-100 group shadow-sm hover:shadow-md transition-shadow">
-                  <img :src="foto.url" class="w-full h-full object-cover" />
+                  <a :href="foto.url" target="_blank">
+                    <img :src="foto.url" class="w-full h-full object-cover" />
+                  </a>
                   <button @click="removerFotoRecepcion(fIndex)" class="absolute top-1.5 right-1.5 bg-red-500 hover:bg-red-600 text-white p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />

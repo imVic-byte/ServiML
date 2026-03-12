@@ -101,7 +101,40 @@ const confirmarCierreMes = async () => {
       .eq('id', idFicha);
 
     if (error) throw error;
+    let fechaSinGuiones = ficha.value.fecha.replace('-','').replace('-','');
+    const { data: dataTransaccion, error: errorTransaccion } = await supabase
+      .from('transacciones')
+      .insert({
+        fecha: new Date().toISOString(),
+        descripcion: `Cierre de mes ${formatearMes(ficha.value.fecha)}`,
+        cantidad:1,
+        valor_iva_incluido: ficha.value.total_general,
+        documento: 'Cierre de mes',
+        nro_documento:fechaSinGuiones,
+        proveedor:'ServiML',
+        forma_pago:'Cierre de mes',
+        tipo: 'PAGO',
+        observacion:'Cierre de mes',
+        id_ficha_gastos: idFicha
+      })
+      .select()
+      .single();
 
+    if (errorTransaccion) throw errorTransaccion;
+
+    for (const detalle of detalles.value) {
+      const { error: errorDetalle } = await supabase
+        .from('transacciones_detalle')
+        .insert({
+          id_transaccion: dataTransaccion.id,
+          url: detalle.comprobante
+        })
+        .select()
+        .single();
+
+      if (errorDetalle) throw errorDetalle;
+    }
+      
     ficha.value.estado = 2;
 
     modalState.value = { 

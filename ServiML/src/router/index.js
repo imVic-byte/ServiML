@@ -341,6 +341,12 @@ const router = createRouter({
       meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
     },
     {
+      path: '/finanzas/editar/:id',
+      name: 'editar-finanza',
+      component: () => import('../views/Finanzas/finanzasEditar.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+    },
+    {
       path: '/gastos',
       name: 'gastos',
       component: () => import('../views/gastosMensuales/gastosMensuales.vue'),

@@ -7,6 +7,7 @@ import navbar from "../../components/componentes/navbar.vue";
 import { useInterfaz } from '../../stores/interfaz.js'
 import ordentrabajoListado from '../../components/ordenTrabajo/ordentrabajoListado.vue'
 import { useUserStore } from '../../stores/user'
+import volver from '@/components/componentes/volver.vue'
 const router = useRouter();
 const ordenes = ref([]);
 const todasLasOrdenes = ref([]);
@@ -56,10 +57,12 @@ const obtenerOrdenes = async (busqueda = '', esCargaInicial = false) => {
   let query = supabase.from("orden_trabajo");
   if (busqueda) {
     query = query
-      .select("*,presupuesto(*),vehiculo!inner(*),cliente(*),id_empleado(*)")
+      .select("*,vehiculo!inner(*),id_empleado(*),ficha_de_trabajo(*)")
       .ilike('vehiculo.patente', `%${busqueda}%`);
+  } else if (Todas.value) {
+    query = query.select("*,vehiculo(*),id_empleado(*),ficha_de_trabajo(*)");
   } else {
-    query = query.select("*,presupuesto(*),vehiculo(*),cliente(*),id_empleado(*)");
+    query = query.select("*,vehiculo(*),id_empleado(*),ficha_de_trabajo(*)");
   }
 
   query = query.order("id", { ascending: false });
@@ -114,38 +117,9 @@ onMounted(async () => {
     />
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <volver />
       
-      <div class="hidden md:grid md:grid-cols-3 gap-4 mb-8">
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs servi-grey-font uppercase font-bold">Órdenes / mes</p>
-            <p class="text-2xl font-bold servi-grey-font">{{ stats.total }}</p>
-        </div>
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs servi-grey-font uppercase font-bold">Recientes</p>
-            <p class="text-2xl font-bold text-green-600">{{ stats.recientes }}</p>
-        </div>
-        <div class="servi-adapt-bg p-4 rounded-xl shadow-sm border border-gray-100">
-            <p class="text-xs servi-grey-font uppercase font-bold">Sin asignar</p>
-            <p class="text-lg font-bold servi-grey-font">{{ stats.sinAsignar }}</p>
-        </div>
-      </div>
-
-      <Transition name="slide-stats">
-        <div v-show="showStats" class="md:hidden grid grid-cols-2 gap-3 mb-6">
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
-              <p class="text-xs servi-grey-font uppercase font-bold">Órdenes / mes</p>
-              <p class="text-xl font-bold servi-grey-font">{{ stats.total }}</p>
-          </div>
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
-              <p class="text-xs servi-grey-font uppercase font-bold">Recientes</p>
-              <p class="text-xl font-bold text-green-600">{{ stats.recientes }}</p>
-          </div>
-          <div class="servi-adapt-bg p-3 rounded-xl shadow-sm border border-gray-100">
-              <p class="text-xs servi-grey-font uppercase font-bold">Sin asignar</p>
-              <p class="text-lg font-bold servi-grey-font">{{ stats.sinAsignar }}</p>
-          </div>
-        </div>
-      </Transition>
+      
 
       <div class="flex justify-between items-center mb-6">
         <div class="md:block hidden">
@@ -156,25 +130,6 @@ onMounted(async () => {
 
           <button @click="handleTodas()" class="servi-blue cursor-pointer rounded-full text-white font-bold py-2 px-4 shadow-sm border border-gray-100 hover:opacity-80 transition-all flex items-center gap-2">
             {{ Todas ? 'Ver mis OTs' : 'Ver todas' }}
-          </button>
-          
-          <button 
-            @click="showStats = !showStats" 
-            class="md:hidden servi-adapt-bg cursor-pointer servi-grey-font font-bold py-2 px-4 rounded-full shadow-sm border border-gray-100 hover:opacity-80 transition-all flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              class="h-4 w-4 transition-transform duration-300" 
-              :class="{ 'rotate-180': showStats }"
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
           </button>
         </div>
       </div>

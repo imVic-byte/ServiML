@@ -1,43 +1,54 @@
 export const comprimirImagen = (archivo) => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(archivo);
+    if (!archivo || !archivo.type.startsWith('image/')) {
+      reject(new Error('El archivo proporcionado no es una imagen valida'));
+      return;
+    }
 
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(archivo);
+    img.src = objectUrl;
 
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 800;
+      let finalWidth = img.width;
+      let finalHeight = img.height;
+
+      if (img.width > MAX_WIDTH) {
         const scaleSize = MAX_WIDTH / img.width;
-        
-        const finalWidth = scaleSize < 1 ? MAX_WIDTH : img.width;
-        const finalHeight = scaleSize < 1 ? img.height * scaleSize : img.height;
+        finalWidth = MAX_WIDTH;
+        finalHeight = img.height * scaleSize;
+      }
 
-        canvas.width = finalWidth;
-        canvas.height = finalHeight;
+      canvas.width = finalWidth;
+      canvas.height = finalHeight;
 
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, finalWidth, finalHeight);
 
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const archivoComprimido = new File([blob], archivo.name, {
-                type: 'image/jpeg',
-                lastModified: Date.now(),
-              });
-              resolve(archivoComprimido);
-            } else {
-              reject(new Error('Error al comprimir imagen'));
-            }
-          },
-          'image/jpeg',
-          0.7
-        );
-      };
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const archivoComprimido = new File([blob], archivo.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(archivoComprimido);
+          } else {
+            reject(new Error('Fallo al generar la imagen comprimida'));
+          }
+        },
+        'image/jpeg',
+        0.7
+      );
     };
-    reader.onerror = (error) => reject(error);
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Error al cargar la imagen en memoria'));
+    };
   });
 };
