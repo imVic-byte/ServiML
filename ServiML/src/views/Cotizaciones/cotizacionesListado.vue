@@ -10,18 +10,28 @@ const showStats = ref(false);
 let searchTimeout = null;
 
 const cotizaciones = ref([]);
+const cotizacionesOriginales = ref([]);
 
 const handleBusqueda = (texto) => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     if (!texto) {
-      cotizaciones.value = [...cotizaciones.value];
+      cotizaciones.value = [...cotizacionesOriginales.value]; 
     } else {
-      cotizaciones.value = cotizaciones.value.filter(c =>
-        c.vehiculo?.patente?.toLowerCase().includes(texto.toLowerCase()) ||
-        c.cliente?.nombre?.toLowerCase().includes(texto.toLowerCase()) ||
-        c.cliente?.apellido?.toLowerCase().includes(texto.toLowerCase())
-      );
+      const textoLower = texto.toLowerCase().trim();
+      
+      cotizaciones.value = cotizacionesOriginales.value.filter(c => {
+        //nombre
+        const nombreCompleto = `${c.nombre || ''} ${c.apellido || ''}`.toLowerCase();
+        
+        // vehiculo
+        const patente = c.vehiculo?.patente?.toLowerCase() || '';
+        const diagnostico = c.diagnostico?.toLowerCase() || '';
+        
+        return nombreCompleto.includes(textoLower) || 
+               patente.includes(textoLower) ||
+               diagnostico.includes(textoLower);
+      });
     }
   }, 300);
 };
@@ -85,6 +95,7 @@ const obtenerCotizaciones = async () => {
       throw error;
     }
     cotizaciones.value = data;
+    cotizacionesOriginales.value = data;
   } catch (error) {
     console.error("Error al obtener cotizaciones:", error);
   }
@@ -104,6 +115,8 @@ onMounted( async () => {
       titulo="ServiML"
       subtitulo="Gestión de Cotizaciones"
       class="sticky top-0 z-50"
+      search-input="true"
+      @buscar="handleBusqueda"
     />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
