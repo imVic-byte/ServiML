@@ -82,7 +82,8 @@ const obtenerFichas = async () => {
       .from("ficha_de_trabajo")
       .select(`
         *,
-        cliente ( nombre, apellido, telefono )
+        cliente ( nombre, apellido, telefono ),
+        vehiculo ( patente, marca, modelo )
       `)
       .order('created_at', { ascending: false });
 
@@ -286,6 +287,7 @@ onMounted(async () => {
             <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
               <th class="p-4 font-semibold">Ficha N°</th>
               <th class="p-4 font-semibold">Cliente</th>
+              <th class="p-4 font-semibold">Vehículo</th>
               <th class="p-4 font-semibold">Motivo Ingreso</th>
               <th class="p-4 font-semibold text-center">Ingreso</th>
               <th class="p-4 font-semibold text-center">Estado</th>
@@ -302,6 +304,13 @@ onMounted(async () => {
                   {{ camelCase(item.cliente.nombre) }} {{ camelCase(item.cliente.apellido) }}
                 </div>
                 <div v-else class="text-gray-400 italic">Sin cliente</div>
+              </td>
+              <td class="p-4 servi-grey-font">
+                <div v-if="item.vehiculo">
+                  <div class="font-medium">{{ camelCase(item.vehiculo.marca) }} {{ camelCase(item.vehiculo.modelo) }}</div>
+                  <div class="text-xs text-gray-500 uppercase font-bold">{{ item.vehiculo.patente }}</div>
+                </div>
+                <div v-else class="text-gray-400 italic text-sm">Sin vehículo</div>
               </td>
               <td class="p-4 servi-grey-font">
                 <span class="block max-w-[200px] truncate" :title="item.motivo_ingreso">
@@ -359,9 +368,13 @@ onMounted(async () => {
                 {{ handleEstados(item.estado).estado }}
               </span>
             </div>
-            <div v-if="item.vehiculo?.marca || item.vehiculo?.modelo" class="text-sm font-bold servi-grey-font mb-3">
-              {{ [item.vehiculo.marca, item.vehiculo.modelo].filter(Boolean).join(' · ') }}
-              <span v-if="item.vehiculo.anio" class="text-gray-400 font-medium ml-1">({{ item.vehiculo.anio }})</span>
+            <div v-if="item.vehiculo" class="flex flex-wrap items-center gap-2 mb-3">
+              <span class="text-sm font-bold servi-grey-font">
+                {{ camelCase(item.vehiculo.marca) }} {{ camelCase(item.vehiculo.modelo) }}
+              </span>
+              <span v-if="item.vehiculo.patente" class="px-2 py-0.5 bg-gray-100 border border-gray-200 rounded text-xs font-black tracking-widest uppercase text-gray-700">
+                {{ item.vehiculo.patente }}
+              </span>
             </div>
             <div class="mb-3">
               <p class="text-[10px] uppercase font-black text-gray-400 mb-0.5 tracking-widest">Diagnóstico/Motivo</p>
