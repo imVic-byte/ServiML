@@ -169,7 +169,6 @@ onMounted(async () => {
   await obtenerFichas();
   await obtenerEstadosFicha();
   await verificarEstacionamiento();
-  console.log(fichas.value)
   interfaz.hideLoading();
 });
 </script>
