@@ -368,7 +368,37 @@ const router = createRouter({
       path: '/gastos/ver/:id',
       name: 'ver-gasto',
       component: () => import('../views/gastosMensuales/gastosMensualesVer.vue'),
-      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte'] }
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path: '/chequeos',
+      name: 'chequeos',
+      component: () => import('../views/Chequeos/chequeosListado.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path: '/chequeos/crear',
+      name: 'crear-chequeo',
+      component: () => import('../views/Chequeos/chequeosForm.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path: '/chequeos/editar/:id',
+      name: 'editar-chequeo',
+      component: () => import('../views/Chequeos/chequeosEditar.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path: '/chequeos/ver/:id',
+      name: 'ver-chequeo',
+      component: () => import('../views/Chequeos/chequeosVer.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
+    },
+    {
+      path: '/chequeos/pdf/:id',
+      name: 'chequeo-pdf',
+      component: () => import('../views/Chequeos/chequeosPDF.vue'),
+      meta: { requiresAuth: true, allowedRoles: ['Gerente', 'Soporte','Administrador','Trabajador'] }
     }
   ],
 })

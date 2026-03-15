@@ -67,6 +67,7 @@ const fechaIngreso = ref(null);
 const nivelCombustible = ref(0);
 const fotosRecepcion = ref([]);
 const talleres = ref([]);
+const chequeo = ref(false)
 
 const activarInput = (index, tipo) => {
   const id = tipo === 'camara' ? `input-camara-${index}` : `input-galeria-${index}`;
@@ -388,6 +389,7 @@ const obtenerOrden = async () => {
     orden.value = data;
     fechaIngreso.value = fechaToDatetimeLocal(data.fecha_ingreso);
     nivelCombustible.value = data.combustible_inicial ?? 0;
+    chequeo.value = data.chequeo;
   }
   manejarBloqueo(false);
   await handleIsCerrado(orden.value.estado_actual_id);
@@ -563,6 +565,25 @@ const cancelarSalir = () => {
   if (resolverNavegacion) resolverNavegacion(false);
   resolverNavegacion = null;
 };
+
+const irACrearChequeo = () => {
+  if (!soloLectura.value && !isCerrado.value) {
+    router.push({ name: 'crear-chequeo', query: { ot_id: route.params.id } });
+  }
+};  
+
+const irAVerChequeo = async () => {
+  if (!soloLectura.value && !isCerrado.value) {
+    const {data,error} = await supabase
+      .from('chequeos')
+      .select('id')
+      .eq('ot_id', route.params.id)
+    if (error) throw error
+    if (data && data.length > 0) {
+      router.push({ name: 'ver-chequeo', params: { id: data[0].id } });
+    }
+  }
+};  
 
 onMounted(async () => {
   interfaz.showLoading();
@@ -904,6 +925,18 @@ onMounted(async () => {
           <div class="servi-adapt-bg rounded-xl shadow-sm border border-gray-100 p-4">
             <h3 class="text-xs font-bold servi-grey-font uppercase tracking-wider mb-4 border-b pb-2">Acciones</h3>
             <div class="flex flex-col gap-3">
+              <button v-if="!soloLectura && !isCerrado && !chequeo" @click="irACrearChequeo" class="w-full servi-yellow servi-grey-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Realizar Chequeo Completo
+              </button>
+              <button v-if="!soloLectura && !isCerrado && chequeo" @click="irAVerChequeo()" class="w-full servi-yellow servi-grey-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Ver Chequeo
+              </button>
               <button v-if="!soloLectura && !isCerrado" @click="guardarCambios()" class="w-full servi-yellow servi-grey-font py-3 px-4 rounded-lg font-bold shadow-sm hover:opacity-90 transition-opacity flex justify-center items-center gap-2 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
