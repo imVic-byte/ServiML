@@ -100,7 +100,7 @@ const formatearFecha = (fechaString) => {
       </span>
     </div>
     <div class="flex flex-col gap-1 text-sm">
-      <div class="flex justify-between items-center">
+      <div v-if="orden.ficha_de_trabajo" class="flex justify-between items-center">
         <span class="text-white">Ficha de Trabajo:</span>
         <span class="font-semibold text-white text-right truncate w-40">{{ orden.ficha_de_trabajo?.numero_folio || 'Sin Ficha' }}</span>
       </div>
@@ -108,7 +108,7 @@ const formatearFecha = (fechaString) => {
       <div class="flex justify-between items-center">
         <span class="text-white">Vehículo:</span>
         <div class="text-right">
-          <span class="font-bold block text-white text-base">{{ orden.vehiculo?.patente || 'S/P' }}</span>
+          <span class="font-bold block text-white text-base w-40 truncate">{{ orden.vehiculo?.patente || 'S/P' }}</span>
         </div>
       </div>
       
