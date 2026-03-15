@@ -82,8 +82,8 @@ const obtenerFichas = async () => {
       .from("ficha_de_trabajo")
       .select(`
         *,
-        cliente ( nombre, apellido, telefono ),
-        vehiculo ( patente, marca, modelo )
+        cliente (nombre, apellido, telefono),
+        orden_trabajo(id,vehiculo(id,marca,modelo,patente))
       `)
       .order('created_at', { ascending: false });
 
@@ -169,6 +169,7 @@ onMounted(async () => {
   await obtenerFichas();
   await obtenerEstadosFicha();
   await verificarEstacionamiento();
+  console.log(fichas.value)
   interfaz.hideLoading();
 });
 </script>
@@ -306,9 +307,11 @@ onMounted(async () => {
                 <div v-else class="text-gray-400 italic">Sin cliente</div>
               </td>
               <td class="p-4 servi-grey-font">
-                <div v-if="item.vehiculo">
-                  <div class="font-medium">{{ camelCase(item.vehiculo.marca) }} {{ camelCase(item.vehiculo.modelo) }}</div>
-                  <div class="text-xs text-gray-500 uppercase font-bold">{{ item.vehiculo.patente }}</div>
+                <div v-if="item.orden_trabajo.length > 0">
+                  <div v-for="orden in item.orden_trabajo" :key="orden.id">
+                    <div class="font-medium">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</div>
+                    <div class="text-xs text-gray-500 uppercase font-bold">{{ orden.vehiculo?.patente }}</div>
+                  </div>
                 </div>
                 <div v-else class="text-gray-400 italic text-sm">Sin vehículo</div>
               </td>
@@ -381,6 +384,13 @@ onMounted(async () => {
               <p class="text-sm servi-grey-font leading-relaxed line-clamp-2">
                 {{ item.diagnostico || 'Sin diagnóstico detallado' }}
               </p>
+            </div>
+            <div v-if="item.orden_trabajo.length > 0">
+              <p class="text-[10px] uppercase font-black text-gray-400 mb-0.5 tracking-widest">Vehiculos:</p>
+              <div v-for="orden in item.orden_trabajo" :key="orden.id" class="mb-2">
+                <div class="font-medium servi-grey-font">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</div>
+                <div class="text-xs text-gray-500 uppercase font-bold servi-grey-font"> {{ orden.vehiculo?.patente }}</div>
+              </div>
             </div>
             <div v-if="item.cliente" class="flex items-center gap-3 pt-3 border-t border-gray-100 mt-2">
               <div class="w-9 h-9 rounded-full servi-blue flex items-center justify-center shrink-0 shadow-sm">
