@@ -25,12 +25,17 @@ const aplicarFiltros = () => {
 
   // Filtro por búsqueda
   if (textoBusqueda.value && textoBusqueda.value.trim() !== '') {
-    const busqueda = textoBusqueda.value.toLowerCase();
-    resultado = resultado.filter(f =>
-      f.id?.toString().includes(busqueda) ||
-      f.cliente?.nombre?.toLowerCase().includes(busqueda) ||
-      f.cliente?.apellido?.toLowerCase().includes(busqueda)
-    );
+    const busqueda = textoBusqueda.value.toLowerCase().trim();
+    
+    resultado = resultado.filter(f => {
+      const idCoincide = f.id?.toString().includes(busqueda);
+      const nombreCompleto = `${f.cliente?.nombre || ''} ${f.cliente?.apellido || ''}`.toLowerCase();
+      const patenteCoincide = f.orden_trabajo?.some(ot => 
+        ot.vehiculo?.patente?.toLowerCase().includes(busqueda)
+      );
+      const motivoCoincide = f.motivo_ingreso?.toLowerCase().includes(busqueda);
+      return idCoincide || nombreCompleto.includes(busqueda) || patenteCoincide || motivoCoincide;
+    });
   }
 
   fichas.value = resultado;

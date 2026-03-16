@@ -30,7 +30,7 @@ const handleBusqueda = (texto) => {
         const diagnostico = c.diagnostico?.toLowerCase() || '';
         
         return nombreCompleto.includes(textoLower) || 
-               patente.includes(textoLower) ||
+               patenteCoincide ||
                diagnostico.includes(textoLower);
       });
     }
