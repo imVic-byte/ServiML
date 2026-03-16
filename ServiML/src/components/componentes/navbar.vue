@@ -66,7 +66,7 @@ const onInput = (event) => {
     </div>
     </div>
     <div v-if="searchInput === 'true'" class="search-container">
-      <input type="text" placeholder="Buscar patente (Ej: ABCD-12)..." class="search-input" @input="onInput">
+      <input type="text" placeholder="Buscar..." class="search-input" @input="onInput">
     </div>
   </header>
 

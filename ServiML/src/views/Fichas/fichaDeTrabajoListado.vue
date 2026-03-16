@@ -25,12 +25,17 @@ const aplicarFiltros = () => {
 
   // Filtro por búsqueda
   if (textoBusqueda.value && textoBusqueda.value.trim() !== '') {
-    const busqueda = textoBusqueda.value.toLowerCase();
-    resultado = resultado.filter(f =>
-      f.id?.toString().includes(busqueda) ||
-      f.cliente?.nombre?.toLowerCase().includes(busqueda) ||
-      f.cliente?.apellido?.toLowerCase().includes(busqueda)
-    );
+    const busqueda = textoBusqueda.value.toLowerCase().trim();
+    
+    resultado = resultado.filter(f => {
+      const idCoincide = f.id?.toString().includes(busqueda);
+      const nombreCompleto = `${f.cliente?.nombre || ''} ${f.cliente?.apellido || ''}`.toLowerCase();
+      const patenteCoincide = f.orden_trabajo?.some(ot => 
+        ot.vehiculo?.patente?.toLowerCase().includes(busqueda)
+      );
+      const motivoCoincide = f.motivo_ingreso?.toLowerCase().includes(busqueda);
+      return idCoincide || nombreCompleto.includes(busqueda) || patenteCoincide || motivoCoincide;
+    });
   }
 
   fichas.value = resultado;
@@ -82,7 +87,8 @@ const obtenerFichas = async () => {
       .from("ficha_de_trabajo")
       .select(`
         *,
-        cliente ( nombre, apellido, telefono )
+        cliente (nombre, apellido, telefono),
+        orden_trabajo(id,vehiculo(id,marca,modelo,patente))
       `)
       .order('created_at', { ascending: false });
 
@@ -286,6 +292,7 @@ onMounted(async () => {
             <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
               <th class="p-4 font-semibold">Ficha N°</th>
               <th class="p-4 font-semibold">Cliente</th>
+              <th class="p-4 font-semibold">Vehículo</th>
               <th class="p-4 font-semibold">Motivo Ingreso</th>
               <th class="p-4 font-semibold text-center">Ingreso</th>
               <th class="p-4 font-semibold text-center">Estado</th>
@@ -302,6 +309,15 @@ onMounted(async () => {
                   {{ camelCase(item.cliente.nombre) }} {{ camelCase(item.cliente.apellido) }}
                 </div>
                 <div v-else class="text-gray-400 italic">Sin cliente</div>
+              </td>
+              <td class="p-4 servi-grey-font">
+                <div v-if="item.orden_trabajo.length > 0">
+                  <div v-for="orden in item.orden_trabajo" :key="orden.id">
+                    <div class="font-medium">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</div>
+                    <div class="text-xs text-gray-500 uppercase font-bold">{{ orden.vehiculo?.patente }}</div>
+                  </div>
+                </div>
+                <div v-else class="text-gray-400 italic text-sm">Sin vehículo</div>
               </td>
               <td class="p-4 servi-grey-font">
                 <span class="block max-w-[200px] truncate" :title="item.motivo_ingreso">
@@ -359,15 +375,26 @@ onMounted(async () => {
                 {{ handleEstados(item.estado).estado }}
               </span>
             </div>
-            <div v-if="item.vehiculo?.marca || item.vehiculo?.modelo" class="text-sm font-bold servi-grey-font mb-3">
-              {{ [item.vehiculo.marca, item.vehiculo.modelo].filter(Boolean).join(' · ') }}
-              <span v-if="item.vehiculo.anio" class="text-gray-400 font-medium ml-1">({{ item.vehiculo.anio }})</span>
+            <div v-if="item.vehiculo" class="flex flex-wrap items-center gap-2 mb-3">
+              <span class="text-sm font-bold servi-grey-font">
+                {{ camelCase(item.vehiculo.marca) }} {{ camelCase(item.vehiculo.modelo) }}
+              </span>
+              <span v-if="item.vehiculo.patente" class="px-2 py-0.5 bg-gray-100 border border-gray-200 rounded text-xs font-black tracking-widest uppercase text-gray-700">
+                {{ item.vehiculo.patente }}
+              </span>
             </div>
             <div class="mb-3">
               <p class="text-[10px] uppercase font-black text-gray-400 mb-0.5 tracking-widest">Diagnóstico/Motivo</p>
               <p class="text-sm servi-grey-font leading-relaxed line-clamp-2">
                 {{ item.diagnostico || 'Sin diagnóstico detallado' }}
               </p>
+            </div>
+            <div v-if="item.orden_trabajo.length > 0">
+              <p class="text-[10px] uppercase font-black text-gray-400 mb-0.5 tracking-widest">Vehiculos:</p>
+              <div v-for="orden in item.orden_trabajo" :key="orden.id" class="mb-2">
+                <div class="font-medium servi-grey-font">{{ orden.vehiculo?.marca }} {{ orden.vehiculo?.modelo }}</div>
+                <div class="text-xs text-gray-500 uppercase font-bold servi-grey-font"> {{ orden.vehiculo?.patente }}</div>
+              </div>
             </div>
             <div v-if="item.cliente" class="flex items-center gap-3 pt-3 border-t border-gray-100 mt-2">
               <div class="w-9 h-9 rounded-full servi-blue flex items-center justify-center shrink-0 shadow-sm">

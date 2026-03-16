@@ -5,7 +5,7 @@ import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient.js";
 import modal from "../../components/componentes/modal.vue";
 import { useInterfaz } from '@/stores/interfaz.js'
-import volver from '../../components/componentes/volveraListaCotizacion.vue'
+import volver from '../../components/componentes/volver.vue'
 
 
 const router = useRouter();

@@ -118,7 +118,7 @@ const cargarDatos = async () => {
   loading.value = true;
   const { data: dataDeuda, error } = await supabase
     .from("deudas")
-    .select("*") 
+    .select("*")  
     .eq("id", deudaId)
     .single();
 

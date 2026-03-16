@@ -10,18 +10,29 @@ const showStats = ref(false);
 let searchTimeout = null;
 
 const cotizaciones = ref([]);
+const cotizacionesOriginales = ref([]);
 
 const handleBusqueda = (texto) => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     if (!texto) {
-      cotizaciones.value = [...cotizaciones.value];
+      cotizaciones.value = [...cotizacionesOriginales.value]; 
     } else {
-      cotizaciones.value = cotizaciones.value.filter(c =>
-        c.vehiculo?.patente?.toLowerCase().includes(texto.toLowerCase()) ||
-        c.cliente?.nombre?.toLowerCase().includes(texto.toLowerCase()) ||
-        c.cliente?.apellido?.toLowerCase().includes(texto.toLowerCase())
-      );
+      const textoLower = texto.toLowerCase().trim();
+      
+      cotizaciones.value = cotizacionesOriginales.value.filter(c => {
+        //nombre
+        const nombreCompleto = `${c.nombre || ''} ${c.apellido || ''}`.toLowerCase();
+        
+        // vehiculo
+        const vehiculosArray = obtenerVehiculos(c);
+        const patenteCoincide = vehiculosArray.some(v => v.patente?.toLowerCase().includes(textoLower));
+        const diagnostico = c.diagnostico?.toLowerCase() || '';
+        
+        return nombreCompleto.includes(textoLower) || 
+               patenteCoincide ||
+               diagnostico.includes(textoLower);
+      });
     }
   }, 300);
 };
@@ -48,6 +59,34 @@ const formatearFecha = (fechaString) => {
   if (!fechaString) return "---";
   const fecha = new Date(fechaString);
   return fecha.toLocaleDateString("es-CL", { year: "numeric", month: "numeric", day: "numeric" });
+};
+
+const obtenerVehiculos = (c) => {
+  let listaVehiculos = [];
+  
+  // 1. Si la cotización tiene un vehículo directo asignado
+  if (c.vehiculo) {
+    listaVehiculos.push(c.vehiculo);
+  }
+  
+  // 2. Si viene de una ficha, extraemos todos los vehículos de sus órdenes de trabajo
+  if (c.ficha_de_trabajo && c.ficha_de_trabajo.orden_trabajo) {
+    c.ficha_de_trabajo.orden_trabajo.forEach(ot => {
+      if (ot.vehiculo) {
+        // Verificamos que no esté duplicado por id
+        if (!listaVehiculos.some(v => v.id === ot.vehiculo.id)) {
+          listaVehiculos.push(ot.vehiculo);
+        }
+      }
+    });
+  }
+
+  // 3. Respaldo: Si la ficha tiene un solo vehículo principal directo
+  if (listaVehiculos.length === 0 && c.ficha_de_trabajo && c.ficha_de_trabajo.vehiculo) {
+    listaVehiculos.push(c.ficha_de_trabajo.vehiculo);
+  }
+
+  return listaVehiculos;
 };
 
 const stats = computed(() => {
@@ -80,11 +119,22 @@ const claseEstadoCard = (estado) => {
 
 const obtenerCotizaciones = async () => {
   try {
-    const {data,error} = await supabase.from("cotizacion").select("*").order('id', { ascending: false });
-    if(error){
-      throw error;
-    }
+    const {data,error} = await supabase
+      .from("cotizacion")
+      .select(`
+        *, 
+        vehiculo(id, marca, modelo, patente),
+        ficha_de_trabajo (
+          vehiculo(id, marca, modelo, patente),
+          orden_trabajo(vehiculo(id, marca, modelo, patente))
+        )
+      `) 
+      .order('id', { ascending: false });
+      
+    if(error) throw error;
+    
     cotizaciones.value = data;
+    cotizacionesOriginales.value = data;
   } catch (error) {
     console.error("Error al obtener cotizaciones:", error);
   }
@@ -104,6 +154,8 @@ onMounted( async () => {
       titulo="ServiML"
       subtitulo="Gestión de Cotizaciones"
       class="sticky top-0 z-50"
+      search-input="true"
+      @buscar="handleBusqueda"
     />
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div class="hidden md:grid md:grid-cols-4 gap-4 mb-8">
@@ -192,6 +244,7 @@ onMounted( async () => {
             <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
               <th class="p-4 font-semibold">Número</th>
               <th class="p-4 font-semibold">Cliente</th>
+              <th class="p-4 font-semibold">Vehículo</th>
               <th class="p-4 font-semibold">Diagnostico</th>
               <th class="p-4 font-semibold text-center">Emisión</th>
               <th class="p-4 font-semibold text-right">Monto Total</th>
@@ -205,6 +258,15 @@ onMounted( async () => {
               <td class="p-4 font-medium servi-grey-font">#{{ item.id }}</td>
               <td class="p-4 servi-grey-font">
                 <div class="font-medium">{{ camelCase(item.nombre) }} {{ camelCase(item.apellido) }}</div>
+              </td>
+              <td class="p-4 servi-grey-font">
+                <div v-if="obtenerVehiculos(item).length > 0">
+                <div v-for="(veh, index) in obtenerVehiculos(item)" :key="veh.id" class="mb-2">
+                  <div class="font-medium">{{ camelCase(veh.marca) }} {{ camelCase(veh.modelo) }}</div>
+                  <div class="text-xs text-gray-500 uppercase font-bold">{{ veh.patente }}</div>
+                </div>
+                 </div>
+                <div v-else class="text-gray-400 italic text-sm">Sin vehículo</div>
               </td>
               <td class="p-4 servi-grey-font">
                 <span class="block max-w-[200px] truncate" :title="item.diagnostico">{{ camelCase(item.diagnostico) }}</span>
@@ -257,6 +319,15 @@ onMounted( async () => {
             <div class="info-row">
               <span class="label">Cliente:</span>
               <span class="valor">{{ camelCase(item.nombre) + ' ' + camelCase(item.apellido) }}</span>
+            </div>
+            <div class="info-row items-start" v-if="obtenerVehiculos(item).length > 0">
+              <span class="label mt-1">Vehículo(s):</span>
+              <span class="valor text-right">
+                <div v-for="(veh, index) in obtenerVehiculos(item)" :key="veh.id" class="mb-2 last:mb-0">
+                  <div class="font-medium">{{ camelCase(veh.marca) }} {{ camelCase(veh.modelo) }}</div>
+                  <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">{{ veh.patente }}</div>
+                </div>
+              </span>
             </div>
             <div class="info-row" v-if="item.diagnostico">
               <span class="label">Descripción:</span>
