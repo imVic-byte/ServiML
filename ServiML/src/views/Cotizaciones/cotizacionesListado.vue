@@ -323,7 +323,7 @@ onMounted( async () => {
             <div class="info-row items-start" v-if="obtenerVehiculos(item).length > 0">
               <span class="label mt-1">Vehículo(s):</span>
               <span class="valor text-right">
-                <div v-for="(veh, index) in obtenerVehiculos(item)" :key="veh.id" class="mb-2 last:mb-0">
+                <div v-for="veh in obtenerVehiculos(item)" :key="veh.id" class="mb-2 last:mb-0">
                   <div class="font-medium">{{ camelCase(veh.marca) }} {{ camelCase(veh.modelo) }}</div>
                   <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">{{ veh.patente }}</div>
                 </div>
