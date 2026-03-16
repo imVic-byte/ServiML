@@ -201,7 +201,7 @@ const confirmarCreacionOT = async () => {
                     patente: patenteBuscada,
                     marca: otMarcaIngresada.value,
                     modelo: otModeloIngresado.value,
-                    id_cliente: ficha.value.cliente.id,
+                    id_cliente: ficha.value.cliente?.id || null,
                 })
                 .select()
                 .single()
@@ -217,7 +217,15 @@ const confirmarCreacionOT = async () => {
     creandoOT.value = true
     try {
         const resultado = await creacionOT(ficha.value.id, otTrabajadorSeleccionado.value, vehiculoId)
+        
         if (resultado) {
+          const { error: errorFicha } = await supabase
+              .from('ficha_de_trabajo')
+              .update({ id_vehiculo: vehiculoId })
+              .eq('id', ficha.value.id);
+              if (errorFicha) {
+              console.error("Error al vincular el vehículo a la ficha:", errorFicha);
+            }
             await cargarDatos()
             cerrarModalOT()
         } else {
