@@ -331,9 +331,9 @@ onMounted(async () => {
         <tbody class="text-[#1f2937] text-[11px]">
           <template v-for="(cot, ci) in cotizaciones" :key="cot.id">
             <!-- Separador con título si hay más de una cotización -->
-            <tr v-if="cotizaciones.length > 1" class="bg-[#f1f5f9]">
+            <tr v-if="cotizaciones.length > 0" class="bg-[#f1f5f9]">
               <td colspan="4" class="p-2 font-bold text-[#1f3d64] text-[10px] uppercase tracking-wider">
-                Cotización N°{{ ci + 1 }}
+                Cotización N°{{ cot.id }}
                 <span v-if="cot.comentario" class="font-normal text-[#6b7280] ml-2">— {{ cot.comentario }}</span>
               </td>
             </tr>

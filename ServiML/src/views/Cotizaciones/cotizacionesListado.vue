@@ -362,11 +362,9 @@ onMounted( async () => {
           <p class="text-sm servi-grey-font">Intenta cambiar el filtro de búsqueda o crea una nueva.</p>
         </div>
       </div>
-
     </div>
   </div>
 </template>
-
 <style scoped>
 /* Animación stats mobile */
 .slide-stats-enter-active,
