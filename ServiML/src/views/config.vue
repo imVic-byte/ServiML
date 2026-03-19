@@ -155,7 +155,7 @@ onMounted(() => {
 
       </div>
     </div>
-    <span class="version-label">Versión 1.2</span>
+    <span class="version-label">Versión 1.3</span>
   </div>
 </template>
 

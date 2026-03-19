@@ -98,7 +98,7 @@ onMounted(async () => {
       <div class="text-right">
         <h2 class="text-lg font-bold text-[#1f3d64]">COTIZACIÓN</h2>
         <p class="text-md font-mono text-[#dc2626] font-bold">
-            N° {{ numero || '---' }}
+            N° {{ cotizacion.id || '---' }}
         </p>
         <p class="text-[#6b7280] mt-1 text-[11px]">
             Fecha: {{ formatoFecha(cotizacion.created_at) }}
