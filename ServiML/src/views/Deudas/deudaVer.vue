@@ -18,6 +18,7 @@ const form = ref({
 const filtroEstado = ref('todas');
 const ordenCampo = ref('created_at');
 const ordenAsc = ref(false);
+const tabOcultar = ref(false);
 
 const formatearFecha = (fechaString) => {
   if (!fechaString) return '---';
@@ -92,21 +93,32 @@ const limpiarFiltros = () => {
   ordenAsc.value = false;
 };
 
+const deudasDelTab = computed(() =>
+  deudas.value.filter((d) => (d.ocultar || false) === tabOcultar.value)
+);
+
+const cantidadActivas = computed(() =>
+  deudas.value.filter((d) => !d.ocultar).length
+);
+
+const cantidadOcultas = computed(() =>
+  deudas.value.filter((d) => d.ocultar).length
+);
+
 const cantidadPendientes = computed(() =>
-  deudas.value.filter((d) => (d.estado || '').toLowerCase() === 'pendiente').length
+  deudasDelTab.value.filter((d) => (d.estado || '').toLowerCase() === 'pendiente').length
 );
 
 const cantidadPagadas = computed(() =>
-  deudas.value.filter((d) => (d.estado || '').toLowerCase() !== 'pendiente').length
+  deudasDelTab.value.filter((d) => (d.estado || '').toLowerCase() !== 'pendiente').length
 );
 
 const deudasFiltradas = computed(() => {
-  let arr = [...deudas.value];
+  let arr = [...deudasDelTab.value];
 
   if (filtroEstado.value === 'pendiente') {
     arr = arr.filter((d) => (d.estado || '').toLowerCase() === 'pendiente');
   } else if (filtroEstado.value === 'pagada') {
-    // pagada = todo lo que NO sea pendiente (completada/pagada/etc.)
     arr = arr.filter((d) => (d.estado || '').toLowerCase() !== 'pendiente');
   }
 
@@ -130,6 +142,20 @@ const deudasFiltradas = computed(() => {
   return arr;
 });
 
+const toggleOcultar = async (item) => {
+  const nuevoValor = !item.ocultar;
+  const { error } = await supabase
+    .from('deudas')
+    .update({ ocultar: nuevoValor })
+    .eq('id', item.id);
+
+  if (error) {
+    console.error('Error al actualizar ocultar:', error);
+    return;
+  }
+  item.ocultar = nuevoValor;
+};
+
 onMounted(() => {
   cargarDeudas();
 });
@@ -140,11 +166,34 @@ onMounted(() => {
     <navbar titulo="ServiML" subtitulo="Deudas y Abonos" class="navbar" />
 
     <div class="max-w-7xl mx-auto px-4 py-8">
+
+      <!-- Tabs Ocultar -->
+      <div class="flex gap-1 mb-6 servi-adapt-bg rounded-xl p-1 shadow-sm border border-gray-100 w-fit">
+        <button
+          @click="tabOcultar = false; filtroEstado = 'todas'"
+          class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2"
+          :class="!tabOcultar ? 'servi-blue text-white shadow-sm' : 'servi-grey-font hover:opacity-70'"
+        >
+          Activas
+          <span class="text-[11px] font-extrabold px-2 py-0.5 rounded-full"
+            :class="!tabOcultar ? 'bg-white/20 text-white' : 'servi-adapt-bg servi-grey-font'">{{ cantidadActivas }}</span>
+        </button>
+        <button
+          @click="tabOcultar = true; filtroEstado = 'todas'"
+          class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 flex items-center gap-2"
+          :class="tabOcultar ? 'servi-blue text-white shadow-sm' : 'servi-grey-font hover:opacity-70'"
+        >
+          Ocultas
+          <span class="text-[11px] font-extrabold px-2 py-0.5 rounded-full"
+            :class="tabOcultar ? 'bg-white/20 text-white' : 'servi-adapt-bg servi-grey-font'">{{ cantidadOcultas }}</span>
+        </button>
+      </div>
+
       <!-- Header + Toolbar -->
       <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
         <div>
-          <h2 class="text-2xl font-bold">Deudas</h2>
-          <p class="servi-grey-font">Gestiona las deudas agrupadas por cliente</p>
+          <h2 class="text-2xl font-bold">{{ tabOcultar ? 'Deudas Ocultas' : 'Deudas' }}</h2>
+          <p class="servi-grey-font">{{ tabOcultar ? 'Deudas que has marcado como ocultas' : 'Gestiona las deudas agrupadas por cliente' }}</p>
         </div>
 
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
@@ -156,7 +205,7 @@ onMounted(() => {
               Todas
               <span class="ml-2 text-[11px] font-extrabold px-2 py-0.5 rounded-full"
                 :class="filtroEstado === 'todas' ? 'servi-adapt-bg/20 text-white' : 'servi-adapt-bg servi-grey-font'">
-                {{ deudas.length }}
+                {{ deudasDelTab.length }}
               </span>
             </button>
 
@@ -297,6 +346,7 @@ onMounted(() => {
                   <th class="p-4 font-semibold">Estado</th>
                   <th class="p-4 font-semibold text-center">Notificación</th>
                   <th class="p-4 font-semibold text-center">Creación</th>
+                  <th class="p-4 font-semibold text-center">Ocultar</th>
                   <th class="p-4 font-semibold text-center">Acción</th>
                 </tr>
               </thead>
@@ -330,6 +380,21 @@ onMounted(() => {
 
                   <td class="p-4 text-center text-sm servi-grey-font">
                     {{ formatearFecha(item.created_at) }}
+                  </td>
+
+                  <td class="p-4 text-center">
+                    <button
+                      @click.stop="toggleOcultar(item)"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80 shadow-sm"
+                      :class="item.ocultar ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
+                      :title="item.ocultar ? 'Mostrar deuda' : 'Ocultar deuda'"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                        <path v-if="!item.ocultar" stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                        <path v-else stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                      {{ item.ocultar ? 'Mostrar' : 'Ocultar' }}
+                    </button>
                   </td>
 
                   <td class="p-4 text-center">
@@ -389,7 +454,17 @@ onMounted(() => {
               </div>
 
               <div class="flex mt-2 pt-2 border-t border-gray-100 items-center justify-between">
-                <span class="servi-grey-font text-sm pl-1">Ver Detalles</span>
+                <button
+                  @click.stop="toggleOcultar(item)"
+                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-80 shadow-sm"
+                  :class="item.ocultar ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                    <path v-if="!item.ocultar" stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                    <path v-else stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178ZM15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                  {{ item.ocultar ? 'Mostrar' : 'Ocultar' }}
+                </button>
                 <RouterLink
                   :to="{ name: 'ver-deuda', params: { id: item.id } }"
                   @click.stop
