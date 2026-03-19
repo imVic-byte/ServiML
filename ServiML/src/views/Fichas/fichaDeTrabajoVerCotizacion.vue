@@ -9,6 +9,8 @@ import html2pdf from 'html2pdf.js'
 import { useInterfaz } from '@/stores/interfaz.js'
 import volveraFicha from '../../components/componentes/volveraFicha.vue'
 import confirmaciones from '@/components/presupuesto/modalConfirmacion.vue'
+import volver from '@/components/componentes/volver.vue'
+
 const interfaz = useInterfaz()
 const route = useRoute()
 const router = useRouter()
@@ -137,7 +139,7 @@ onMounted(async () => {
     <navbar :titulo="'Cotización #' + cotizacion.id" subtitulo="Detalle de cotización" class="navbar" />
     
     <div class="mx-auto p-4 max-w-5xl pb-28">
-        <volveraFicha />
+        <volver />
         
         <div class="flex flex-col lg:flex-row gap-6 mt-6">
             

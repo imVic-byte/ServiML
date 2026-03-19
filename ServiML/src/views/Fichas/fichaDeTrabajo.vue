@@ -158,7 +158,6 @@ const crearCotizacion = () => {
 }
 
 const irACotizacion = (id, numero) => {
-    if (isFichaBloqueada.value) return
     router.push({ name: 'ver-cotizacion-ficha-de-trabajo', params: {id: ficha.value.id, cotizacion_id: id}, query: {numero: numero} })
 }
 
@@ -853,7 +852,7 @@ onMounted(async () => {
               <div v-for="(cotizacion, i) in cotizaciones" :key="cotizacion.id"
                 @click="irACotizacion(cotizacion.id,i+1)"
                 class="p-4  hover:text-black transition-colors cursor-pointer group flex justify-between items-center"
-                :class="{ 'pointer-events-none opacity-70': isFichaBloqueada }">
+                >
                 <div>
                   <p class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">
                     <span v-if="cotizacion.folio_aceptacion" class="text-blue-600 dark:text-blue-400">
