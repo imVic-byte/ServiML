@@ -152,7 +152,7 @@ onMounted( async () => {
   <div class="servi-white min-h-screen pb-15">
     <navbar
       titulo="ServiML"
-      subtitulo="Gestión de Cotizaciones"
+      subtitulo="Gestión de Cotizaciones Iniciales"
       class="sticky top-0 z-50"
       search-input="true"
       @buscar="handleBusqueda"
@@ -202,8 +202,8 @@ onMounted( async () => {
       <!-- Header con botones -->
       <div class="flex justify-between items-center mb-6">
         <div>
-            <h2 class="text-xl font-bold servi-grey-font">Listado de Cotizaciones</h2>
-            <p class="text-sm servi-grey-font">Administra y revisa el estado de tus cotizaciones</p>
+            <h2 class="text-xl font-bold servi-grey-font">Listado de Cotizaciones Iniciales</h2>
+            <p class="text-sm servi-grey-font">Administra y revisa el estado de tus cotizaciones Iniciales </p>
         </div>
         <div class="flex items-center gap-2">
           <!-- Botón toggle stats mobile -->
@@ -232,7 +232,7 @@ onMounted( async () => {
             class="servi-yellow servi-grey-font font-bold py-2 px-6 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2"
           >
             <span class="text-xl leading-none mb-1">+</span>
-            <span class="hidden sm:inline">Nueva Cotización</span>
+            <span class="hidden sm:inline">Nueva Cotización Inicial</span>
           </button>
         </div>
       </div>
@@ -242,7 +242,6 @@ onMounted( async () => {
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
-              <th class="p-4 font-semibold">Número</th>
               <th class="p-4 font-semibold">Cliente</th>
               <th class="p-4 font-semibold">Vehículo</th>
               <th class="p-4 font-semibold">Diagnostico</th>
@@ -255,7 +254,6 @@ onMounted( async () => {
             <tr v-for="item in cotizaciones" :key="item.id" 
                 class="hover:opacity-80 transition-colors cursor-pointer"
                 @click="irADetalle(item.id)">
-              <td class="p-4 font-medium servi-grey-font">#{{ item.id }}</td>
               <td class="p-4 servi-grey-font">
                 <div class="font-medium">{{ camelCase(item.nombre) }} {{ camelCase(item.apellido) }}</div>
               </td>
@@ -308,9 +306,6 @@ onMounted( async () => {
           class="card-container servi-adapt-bg servi-grey-font"
           :class="claseEstadoCard(item.estado).contenedor"
         >
-          <div class="card-header servi-grey-font">
-            <span class="folio">#{{ item.id }}</span>
-          </div>
           <div class="card-body servi-grey-font">
             <div class="info-row">
               <span class="label">Emisión:</span>
@@ -362,11 +357,9 @@ onMounted( async () => {
           <p class="text-sm servi-grey-font">Intenta cambiar el filtro de búsqueda o crea una nueva.</p>
         </div>
       </div>
-
     </div>
   </div>
 </template>
-
 <style scoped>
 /* Animación stats mobile */
 .slide-stats-enter-active,

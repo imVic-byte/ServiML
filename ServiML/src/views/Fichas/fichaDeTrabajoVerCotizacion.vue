@@ -8,6 +8,8 @@ import pdf from './cotizacionesPDF.vue'
 import html2pdf from 'html2pdf.js'
 import { useInterfaz } from '@/stores/interfaz.js'
 import volveraFicha from '../../components/componentes/volveraFicha.vue'
+import confirmaciones from '@/components/presupuesto/modalConfirmacion.vue'
+import volver from '@/components/componentes/volver.vue'
 
 const interfaz = useInterfaz()
 const route = useRoute()
@@ -50,7 +52,7 @@ const generarPDF = () => {
   const elemento = document.getElementById('elemento-a-imprimir');
   const opciones = {
     margin:       0,
-    filename:     `Cotizacion_${n_cotizacion.value || cotizacion.value.id}.pdf`,
+    filename:     `Cotizacion_${cotizacion.value.id}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
     html2canvas:  { scale: 2, useCORS: true },
     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
@@ -88,6 +90,21 @@ const descartarCotizacion = async () => {
   }
 }
 
+const ejecutarBorrador = async () => {
+  const {error} = await supabase.from('cotizaciones_ficha').update({estado:1}).eq('id',route.params.cotizacion_id).select().single()
+  if(error){
+    modalState.value.visible = true;
+    modalState.value.titulo = "Error";
+    modalState.value.mensaje = error.message;
+    modalState.value.exito = false;
+  }else{
+    modalState.value.visible = true;
+    modalState.value.titulo = "Exito";
+    modalState.value.mensaje = "Cotización revertida a borrador";
+    modalState.value.exito = true;
+  }
+}
+
 const cargarDatos = async () => {
     const { data, error } = await supabase
       .from('cotizaciones_ficha')
@@ -119,10 +136,10 @@ onMounted(async () => {
 </script>
 <template>
 <div v-if="cotizacion" class="servi-white min-h-screen">
-    <navbar :titulo="'Cotización #' + n_cotizacion" subtitulo="Detalle de cotización" class="navbar" />
+    <navbar :titulo="'Cotización #' + cotizacion.id" subtitulo="Detalle de cotización" class="navbar" />
     
     <div class="mx-auto p-4 max-w-5xl pb-28">
-        <volveraFicha />
+        <volver />
         
         <div class="flex flex-col lg:flex-row gap-6 mt-6">
             
@@ -247,11 +264,8 @@ onMounted(async () => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                           Descargar PDF
-                        </button> 
-                        <div v-if="isPendiente" class="w-full">
-                        <button @click="confirmarCotizacion" class="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-blue text-white border border-gray-200 hover:bg-blue-800 transition-colors text-sm font-medium">Confirmar</button>
-                        <button @click="descartarCotizacion" class="w-full mt-2 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg servi-grey-font hover:bg-blue-800 transition-colors text-sm font-medium">Descartar</button>
-                        </div>
+                        </button>
+                 <confirmaciones :estado="cotizacion.estado" @confirmar="confirmarCotizacion" @descartar="descartarCotizacion" @borrador="ejecutarBorrador"></confirmaciones>
                     </div>
                 </div>
             </div>
