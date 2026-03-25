@@ -321,7 +321,7 @@ onMounted(async () => {
         </div>
       </div>
       <h1 class="text-2xl font-bold servi-grey-font pb-4">Acciones rápidas</h1>
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4 h-20">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <button @click="irAChequeoCompleto" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 shadow-sm transition-all duration-200 hover:shadow-md active:scale-95 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
