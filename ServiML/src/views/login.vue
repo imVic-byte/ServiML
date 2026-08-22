@@ -3,10 +3,71 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../stores/user'
 import { useInterfaz } from '../stores/interfaz'
+import { supabase } from '../lib/supabaseClient'
+
 const email = ref('')
 const password = ref('')
 const errorMsg = ref('')
 const loading = ref(false)
+
+// Modal de recuperación
+const mostrarModalRecuperar = ref(false)
+const emailRecuperacion = ref('')
+const mensajeModal = ref('')
+const esErrorModal = ref(false)
+const enviandoRecuperacion = ref(false)
+
+const abrirModalRecuperar = () => {
+  emailRecuperacion.value = email.value
+  mensajeModal.value = ''
+  esErrorModal.value = false
+  mostrarModalRecuperar.value = true
+}
+
+const cerrarModalRecuperar = () => {
+  mostrarModalRecuperar.value = false
+  mensajeModal.value = ''
+  esErrorModal.value = false
+}
+
+const handleResetPassword = async () => {
+  if (!emailRecuperacion.value) {
+    mensajeModal.value = 'Por favor ingresa tu correo electrónico.'
+    esErrorModal.value = true
+    return
+  }
+  enviandoRecuperacion.value = true
+  mensajeModal.value = ''
+  esErrorModal.value = false
+  try {
+    // 1. Consultar estado del trabajador en la base de datos
+    const { data: trabajador } = await supabase
+      .from('trabajadores')
+      .select('activo')
+      .eq('email', emailRecuperacion.value.trim())
+      .maybeSingle()
+
+    if (trabajador && trabajador.activo === false) {
+      mensajeModal.value = 'Esta cuenta se encuentra desactivada. Por favor contacta al administrador del sistema.'
+      esErrorModal.value = true
+      return
+    }
+
+    // 2. Si la cuenta está activa, solicitar el envío del correo de recuperación
+    const { error } = await supabase.auth.resetPasswordForEmail(emailRecuperacion.value.trim(), {
+      redirectTo: `${window.location.origin}/crear-contrasena`
+    })
+    if (error) throw error
+
+    mensajeModal.value = 'Se ha enviado un enlace de recuperación a tu correo electrónico. Revisa tu bandeja de entrada.'
+    esErrorModal.value = false
+  } catch (error) {
+    mensajeModal.value = 'Error al solicitar recuperación: ' + (error.message || 'Error de conexión.')
+    esErrorModal.value = true
+  } finally {
+    enviandoRecuperacion.value = false
+  }
+}
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -23,7 +84,7 @@ const handleLogin = async () => {
     
   } catch (error) {
     console.error("Error en login:", error)
-    if (error.message.includes('timeout')) {
+    if (error.message?.includes('timeout')) {
         errorMsg.value = 'El servidor tarda en responder. Verifica tu conexión.'
     } else {
         errorMsg.value = 'Credenciales incorrectas o error de conexión.'
@@ -66,6 +127,15 @@ const handleLogin = async () => {
             placeholder="••••••••" 
             :disabled="loading"
           />
+          <div class="flex justify-end mt-1.5">
+            <button 
+              type="button" 
+              @click="abrirModalRecuperar" 
+              class="text-xs text-amber-300 hover:text-amber-200 underline font-medium cursor-pointer bg-transparent border-0 p-0"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
         </div>
 
         <div v-if="errorMsg" class="error-container">
@@ -76,6 +146,54 @@ const handleLogin = async () => {
           {{ loading ? 'Autenticando...' : 'Ingresar al Sistema' }}
         </button>
       </form>
+    </div>
+
+    <!-- Modal Recuperar Contraseña -->
+    <div v-if="mostrarModalRecuperar" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+      <div class="servi-blue p-6 rounded-2xl max-w-md w-full border border-white/10 shadow-2xl relative">
+        <div class="text-center mb-4">
+          <h2 class="text-xl font-bold text-amber-300">Recuperar Contraseña</h2>
+          <p class="text-xs text-slate-300 mt-1">
+            Ingresa tu correo registrado y te enviaremos un enlace para restablecer tu clave.
+          </p>
+        </div>
+
+        <form @submit.prevent="handleResetPassword" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-amber-300 mb-1">Correo Electrónico</label>
+            <input 
+              v-model="emailRecuperacion" 
+              type="email" 
+              required 
+              placeholder="usuario@serviml.cl" 
+              class="w-full px-4 py-2.5 rounded-lg text-slate-800 bg-white/95 focus:bg-white outline-none text-sm"
+              :disabled="enviandoRecuperacion"
+            />
+          </div>
+
+          <div v-if="mensajeModal" class="p-3 rounded-lg text-xs text-center font-medium" :class="esErrorModal ? 'bg-red-500/20 text-red-200 border border-red-500/40' : 'bg-green-500/20 text-green-200 border border-green-500/40'">
+            {{ mensajeModal }}
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button 
+              type="button" 
+              @click="cerrarModalRecuperar" 
+              class="flex-1 py-2.5 rounded-lg text-sm font-bold text-slate-300 hover:bg-white/10 border border-white/20 transition-colors"
+              :disabled="enviandoRecuperacion"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit" 
+              class="flex-1 py-2.5 rounded-lg text-sm font-bold servi-yellow servi-grey-font hover:opacity-90 transition-opacity"
+              :disabled="enviandoRecuperacion"
+            >
+              {{ enviandoRecuperacion ? 'Enviando...' : 'Enviar Correo' }}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>

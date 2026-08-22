@@ -35,18 +35,17 @@ const invitarUsuario = () => {
 }
 
 const alternarEstado = async (id, estadoActual) => {
-  if(userStore.user.id === id){
-    alert('No puedes desactivar tu propio usuario.');
+  if (userStore.user.id === id) {
+    alert('No puedes modificar el estado de tu propio usuario.');
     return;
   }
-  if(!userStore.isGerente || !userStore.isSoporte){
-    alert('No tienes permiso para desactivar usuarios.');
+  if (!userStore.isGerente && !userStore.isSoporte) {
+    alert('Solo el Gerente o Soporte tienen permiso para desactivar o reactivar usuarios.');
     return;
   }
-  if (estadoActual) {
-    if (!confirm('¿Está seguro de que desea desactivar este usuario?')) {
-      return;
-    }
+  const accionTexto = estadoActual ? 'desactivar' : 'reactivar la autenticación de';
+  if (!confirm(`¿Está seguro de que desea ${accionTexto} este usuario?`)) {
+    return;
   }
   interfaz.showLoadingOverlay();
   try {
@@ -72,7 +71,7 @@ const RecuperarContraseña = async (id) => {
   interfaz.showLoadingOverlay();
   try {
     const { error } = await supabase.auth.resetPasswordForEmail(trabajadores.value.find(t => t.id === id).email,{
-      redirectTo: 'http://app.serviml.cl/crear-contrasena'
+      redirectTo: `${window.location.origin}/crear-contrasena`
     });
     if (error) throw error;
     alert('Se ha enviado un correo electrónico para restablecer la contraseña.');
@@ -177,10 +176,12 @@ onMounted(async () => {
 
               <div class="flex gap-2 pt-1">
                 <button 
+                  v-if="userStore.isGerente || userStore.isSoporte"
                   @click="alternarEstado(trabajador.id, trabajador.activo)"
-                  class="flex-1 text-xs font-semibold servi-yellow px-3 py-2 rounded-lg text-center cursor-pointer"
+                  class="flex-1 text-xs font-semibold px-3 py-2 rounded-lg text-center cursor-pointer transition-all"
+                  :class="trabajador.activo ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'"
                 >
-                  {{ trabajador.activo ? 'Desactivar' : 'Activar' }}
+                  {{ trabajador.activo ? 'Desactivar' : 'Reactivar Autenticación' }}
                 </button>
                 <button 
                   @click="RecuperarContraseña(trabajador.id)"
@@ -245,10 +246,12 @@ onMounted(async () => {
                   </td>
                   <td class="px-2 py-2 w-full h-full flex flex-col justify-center items-center whitespace-nowrap text-center text-sm font-medium gap-2">
                     <button 
+                      v-if="userStore.isGerente || userStore.isSoporte"
                       @click="alternarEstado(trabajador.id, trabajador.activo)"
-                      class="text-indigo-600 cursor-pointer hover:text-indigo-900 font-semibold servi-yellow px-2 py-1 rounded-lg"
+                      class="text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer transition-all"
+                      :class="trabajador.activo ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'"
                     >
-                      {{ trabajador.activo ? 'Desactivar' : 'Activar' }}
+                      {{ trabajador.activo ? 'Desactivar' : 'Reactivar Autenticación' }}
                     </button>
                     <button 
                       @click="RecuperarContraseña(trabajador.id)"
