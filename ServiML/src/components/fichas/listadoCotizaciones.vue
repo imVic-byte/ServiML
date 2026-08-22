@@ -31,8 +31,13 @@ const handleBusqueda = (texto) => {
       cotizaciones.value = [...cotizacionesOriginales.value]; 
     } else {
       const textoLower = texto.toLowerCase().trim();
+      const textoLimpio = textoLower.replace('#', '').trim();
       
       cotizaciones.value = cotizacionesOriginales.value.filter(c => {
+        // Número de cotización
+        const numeroCotizacion = c.id ? String(c.id) : '';
+        const coincidenciaNumero = textoLimpio ? numeroCotizacion.includes(textoLimpio) : false;
+
         // Nombre directo en la cotización
         const nombreDirecto = `${c.nombre || ''} ${c.apellido || ''}`.toLowerCase();
         // Nombre del cliente desde la ficha de trabajo
@@ -43,7 +48,8 @@ const handleBusqueda = (texto) => {
         const patenteCoincide = vehiculosArray.some(v => v.patente?.toLowerCase().includes(textoLower));
         const diagnostico = c.diagnostico?.toLowerCase() || '';
         
-        return nombreDirecto.includes(textoLower) || 
+        return coincidenciaNumero ||
+               nombreDirecto.includes(textoLower) || 
                nombreCliente.includes(textoLower) ||
                patenteCoincide ||
                diagnostico.includes(textoLower);

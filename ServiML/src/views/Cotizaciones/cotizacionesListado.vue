@@ -19,9 +19,14 @@ const handleBusqueda = (texto) => {
       cotizaciones.value = [...cotizacionesOriginales.value]; 
     } else {
       const textoLower = texto.toLowerCase().trim();
+      const textoLimpio = textoLower.replace('#', '').trim();
       
       cotizaciones.value = cotizacionesOriginales.value.filter(c => {
-        //nombre
+        // número de cotización
+        const numeroCotizacion = c.id ? String(c.id) : '';
+        const coincidenciaNumero = textoLimpio ? numeroCotizacion.includes(textoLimpio) : false;
+
+        // nombre
         const nombreCompleto = `${c.nombre || ''} ${c.apellido || ''}`.toLowerCase();
         
         // vehiculo
@@ -29,7 +34,8 @@ const handleBusqueda = (texto) => {
         const patenteCoincide = vehiculosArray.some(v => v.patente?.toLowerCase().includes(textoLower));
         const diagnostico = c.diagnostico?.toLowerCase() || '';
         
-        return nombreCompleto.includes(textoLower) || 
+        return coincidenciaNumero ||
+               nombreCompleto.includes(textoLower) || 
                patenteCoincide ||
                diagnostico.includes(textoLower);
       });
@@ -242,6 +248,7 @@ onMounted( async () => {
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="servi-blue servi-yellow-font text-xs uppercase tracking-wider border-b border-gray-100">
+              <th class="p-4 font-semibold">N°</th>
               <th class="p-4 font-semibold">Cliente</th>
               <th class="p-4 font-semibold">Vehículo</th>
               <th class="p-4 font-semibold">Diagnostico</th>
@@ -254,6 +261,9 @@ onMounted( async () => {
             <tr v-for="item in cotizaciones" :key="item.id" 
                 class="hover:opacity-80 transition-colors cursor-pointer"
                 @click="irADetalle(item.id)">
+              <td class="p-4 servi-grey-font">
+                <div class="font-medium">#{{ item.id }}</div>
+              </td>
               <td class="p-4 servi-grey-font">
                 <div class="font-medium">{{ camelCase(item.nombre) }} {{ camelCase(item.apellido) }}</div>
               </td>
@@ -306,6 +316,10 @@ onMounted( async () => {
           class="card-container servi-adapt-bg servi-grey-font"
           :class="claseEstadoCard(item.estado).contenedor"
         >
+          <div class="card-header servi-grey-font flex justify-between pb-2 border-b border-gray-100 mb-2">
+            <span class="folio text-base">Cotización #{{ item.id }}</span>
+            <span :class="claseEstadoCard(item.estado).clase">{{ claseEstadoCard(item.estado).texto }}</span>
+          </div>
           <div class="card-body servi-grey-font">
             <div class="info-row">
               <span class="label">Emisión:</span>
