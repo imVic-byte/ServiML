@@ -3,7 +3,8 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { supabase } from "../../lib/supabaseClient";
 import { useInterfaz } from "@/stores/interfaz";
-import listadoFichas from '@/components/fichas/listitadefichas.vue'
+import listadoFichas from '@/components/fichas/listitadefichas.vue';
+import paginador from '@/components/componentes/paginador.vue';
 
 const router = useRouter();
 const interfaz = useInterfaz();
@@ -11,6 +12,13 @@ let searchTimeout = null;
 
 const cotizaciones = ref([]);
 const cotizacionesOriginales = ref([]);
+const paginaActual = ref(1);
+const itemsPorPagina = ref(10);
+
+const cotizacionesPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * itemsPorPagina.value;
+  return cotizaciones.value.slice(inicio, inicio + itemsPorPagina.value);
+});
 
 const props = defineProps({
   busqueda: {
@@ -25,14 +33,20 @@ watch(() => props.busqueda, (texto) => {
 });
 
 const handleBusqueda = (texto) => {
+  paginaActual.value = 1;
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     if (!texto) {
       cotizaciones.value = [...cotizacionesOriginales.value]; 
     } else {
       const textoLower = texto.toLowerCase().trim();
+      const textoLimpio = textoLower.replace('#', '').trim();
       
       cotizaciones.value = cotizacionesOriginales.value.filter(c => {
+        // Número de cotización
+        const numeroCotizacion = c.id ? String(c.id) : '';
+        const coincidenciaNumero = textoLimpio ? numeroCotizacion.includes(textoLimpio) : false;
+
         // Nombre directo en la cotización
         const nombreDirecto = `${c.nombre || ''} ${c.apellido || ''}`.toLowerCase();
         // Nombre del cliente desde la ficha de trabajo
@@ -43,7 +57,8 @@ const handleBusqueda = (texto) => {
         const patenteCoincide = vehiculosArray.some(v => v.patente?.toLowerCase().includes(textoLower));
         const diagnostico = c.diagnostico?.toLowerCase() || '';
         
-        return nombreDirecto.includes(textoLower) || 
+        return coincidenciaNumero ||
+               nombreDirecto.includes(textoLower) || 
                nombreCliente.includes(textoLower) ||
                patenteCoincide ||
                diagnostico.includes(textoLower);
@@ -233,7 +248,7 @@ onMounted( async () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="item in cotizaciones" :key="item.id" 
+          <tr v-for="item in cotizacionesPaginadas" :key="item.id" 
               class="hover:opacity-80 transition-colors cursor-pointer"
               @click="irADetalle(item)">
             <td class="p-4 servi-grey-font">
@@ -285,7 +300,7 @@ onMounted( async () => {
     <!-- Cards Mobile -->
     <div v-if="!loading" class="md:hidden grid grid-cols-1">
       <div 
-        v-for="item in cotizaciones" 
+        v-for="item in cotizacionesPaginadas" 
         :key="item.id"
         @click="irADetalle(item)"
         class="card-container servi-adapt-bg servi-grey-font"
@@ -335,6 +350,14 @@ onMounted( async () => {
         </div>
       </div>
     </div>
+
+    <!-- Paginador -->
+    <paginador 
+      v-if="!loading"
+      v-model:pagina-actual="paginaActual" 
+      :total-items="cotizaciones.length" 
+      :items-por-pagina="itemsPorPagina" 
+    />
 
     <listadoFichas v-if="abrirListadoFichas" @cerrar="handleListadoFichas()" />
 

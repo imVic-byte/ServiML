@@ -57,14 +57,24 @@ const puedeEnviar = computed(() => {
 });
 
 onMounted(async () => {
-    interfaz.showLoading();
-    await supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session) {
-            router.push('/login')
-        }
-    })
+  interfaz.showLoading();
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    // Si la sesión aún no se ha inicializado desde el hash de recuperación en la URL
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (newSession || event === 'PASSWORD_RECOVERY') {
+        interfaz.hideLoading();
+        subscription.unsubscribe();
+      } else {
+        interfaz.hideLoading();
+        router.push('/login');
+      }
+    });
+  } else {
     interfaz.hideLoading();
-})
+  }
+});
 
 const updatePassword = async () => {
   if (!puedeEnviar.value) {
