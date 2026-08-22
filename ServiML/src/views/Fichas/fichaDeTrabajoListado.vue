@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
 import listadoCotizaciones from "../../components/fichas/listadoCotizaciones.vue";
+import paginador from "../../components/componentes/paginador.vue";
 import { supabase } from "../../lib/supabaseClient";
 import { useInterfaz } from "@/stores/interfaz";
 
@@ -17,8 +18,16 @@ let searchTimeout = null;
 const fichas = ref([]);
 const fichasOriginales = ref([]);
 const textoBusqueda = ref('');
+const paginaActual = ref(1);
+const itemsPorPagina = ref(10);
+
+const fichasPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * itemsPorPagina.value;
+  return fichas.value.slice(inicio, inicio + itemsPorPagina.value);
+});
 
 const aplicarFiltros = () => {
+  paginaActual.value = 1;
   let resultado = [...fichasOriginales.value];
 
   // Filtro por estado
@@ -327,7 +336,7 @@ onMounted(async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in fichas" :key="item.id" 
+            <tr v-for="item in fichasPaginadas" :key="item.id" 
                 class="hover:opacity-80 transition-colors cursor-pointer"
                 @click="irADetalle(item.id)">
               <td class="p-4 font-medium servi-grey-font">#{{ item.id }}</td>
@@ -385,7 +394,7 @@ onMounted(async () => {
       <div class="md:hidden grid grid-cols-1 gap-4">
         <div 
         @click="irADetalle(item.id)" 
-          v-for="item in fichas" 
+          v-for="item in fichasPaginadas" 
           :key="item.id"
           class="servi-adapt-bg rounded-xl shadow-sm overflow-hidden border-t-4 transition-all hover:shadow-md cursor-pointer"
           :style="{ borderTopColor: handleEstados(item.estado).color }"        >
@@ -449,6 +458,14 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Componente Paginador para Fichas -->
+      <paginador 
+        v-model:pagina-actual="paginaActual" 
+        :total-items="fichas.length" 
+        :items-por-pagina="itemsPorPagina" 
+      />
 
       <div v-if="fichas.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
         <div class="servi-grey-font mb-2">
@@ -461,7 +478,6 @@ onMounted(async () => {
       </div>
 
     </div>
-      </div>
       <!-- Fin Tab Fichas -->
 
       <!-- Tab: Cotizaciones -->
