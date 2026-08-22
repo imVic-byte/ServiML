@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import navbar from "../../components/componentes/navbar.vue";
+import paginador from "../../components/componentes/paginador.vue";
 import { supabase } from "../../lib/supabaseClient";
 import { useInterfaz } from "@/stores/interfaz";
 const router = useRouter();
@@ -11,8 +12,16 @@ let searchTimeout = null;
 
 const cotizaciones = ref([]);
 const cotizacionesOriginales = ref([]);
+const paginaActual = ref(1);
+const itemsPorPagina = ref(10);
+
+const cotizacionesPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * itemsPorPagina.value;
+  return cotizaciones.value.slice(inicio, inicio + itemsPorPagina.value);
+});
 
 const handleBusqueda = (texto) => {
+  paginaActual.value = 1;
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
     if (!texto) {
@@ -258,7 +267,7 @@ onMounted( async () => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in cotizaciones" :key="item.id" 
+            <tr v-for="item in cotizacionesPaginadas" :key="item.id" 
                 class="hover:opacity-80 transition-colors cursor-pointer"
                 @click="irADetalle(item.id)">
               <td class="p-4 servi-grey-font">
@@ -310,7 +319,7 @@ onMounted( async () => {
       <!-- Cards Mobile -->
       <div class="md:hidden grid grid-cols-1">
         <RouterLink 
-          v-for="item in cotizaciones" 
+          v-for="item in cotizacionesPaginadas" 
           :key="item.id"
           :to="{ name: 'ver-cotizacion', params: { id: item.id } }" 
           class="card-container servi-adapt-bg servi-grey-font"
@@ -360,6 +369,13 @@ onMounted( async () => {
           </div>
         </RouterLink>
       </div>
+
+      <!-- Componente Paginador -->
+      <paginador 
+        v-model:pagina-actual="paginaActual" 
+        :total-items="cotizaciones.length" 
+        :items-por-pagina="itemsPorPagina" 
+      />
 
       <!-- Empty state mobile -->
       <div v-if="cotizaciones.length === 0" class="servi-adapt-bg rounded-xl p-10 text-center shadow-sm border border-gray-100 md:hidden">
