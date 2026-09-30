@@ -1,6 +1,5 @@
 import {supabase} from "../lib/supabaseClient.js";
-
-const WORKER_URL = "https://upload-informe.soporte-serviml.workers.dev/";
+import { WORKER_URL } from "../lib/constants.js";
 
 export const enviarInformeFinal = async (cliente_id,informeId, numeroFolio, pdf) => {
     if (!informeId || !numeroFolio || !pdf) {

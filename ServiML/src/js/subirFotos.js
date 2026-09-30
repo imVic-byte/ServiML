@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
-
-const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/' 
+import { WORKER_URL } from '../lib/constants' 
 
 export const subirFotos = async (idOrden, numeroFolio, archivos) => {
 
