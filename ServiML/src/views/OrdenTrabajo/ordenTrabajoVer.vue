@@ -7,6 +7,7 @@ import modal from "../../components/componentes/modal.vue";
 import medidorCombustible from "../../components/ordenTrabajo/medidorCombustible.vue"; 
 import {subirFotos} from "../../js/subirFotos.js";
 import {comprimirImagen} from "../../js/comprimirFotos.js";
+import { WORKER_URL } from "../../lib/constants.js";
 import { useInterfaz } from "@/stores/interfaz.js";
 import { useUserStore } from "../../stores/user.js";
 import volver from "../../components/componentes/volver.vue";
@@ -275,7 +276,6 @@ const guardarCambios = async () => {
   }
   const fotosNuevas = fotosRecepcion.value.filter(f => f.isNew);
   if (fotosNuevas.length > 0) {
-    const WORKER_URL = 'https://upload.soporte-serviml.workers.dev/';
     const registros = [];
     for (const foto of fotosNuevas) {
       const archivoReal = foto.file || foto;

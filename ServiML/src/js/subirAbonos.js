@@ -1,6 +1,5 @@
 import { supabase } from '../lib/supabaseClient'
-
-const WORKER_URL = 'https://upload-pdf.soporte-serviml.workers.dev/' 
+import { WORKER_URL } from '../lib/constants' 
 
 export const subirAbonos = async (deuda_id, abono_id, pdf) => {
     if (!pdf || !deuda_id || !abono_id) {
